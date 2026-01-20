@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/Header";
+import { Toaster } from "sonner";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -121,6 +122,7 @@ export default function RootLayout({
         >
           <Header />
           <main className="container mx-auto p-8">{children}</main>
+          <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>
     </html>

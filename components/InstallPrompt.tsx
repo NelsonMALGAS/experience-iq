@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PWAModal from "@/components/PWAModal";
 import IOSModal from "@/components/IOSModal";
+import { toast } from "sonner";
 
 
 /**
@@ -58,7 +59,6 @@ const InstallPrompt = () => {
 
             const installed = checkIfStandalone();
 
-            console.log(installed, "INSTALLED")
             if (!installed) {
                 setShow(true);
             }
@@ -98,9 +98,9 @@ const InstallPrompt = () => {
             await deferredPrompt.prompt();
             const choiceResult = await deferredPrompt.userChoice;
             if (choiceResult.outcome === "accepted") {
-                console.log("✅ PWA install accepted");
+                toast.success("✅ PWA install accepted");
             } else {
-                console.log("❌ PWA install dismissed");
+                toast.info("❌ PWA install dismissed");
             }
             setDeferredPrompt(null);
             setShow(false);
@@ -108,7 +108,7 @@ const InstallPrompt = () => {
             setShowIOSModal(true);
             setShow(false);
         } else {
-            console.log("⚠️ Install prompt not available");
+            toast.error("⚠️ Install prompt not available");
         }
     };
 
