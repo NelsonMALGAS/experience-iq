@@ -25,16 +25,21 @@ const currentApps = getApps();
 let db: Firestore | undefined;
 let auth: Auth | undefined;
 
-if (currentApps.length <= 0) {
+if (!currentApps.length) {
   const app = initializeApp({
     credential: cert(serviceAccount as ServiceAccount),
   });
 
   db = getFirestore(app);
+
+  // ✅ ONLY set settings ONCE
+  db.settings({ preferRest: true });
+
   auth = getAuth(app);
 } else {
-  db = getFirestore(currentApps[0]);
-  auth = getAuth(currentApps[0]);
+  const app = currentApps[0];
+  db = getFirestore(app);
+  auth = getAuth(app);
 }
 
 export { db, auth };

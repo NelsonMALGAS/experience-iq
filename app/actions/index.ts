@@ -1,6 +1,7 @@
 "use server";
 
-import { db } from "@/db/server";
+import { db, auth } from "@/db/server";
+import { AppUser, Role } from "@/types";
 import webpush from "web-push";
 
 // VAPID setup
@@ -135,4 +136,96 @@ export const deleteDocument = async <T>(
   await docRef.delete();
 
   return data;
+};
+
+/**
+ * Save an AppUser to Firestore (server-side using Firebase Admin SDK)
+ * @param collectionName Firestore collection name (e.g., "users")
+ * @param user AppUser object to save
+ */
+export const saveUserToFirestore = async (
+  collectionName: string,
+  user: AppUser
+): Promise<void> => {
+  if (!db) throw new Error("Firestore not initialized");
+  if (!user.uid) throw new Error("User UID is required");
+
+  try {
+    const userRef = db.collection(collectionName).doc(user.uid);
+    await userRef.set(user, { merge: true }); // merge avoids overwriting existing fields
+    console.log(`User ${user.uid} saved to ${collectionName}`);
+  } catch (err) {
+    console.error("Failed to save user to Firestore:", err);
+    throw err;
+  }
+};
+
+/**
+ * Create a new Firebase user (signup)
+ */
+export const handleSignUp = async (
+  email: string,
+  password: string,
+  displayName?: string
+): Promise<AppUser | null> => {
+  try {
+    const userRecord = await auth?.createUser({
+      email,
+      password,
+      displayName,
+    });
+
+    if (!userRecord) return null;
+
+    return {
+      uid: userRecord.uid,
+      displayName: userRecord.displayName ?? null,
+      email: userRecord.email ?? null,
+      photoURL: userRecord.photoURL ?? null,
+      emailVerified: userRecord.emailVerified,
+      role: "guest",
+      property: null,
+      isVerified: false,
+    };
+  } catch (err) {
+    console.error("Firebase signup error:", err);
+    throw new Error(
+      err instanceof Error ? err.message : "Firebase signup error"
+    );
+  }
+};
+
+/**
+ * Verify a Firebase user (login)
+ * Note: Admin SDK does not handle passwords directly. Normally,
+ * you would verify ID tokens from the client, or use Firebase Auth REST API.
+ * For simplicity, assume login is via verifying UID or ID token from client.
+ */
+export const handleLogin = async (
+  uid: string,
+  role: Role
+): Promise<AppUser | null> => {
+  try {
+    const userRecord = await auth?.getUser(uid);
+
+    console.log(userRecord, "USER RECORD");
+
+    if (!userRecord) return null;
+
+    return {
+      uid: userRecord.uid,
+      displayName: userRecord.displayName ?? null,
+      email: userRecord.email ?? null,
+      photoURL: userRecord.photoURL ?? null,
+      emailVerified: userRecord.emailVerified,
+      role: role,
+      property: null,
+      isVerified: false,
+    };
+  } catch (err) {
+    console.error("Firebase login error:", err);
+    throw new Error(
+      err instanceof Error ? err.message : "Failed to login user"
+    );
+  }
 };

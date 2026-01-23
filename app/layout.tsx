@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/Header";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -120,9 +121,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          <main className="container mx-auto p-8">{children}</main>
-          <Toaster richColors position="top-center" />
+          <AuthProvider>
+            <Header />
+            <main className="container mx-auto p-8 flex-1 w-full h-screen">{children}</main>
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
