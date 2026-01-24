@@ -19,7 +19,7 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NODE_ENV === "production"
-      ? "https://service-resolve.vercel.app"
+      ? "https://experience-iq.vercel.app"
       : "http://localhost:3000"
   ),
   title: "ExperienceIQ – Hospitality Service Management",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: "ExperienceIQ – Hospitality Service Management",
     description:
       "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
-    url: "https://service-resolve.vercel.app",
+    url: "https://experience-iq.vercel.app",
     siteName: "ExperienceIQ",
     images: [
       {

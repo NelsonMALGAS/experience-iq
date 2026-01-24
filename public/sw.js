@@ -1,4 +1,4 @@
-const CACHE_NAME = "service-resolve-pages-v1";
+const CACHE_NAME = "experience-iq-pages-v1";
 
 // Pages to cache (update as you add more)
 const pagesToCache = [
@@ -81,7 +81,7 @@ self.addEventListener("notificationclick", function (event) {
   const url =
     self.location.hostname === "localhost"
       ? "http://localhost:3000"
-      : "https://service-resolve.vercel.app";
+      : "https://experience-iq.vercel.app";
 
   event.waitUntil(clients.openWindow(url));
 });

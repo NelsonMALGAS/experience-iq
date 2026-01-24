@@ -33,7 +33,7 @@ const IOSModal = ({ show, onClose }: IOSModalProps) => {
                         <span className="text-primary">
                             {typeof window !== "undefined"
                                 ? window.location.origin
-                                : "https://service-resolve.vercel.app"}
+                                : "https://experience-iq.vercel.app"}
                         </span>
                         .
                     </li>
