@@ -35,11 +35,11 @@ interface Data {
 
 const AuthForm = ({ role }: AuthFormType) => {
 
-    const { handleRegister, handleLogin } = useCurrentUser();
+    const { handleRegister, handleLogin, createSession } = useCurrentUser();
 
     const [mode, setMode] = useState<"login" | "signup">("login");
     const [formErrors, setFormErrors] = useState<Errors | undefined>();
-    const [userRole, setUserRole] = useState<Role>(role || "staff");
+    const [userRole, setUserRole] = useState<Role>(role || "guest");
     const [formData, setFormData] = useState<Data>({
         email: "",
         password: "",
@@ -186,6 +186,9 @@ const AuthForm = ({ role }: AuthFormType) => {
             // 2️⃣ Anonymous Firebase login (guest)
             const result = await signInAnonymously(auth);
 
+            await createSession(result.user, "guest")
+
+
             const guestSession = {
                 uid: result.user.uid,
                 role: "guest",
@@ -228,7 +231,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                         <CardDescription>Access your dashboard or guest portal</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Tabs defaultValue="staff" className="w-full" onValueChange={(value) => setUserRole(value as Role)}>
+                        <Tabs defaultValue="guest" className="w-full" onValueChange={(value) => setUserRole(value as Role)}>
                             <TabsList className="grid w-full grid-cols-2 mb-6">
                                 <TabsTrigger value="staff" className="flex items-center gap-2 cursor-pointer">
                                     <Shield className="h-4 w-4" /> Staff

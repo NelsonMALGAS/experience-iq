@@ -75,6 +75,7 @@ export interface Issue {
   updatedAt: Date;
   resolvedAt?: Date;
   isAnonymous: boolean;
+  images?: string[];
 }
 
 export interface NavItem {

@@ -25,12 +25,17 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import Image from "next/image";
+import { UploadButton } from "@/utils/uploadthing";
 
 
 const AddIssuePage = () => {
     const router = useRouter();
     const [issue, setIssue] = useState<Issue | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0)
 
     // Load guest session
     useEffect(() => {
@@ -47,34 +52,35 @@ const AddIssuePage = () => {
 
     if (!issue) return null;
 
-    // Generic updater
-    const updateIssue = <K extends keyof Issue>(
-        key: K,
-        value: Issue[K]
-    ) => {
+    const updateIssue = <K extends keyof Issue>(key: K, value: Issue[K]) => {
         setIssue((prev) =>
             prev ? { ...prev, [key]: value, updatedAt: new Date() } : prev
         );
     };
+
     const handleSubmit = async () => {
         if (!issue.title || !issue.description) {
             toast.error("Please fill in all required fields");
             return;
         }
 
+        if (!issue.guestId) {
+            toast.error("Guest session not found. Please scan QR code again.");
+            return;
+        }
+
+        if (isUploading) {
+            toast.error("Please wait until images finish uploading");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            if (!issue.guestId) {
-                toast.error("Guest session not found. Please scan QR code again.");
-                return;
-            }
-
             const issueRef = doc(db, "issues", issue.guestId);
 
-            // 🔹 Prepare the new issue entry
             const newIssue = {
-                id: crypto.randomUUID(), // unique ID per issue
+                id: crypto.randomUUID(),
                 title: issue.title,
                 description: issue.description,
                 category: issue.category,
@@ -83,17 +89,17 @@ const AddIssuePage = () => {
                 guestId: issue.guestId,
                 guestName: issue.guestName ?? null,
                 roomNumber: issue.roomNumber ?? null,
-                assignedTo: issue.assignedTo ?? null,
-                assignedToName: issue.assignedToName ?? null,
+                assignedTo: null,
+                assignedToName: null,
                 propertyId: issue.propertyId,
                 propertyName: issue.propertyName ?? null,
-                createdAt: new Date(),  // ← local timestamp
-                updatedAt: new Date(),  // ← local timestamp
-                resolvedAt: issue.resolvedAt ?? null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                resolvedAt: null,
                 isAnonymous: true,
+                images: imageUrls.length ? imageUrls : [],
             };
 
-            // 🔹 Merge with existing issues if any
             await setDoc(
                 issueRef,
                 {
@@ -105,23 +111,18 @@ const AddIssuePage = () => {
             );
 
             toast.success("Issue submitted successfully");
-
             localStorage.removeItem("guestSession");
-
             router.push("/guest/issues");
         } catch (error) {
             console.error(error);
-            toast.error("Failed to submit issue. Check Firestore rules!");
+            toast.error("Failed to submit issue");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-
-
-
     return (
-        <div className="min-h-screen bg-background flex items-start justify-center px-4 py-24">
+        <div className="min-h-screen bg-background flex justify-center px-4 py-24">
             <Card className="w-full max-w-xl border-border shadow-lg">
                 <CardHeader>
                     <CardTitle className="text-2xl">Report an Issue</CardTitle>
@@ -135,9 +136,9 @@ const AddIssuePage = () => {
                     <div className="space-y-2">
                         <Label>Issue Title</Label>
                         <Input
-                            placeholder="e.g. Air conditioner not working"
                             value={issue.title}
                             onChange={(e) => updateIssue("title", e.target.value)}
+                            placeholder="e.g. Air conditioner not working"
                         />
                     </div>
 
@@ -145,10 +146,10 @@ const AddIssuePage = () => {
                     <div className="space-y-2">
                         <Label>Description</Label>
                         <Textarea
-                            placeholder="Please describe the issue in detail..."
-                            className="min-h-30"
                             value={issue.description}
                             onChange={(e) => updateIssue("description", e.target.value)}
+                            placeholder="Please describe the issue in detail..."
+                            className="min-h-28"
                         />
                     </div>
 
@@ -157,8 +158,8 @@ const AddIssuePage = () => {
                         <Label>Category</Label>
                         <Select
                             value={issue.category}
-                            onValueChange={(value) =>
-                                updateIssue("category", value as IssueCategory)
+                            onValueChange={(v) =>
+                                updateIssue("category", v as IssueCategory)
                             }
                         >
                             <SelectTrigger>
@@ -189,8 +190,8 @@ const AddIssuePage = () => {
                         <Label>Priority</Label>
                         <Select
                             value={issue.priority}
-                            onValueChange={(value) =>
-                                updateIssue("priority", value as IssuePriority)
+                            onValueChange={(v) =>
+                                updateIssue("priority", v as IssuePriority)
                             }
                         >
                             <SelectTrigger>
@@ -206,11 +207,87 @@ const AddIssuePage = () => {
                         </Select>
                     </div>
 
-                    {/* Submit */}
+                    {/* Images */}
+                    <div className="space-y-2">
+                        <Label>Images (optional)</Label>
+
+                        <div className="border border-dashed border-border rounded-lg bg-muted/40 p-4">
+                            <UploadButton
+                                endpoint="imageUploader"
+                                appearance={{
+                                    button:
+                                        "w-full h-24 bg-transparent hover:bg-muted flex flex-col items-center justify-center text-muted-foreground",
+                                    allowedContent: "hidden",
+                                }}
+                                content={{
+                                    button: (
+                                        <>
+                                            <span className="text-sm font-medium text-center">
+                                                Click to upload images (max 3 files, total ≤ 4MB)
+                                            </span>
+                                            <span className="text-xs text-center">
+                                                Supported formats: PNG, JPG, JPEG (optional)
+                                            </span>
+                                        </>
+
+                                    ),
+                                }}
+                                onClientUploadComplete={(res) => {
+                                    if (!res) return;
+                                    const urls = res.map((f) => f.url);
+                                    setImageUrls((prev) => [...prev, ...urls]);
+                                    setIsUploading(false);
+                                    setUploadProgress(0)
+                                    toast.success("Images uploaded");
+                                }}
+                                onUploadError={(error: Error) => {
+                                    setIsUploading(false);
+                                    setUploadProgress(0)
+                                    toast.error(error.message);
+                                }}
+                                onUploadBegin={() => setIsUploading(true)}
+                                onUploadProgress={(p) => setUploadProgress(p)}
+
+                            />
+                        </div>
+
+                        {isUploading && (
+                            <div className="mt-2">
+                                <p className="text-sm text-muted-foreground mb-1">
+                                    Uploading images... {uploadProgress}%
+                                </p>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="bg-blue-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${uploadProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {imageUrls.length > 0 && (
+                            <div className="grid grid-cols-3 gap-3">
+                                {imageUrls.map((src, i) => (
+                                    <div
+                                        key={i}
+                                        className="relative h-24 rounded-md overflow-hidden border"
+                                    >
+                                        <Image
+                                            src={src}
+                                            alt={`Uploaded image ${i + 1}`}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <Button
-                        className="w-full"
+                        className="w-full disabled:cursor-not-allowed"
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isUploading}
                     >
                         {isSubmitting ? "Submitting..." : "Submit Issue"}
                     </Button>
@@ -221,3 +298,4 @@ const AddIssuePage = () => {
 };
 
 export default AddIssuePage;
+

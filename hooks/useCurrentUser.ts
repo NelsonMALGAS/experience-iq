@@ -183,6 +183,7 @@ const useCurrentUser = () => {
     handleLogin,
     handlePasswordReset,
     handleSignOut,
+    createSession,
   };
 };
 
