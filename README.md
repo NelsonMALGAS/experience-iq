@@ -24,6 +24,7 @@ This platform solves that problem by providing:
 - Increase staff accountability
 - Provide management with real-time operational visibility
 - Standardize issue handling across multiple properties
+- Enable managers and admins to allocate tasks to staff digitally
 
 ---
 

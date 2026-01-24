@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ServiceResolve",
-    short_name: "ServiceResolve",
+    name: "ExperienceIQ",
+    short_name: "ExperienceIQ",
     description:
-      "ServiceResolve helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
+      "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
     start_url: "/",
     scope: "/",
     display: "standalone",

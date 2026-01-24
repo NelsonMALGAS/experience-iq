@@ -4,7 +4,6 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/Header";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
@@ -23,9 +22,9 @@ export const metadata: Metadata = {
       ? "https://service-resolve.vercel.app"
       : "http://localhost:3000"
   ),
-  title: "ServiceResolve – Hospitality Service Management",
+  title: "ExperienceIQ – Hospitality Service Management",
   description:
-    "ServiceResolve helps hotels and resorts monitor, manage, and resolve guest issues in real time. Improve staff accountability, service quality, and guest satisfaction.",
+    "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time. Improve staff accountability, service quality, and guest satisfaction.",
   keywords: [
     "hospitality",
     "hotel management",
@@ -34,23 +33,23 @@ export const metadata: Metadata = {
     "real-time support",
     "staff dashboard",
   ],
-  authors: [{ name: "Nelson Malgas", url: "https://github.com/NelsonMALGAS" }],
+  authors: [{ name: "Nelson Zongezile Malgas", url: "https://github.com/NelsonMALGAS" }],
   creator: "Nelson Malgas",
-  publisher: "ServiceResolve",
+  publisher: "ExperienceIQ",
 
   // Open Graph (Facebook, LinkedIn, etc.)
   openGraph: {
-    title: "ServiceResolve – Hospitality Service Management",
+    title: "ExperienceIQ – Hospitality Service Management",
     description:
-      "ServiceResolve helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
+      "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
     url: "https://service-resolve.vercel.app",
-    siteName: "ServiceResolve",
+    siteName: "ExperienceIQ",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ServiceResolve - Hospitality Management",
+        alt: "ExperienceIQ - Hospitality Management",
       },
     ],
     locale: "en_US",
@@ -60,11 +59,11 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "ServiceResolve – Hospitality Service Management",
+    title: "ExperienceIQ – Hospitality Service Management",
     description:
-      "ServiceResolve helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
-    images: ["/og-image.png"],
-    site: "@ServiceResolve",
+      "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
+    images: ["/og-image.png", "/twitter-card.png"],
+    site: "@ExperienceIQ",
     creator: "@NelsonMalgas",
   },
 
@@ -93,7 +92,7 @@ export const metadata: Metadata = {
     ],
   },
   appleWebApp: {
-    title: "ServiceResolve",
+    title: "ExperienceIQ",
   },
 
 
@@ -125,22 +124,22 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <Header />
-            <main className="container mx-auto p-8 flex-1 w-full h-screen">
-              <NextSSRPlugin
-                /**
-                 * The `extractRouterConfig` will extract **only** the route configs
-                 * from the router to prevent additional information from being
-                 * leaked to the client. The data passed to the client is the same
-                 * as if you were to fetch `/api/uploadthing` directly.
-                 */
-                routerConfig={extractRouterConfig(ourFileRouter)}
-              />
-              {children}
-            </main>
-            <Toaster richColors position="top-center" />
-          </AuthProvider>
+
+          <Header />
+          <main className="container mx-auto p-8 flex-1 w-full h-screen">
+            <NextSSRPlugin
+              /**
+               * The `extractRouterConfig` will extract **only** the route configs
+               * from the router to prevent additional information from being
+               * leaked to the client. The data passed to the client is the same
+               * as if you were to fetch `/api/uploadthing` directly.
+               */
+              routerConfig={extractRouterConfig(ourFileRouter)}
+            />
+            {children}
+          </main>
+          <Toaster richColors position="top-center" />
+
         </ThemeProvider>
       </body>
     </html>

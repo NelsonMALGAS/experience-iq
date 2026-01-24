@@ -11,10 +11,10 @@ const Footer = () => {
                         <div className="w-8 h-8 rounded-lg bg-gradient-gold flex items-center justify-center">
                             <Sparkles className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="font-display font-semibold text-foreground">ServiceResolve</span>
+                        <span className="font-display font-semibold text-foreground">Experience<span className='text-primary'>IQ</span></span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} ServiceResolve. Premium Guest Experience Platform.
+                        © {new Date().getFullYear()} Experience<span>IQ</span>. Premium Guest Experience Platform.
                     </p>
                 </div>
             </footer>
