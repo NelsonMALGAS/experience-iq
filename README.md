@@ -156,3 +156,60 @@ A **real-time, multi-role service recovery platform** that allows:
 
 ---
 
+## ⏱️ What is an SLA?
+
+**SLA** stands for **Service Level Agreement**.
+
+In this platform, an **SLA defines the maximum acceptable time allowed to respond to and resolve a guest issue**.
+
+---
+
+## 📌 How SLA works in the app
+
+* Each **issue category** (e.g. Housekeeping, Maintenance, F&B) has a predefined SLA time.
+* The SLA timer **starts automatically** when a guest submits an issue.
+* The platform continuously tracks how long the issue has been open.
+* If the issue is **not resolved within the SLA time**, it is considered **breached**.
+
+---
+
+## 🚨 SLA Breach
+
+An **SLA breach** occurs when:
+
+* The issue remains unresolved after the allowed SLA time expires.
+
+When this happens, the system:
+
+* Visually flags the issue as **Overdue**
+* Notifies **Admins** in real time
+* Allows the issue to be **escalated or reassigned**
+* Logs the breach for reporting and performance tracking
+
+---
+
+## 🎯 Why SLAs matter
+
+SLAs help the business to:
+
+* Ensure consistent guest service standards
+* Hold staff accountable
+* Identify operational bottlenecks
+* Prevent negative guest experiences before checkout
+* Improve response times and guest satisfaction
+
+---
+
+## 🧠 Example
+
+> **Housekeeping Issue SLA:** 30 minutes
+>
+> If a guest reports a room cleanliness issue at **14:00**, it must be resolved by **14:30**.
+>
+> If unresolved at **14:30**, the issue is marked as **SLA Breached** and escalated to an Admin.
+
+---
+
+
+
+
