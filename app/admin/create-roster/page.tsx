@@ -2,7 +2,7 @@
 
 const RosterPage = () => {
     return (
-        <div className="mt-24">RoasterPage</div>
+        <div className="mt-24">RosterPage</div>
     )
 }
 

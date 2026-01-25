@@ -25,10 +25,6 @@ const StaffDashboard = async () => {
     const assignedIssues = mockIssues.filter(i => i.assignedTo === '2').slice(0, 3);
     const unassignedIssues = mockIssues.filter(i => !i.assignedTo && i.status === 'open').slice(0, 2);
 
-
-    // const adminSnap = await db?.collection("users").doc(uid).get();
-    // if (!adminSnap) return redirect(`/login?role=${"admin"}`)
-    // if (!adminSnap.exists) redirect(`/login?role=${"admin"}`);
     if (!uid) redirect(`/login?role=${role}`)
     return (
         <div className="mt-24">

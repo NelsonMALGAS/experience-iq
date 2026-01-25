@@ -136,6 +136,7 @@ A **real-time, multi-role service recovery platform** that allows:
 - Verified admins can mark staff as verified or not
 - SLA timers & escalation rules
 - Department-based filtering
+- Create roster(monthly shifts for staff)
 - Resolution time analytics
 - Staff performance metrics
 - Issue trend analysis
