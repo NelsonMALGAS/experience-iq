@@ -106,6 +106,8 @@ const AuthForm = ({ role }: AuthFormType) => {
         try {
             const result = await signInWithPopup(auth, googleAuth);
             const user = result?.user;
+
+            await createSession(user, role)
             const token = await user?.getIdToken(true);
 
 
@@ -120,7 +122,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                 description: "🎉 Success"
             });
 
-            router.push(`/onboarding/${role}?role=${role}`);
+            router.push(`/onboarding/${role}/?role=${role}`);
         } catch (error) {
             console.error("Sign-in error:", error);
             toast.error("Failed to login", {
@@ -221,7 +223,7 @@ const AuthForm = ({ role }: AuthFormType) => {
             <div className="w-full max-w-md space-y-6">
                 {/* Logo */}
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-display font-bold text-primary">ServiceResolve</h1>
+                    <h1 className="text-3xl font-display font-bold text-foreground">Experience<span className="text-primary">IQ</span></h1>
                     <p className="text-muted-foreground">Service Recovery Platform</p>
                 </div>
 
@@ -231,7 +233,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                         <CardDescription>Access your dashboard or guest portal</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Tabs defaultValue="guest" className="w-full" onValueChange={(value) => setUserRole(value as Role)}>
+                        <Tabs defaultValue="staff" className="w-full" onValueChange={(value) => setUserRole(value as Role)}>
                             <TabsList className="grid w-full grid-cols-2 mb-6">
                                 <TabsTrigger value="staff" className="flex items-center gap-2 cursor-pointer">
                                     <Shield className="h-4 w-4" /> Staff

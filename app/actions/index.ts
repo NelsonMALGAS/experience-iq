@@ -1,14 +1,14 @@
 "use server";
 
 import { db, auth } from "@/db/server";
-import { AppUser, Role } from "@/types";
+import { AppUser } from "@/types";
 import webpush from "web-push";
 
 // VAPID setup
 webpush.setVapidDetails(
   "mailto:zmalgas69@gmail.com",
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
+  process.env.VAPID_PRIVATE_KEY!,
 );
 
 let subscription: webpush.PushSubscription | null = null;
@@ -37,7 +37,7 @@ export async function sendNotification(message: string) {
         title: "Test Notification",
         body: message,
         icon: "/icon.png",
-      })
+      }),
     );
     return { success: true };
   } catch (error) {
@@ -52,7 +52,7 @@ export async function sendNotification(message: string) {
  * @returns Array of documents with id + data
  */
 export const fetchCollection = async <T = unknown>(
-  collectionName: string
+  collectionName: string,
 ): Promise<(T & { id: string })[]> => {
   if (!db) throw new Error("Firestore not initialized");
 
@@ -72,7 +72,7 @@ export const fetchCollection = async <T = unknown>(
  */
 export const fetchDocumentById = async <T>(
   collectionName: string,
-  docId: string
+  docId: string,
 ): Promise<(T & { id: string }) | null> => {
   if (!db) throw new Error("Firestore not initialized");
 
@@ -96,7 +96,7 @@ export const fetchDocumentById = async <T>(
 export const updateDocument = async <T>(
   collectionName: string,
   docId: string,
-  data: Partial<T>
+  data: Partial<T>,
 ): Promise<(T & { id: string }) | null> => {
   if (!db) throw new Error("Firestore not initialized");
 
@@ -122,7 +122,7 @@ export const updateDocument = async <T>(
  */
 export const deleteDocument = async <T>(
   collectionName: string,
-  docId: string
+  docId: string,
 ): Promise<(T & { id: string }) | null> => {
   if (!db) throw new Error("Firestore not initialized");
 
@@ -145,7 +145,7 @@ export const deleteDocument = async <T>(
  */
 export const saveUserToFirestore = async (
   collectionName: string,
-  user: AppUser
+  user: AppUser,
 ): Promise<void> => {
   if (!db) throw new Error("Firestore not initialized");
   if (!user.uid) throw new Error("User UID is required");
@@ -166,7 +166,7 @@ export const saveUserToFirestore = async (
 export const handleSignUp = async (
   email: string,
   password: string,
-  displayName?: string
+  displayName?: string,
 ): Promise<AppUser | null> => {
   try {
     const userRecord = await auth?.createUser({
@@ -190,42 +190,7 @@ export const handleSignUp = async (
   } catch (err) {
     console.error("Firebase signup error:", err);
     throw new Error(
-      err instanceof Error ? err.message : "Firebase signup error"
-    );
-  }
-};
-
-/**
- * Verify a Firebase user (login)
- * Note: Admin SDK does not handle passwords directly. Normally,
- * you would verify ID tokens from the client, or use Firebase Auth REST API.
- * For simplicity, assume login is via verifying UID or ID token from client.
- */
-export const handleLogin = async (
-  uid: string,
-  role: Role
-): Promise<AppUser | null> => {
-  try {
-    const userRecord = await auth?.getUser(uid);
-
-    console.log(userRecord, "USER RECORD");
-
-    if (!userRecord) return null;
-
-    return {
-      uid: userRecord.uid,
-      displayName: userRecord.displayName ?? null,
-      email: userRecord.email ?? null,
-      photoURL: userRecord.photoURL ?? null,
-      emailVerified: userRecord.emailVerified,
-      role: role,
-      property: null,
-      isVerified: false,
-    };
-  } catch (err) {
-    console.error("Firebase login error:", err);
-    throw new Error(
-      err instanceof Error ? err.message : "Failed to login user"
+      err instanceof Error ? err.message : "Firebase signup error",
     );
   }
 };

@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { IssueProvider } from "@/contexts/IssuesContext";
 
 
 const poppins = Poppins({
@@ -125,20 +127,21 @@ export default function RootLayout({
           disableTransitionOnChange
         >
 
-          <Header />
-          <main className="container mx-auto p-8 flex-1 w-full h-screen">
-            <NextSSRPlugin
-              /**
-               * The `extractRouterConfig` will extract **only** the route configs
-               * from the router to prevent additional information from being
-               * leaked to the client. The data passed to the client is the same
-               * as if you were to fetch `/api/uploadthing` directly.
-               */
-              routerConfig={extractRouterConfig(ourFileRouter)}
-            />
-            {children}
-          </main>
-          <Toaster richColors position="top-center" />
+          <IssueProvider>
+
+            <NotificationProvider>
+
+              <Header />
+              <main className="container mx-auto p-8 flex-1 w-full h-screen">
+                <NextSSRPlugin
+                  routerConfig={extractRouterConfig(ourFileRouter)}
+                />
+                {children}
+              </main>
+              <Toaster richColors position="top-center" />
+
+            </NotificationProvider>
+          </IssueProvider>
 
         </ThemeProvider>
       </body>

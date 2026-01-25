@@ -24,7 +24,7 @@ type BaseAppUser = Partial<User> & {
 };
 
 export type GuestUser = BaseAppUser & {
-  role: Role;
+  role: "guest";
   property: null;
 };
 
@@ -39,8 +39,6 @@ export type AdminUser = BaseAppUser & {
 };
 
 export type AppUser = GuestUser | StaffUser | AdminUser;
-
-export type UserRole = "guest" | "staff" | "admin";
 
 export type IssueStatus = "open" | "in_progress" | "resolved";
 

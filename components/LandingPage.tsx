@@ -3,7 +3,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserRole } from '@/types';
 import {
     Sparkles,
     Users,
@@ -18,11 +17,12 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Footer from './Footer';
+import { Role } from '@/types';
 
 export default function LandingPage() {
     const router = useRouter();
 
-    const handleRoleSelect = (role: UserRole) => {
+    const handleRoleSelect = (role: Role) => {
         router.push(`/login?role=${role}`);
     };
 
@@ -51,21 +51,21 @@ export default function LandingPage() {
 
     const roles = [
         {
-            role: 'guest' as UserRole,
+            role: 'guest' as Role,
             icon: Users,
             title: 'Guest Portal',
             description: 'Report issues and track resolution status',
             color: 'from-blue-500 to-blue-600'
         },
         {
-            role: 'staff' as UserRole,
+            role: 'staff' as Role,
             icon: Building2,
             title: 'Staff Dashboard',
             description: 'Manage and resolve guest issues efficiently',
             color: 'from-emerald-500 to-emerald-600'
         },
         {
-            role: 'admin' as UserRole,
+            role: 'admin' as Role,
             icon: Shield,
             title: 'Admin Console',
             description: 'Monitor operations across all properties',
