@@ -30,7 +30,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
     { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Roaster", href: "/admin/create-roaster", icon: CalendarClock },
+    { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
 } as const;
 
