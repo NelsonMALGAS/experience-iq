@@ -13,40 +13,61 @@ const Header = () => {
     const { handleSignOut, loading, currentUser } = useCurrentUser()
 
     return (
-        <header className="fixed w-full z-50 bg-background text-foreground shadow-md transition-colors">
-            <nav className="container mx-auto flex items-center justify-between px-4 py-6">
+        <header className="fixed inset-x-0 top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border shadow-sm">
+
+            <nav className="container mx-auto flex items-center justify-between px-4 py-4">
+                {/* Logo Section */}
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 shadow-sm">
                         <Image
                             src="/images/experienceIQ.png"
                             alt="ExperienceIQ Logo"
-                            height={20}
-                            width={20}
-                            className="h-full w-full rounded-full cover"
+                            height={28}
+                            width={28}
+                            className="h-7 w-7 object-contain"
+                            priority
                         />
                     </div>
-                    <span className="text-xl font-semibold">Experience<span className="text-primary">IQ</span></span>
+
+                    <span className="hidden md:block text-lg font-semibold tracking-tight">
+                        Experience
+                        <span className="text-primary">IQ</span>
+                    </span>
                 </div>
 
-                <div className="flex items-center gap-4">
+                {/* Actions */}
+                <div className="flex items-center gap-2">
                     <ModeToggle />
+
                     {loading ? (
-                        <Button variant="ghost">
-                            <span className="w-5 h-5 rounded-full animate-spin text-primary" />
+                        <Button variant="ghost" size="icon" disabled>
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-primary" />
                         </Button>
                     ) : currentUser ? (
-                        <Button variant="ghost" className="hover:border hover:border-red-600 rounded-lg" onClick={handleSignOut}>
-                            <LogOutIcon className="hover:text-red-500" />
+
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleSignOut}
+                            className="rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        >
+                            <LogOutIcon className="h-4 w-4" />
                         </Button>
+
                     ) : (
-                        <Button variant="outline" onClick={() => router.push("/login")}>
+                        <Button
+                            variant="outline"
+                            onClick={() => router.push("/login")}
+                            className="rounded-lg px-4 font-medium"
+                        >
                             Sign In
                         </Button>
                     )}
-
                 </div>
             </nav>
         </header>
+
     );
 };
 
