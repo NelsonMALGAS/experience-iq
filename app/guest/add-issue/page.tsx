@@ -277,6 +277,7 @@ const AddIssuePage = () => {
                                             alt={`Uploaded image ${i + 1}`}
                                             fill
                                             className="object-cover"
+                                            unoptimized
                                         />
                                     </div>
                                 ))}
