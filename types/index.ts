@@ -90,3 +90,10 @@ export interface DashboardStats {
   avgResolutionTime: string;
   slaCompliance: number;
 }
+
+export interface IssueCollection {
+  id: string;
+  guestId: string;
+  issues: Issue[];
+  updatedAt: Date;
+}

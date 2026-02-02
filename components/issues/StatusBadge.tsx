@@ -1,5 +1,6 @@
 "use client"
 
+import { getTimeAgo } from '@/lib/transformTimeStamp';
 import { cn } from '@/lib/utils';
 import { IssueStatus, IssuePriority } from '@/types';
 import { Clock, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
@@ -14,17 +15,17 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         open: {
             label: 'Open',
             icon: AlertCircle,
-            className: 'bg-status-open-bg text-status-open border-status-open/20',
+            className: 'bg-blue-100 text-blue-800 border border-blue-200',
         },
         in_progress: {
             label: 'In Progress',
             icon: Loader2,
-            className: 'bg-status-progress-bg text-status-progress border-status-progress/20',
+            className: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
         },
         resolved: {
             label: 'Resolved',
             icon: CheckCircle2,
-            className: 'bg-status-resolved-bg text-status-resolved border-status-resolved/20',
+            className: 'bg-green-100 text-green-800 border border-green-200',
         },
     };
 
@@ -53,21 +54,22 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
     const config = {
         low: {
             label: 'Low',
-            className: 'bg-priority-low/10 text-priority-low border-priority-low/20',
+            className: 'bg-green-100 text-green-800 border border-green-200',
         },
         medium: {
             label: 'Medium',
-            className: 'bg-priority-medium/10 text-priority-medium border-priority-medium/20',
+            className: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
         },
         high: {
             label: 'High',
-            className: 'bg-priority-high/10 text-priority-high border-priority-high/20',
+            className: 'bg-orange-100 text-orange-800 border border-orange-200',
         },
         critical: {
             label: 'Critical',
-            className: 'bg-priority-critical/10 text-priority-critical border-priority-critical/20 animate-pulse',
+            className: 'bg-red-100 text-red-800 border border-red-200 animate-pulse',
         },
     };
+
 
     const { label, className: priorityClass } = config[priority];
 
@@ -90,18 +92,7 @@ interface TimeAgoBadgeProps {
 }
 
 export function TimeAgoBadge({ date, className }: TimeAgoBadgeProps) {
-    const getTimeAgo = (date: Date) => {
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
 
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        return `${diffDays}d ago`;
-    };
 
     return (
         <span className={cn("inline-flex items-center gap-1 text-xs text-muted-foreground", className)}>

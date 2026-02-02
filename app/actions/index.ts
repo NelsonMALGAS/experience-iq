@@ -1,6 +1,7 @@
 "use server";
 
 import { db, auth } from "@/db/server";
+import { transformFirebaseDates } from "@/lib/transformTimeStamp";
 import { AppUser } from "@/types";
 import webpush from "web-push";
 
@@ -58,10 +59,14 @@ export const fetchCollection = async <T = unknown>(
 
   const snapshot = await db.collection(collectionName).get();
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as (T & { id: string })[];
+  return snapshot.docs.map((doc) => {
+    const data = transformFirebaseDates(doc.data());
+
+    return {
+      id: doc.id,
+      ...(data as Record<string, unknown>),
+    };
+  }) as (T & { id: string })[];
 };
 
 /**

@@ -19,13 +19,28 @@ export async function POST(request: NextRequest) {
     const decodedToken = await auth?.verifySessionCookie(token, true);
 
     const data = await request.json();
-    const { uid, role } = data;
+    const { uid, role, email } = data;
 
     if (!uid || !decodedToken || decodedToken.uid !== uid || !role) {
       return NextResponse.json(
         { error: "Invalid or missing fields" },
         { status: 400 },
       );
+    }
+
+    if (role === "admin" || role === "staff") {
+      const existingUserSnap = await db
+        ?.collection("users")
+        .where("email", "==", email)
+        .limit(1)
+        .get();
+
+      if (!existingUserSnap || !existingUserSnap.empty) {
+        return NextResponse.json(
+          { error: "A user with this email already exists" },
+          { status: 409 },
+        );
+      }
     }
 
     const collectionName = "users";

@@ -1,14 +1,16 @@
 "use client"
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from '@/db/client';
 import useCurrentUser from '@/hooks/useCurrentUser';
 import { AppUser, Role } from '@/types';
 import { useRouter } from "next/navigation";
 import { AppSidebar } from './AppSidebar';
 import { NotificationCenter } from '../notifications/NotificationCenter';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
+import { useUserStore } from '@/store/useUserStore';
 
 
 export interface DashboardLayoutProps {
@@ -19,9 +21,27 @@ export interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
+    const { fetchUserInfo, currentUser: user } = useUserStore()
     const isAuthenticated = !loading && !!uid
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const router = useRouter()
+
+    // 🔥 Realtime Firestore user listener
+    useEffect(() => {
+        if (!uid || !db) return;
+
+        const userRef = doc(db, "users", uid);
+
+        const unsubscribe = onSnapshot(userRef, (snapshot) => {
+            if (!snapshot.exists()) return;
+
+            fetchUserInfo(snapshot.id, {
+                ...snapshot.data() as AppUser,
+            });
+        });
+
+        return () => unsubscribe();
+    }, [uid, fetchUserInfo]);
 
     useEffect(() => {
         if (!loading && !uid) {
@@ -35,9 +55,10 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
         return null;
     }
 
+
     return (
         <div className="min-h-screen bg-background flex w-full">
-            <AppSidebar sidebarOpen={sidebarOpen} role={role} />
+            <AppSidebar sidebarOpen={sidebarOpen} role={user?.role || role} />
 
             {/* Main Content */}
             <main className="flex-1 lg:ml-64">

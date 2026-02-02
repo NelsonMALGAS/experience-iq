@@ -3,12 +3,13 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { mockAdminStats, mockIssues, mockProperties } from "@/constants/mockData";
+import { mockAdminStats, mockProperties } from "@/constants/mockData";
 import { auth } from "@/db/server";
-import { Role } from "@/types";
+import { IssueCollection, Role } from "@/types";
 import { AlertCircle, BarChart3, Building2, CheckCircle2, Clock, TrendingUp } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { fetchCollection } from "../actions";
 
 
 const AdminDashboard = async () => {
@@ -25,13 +26,15 @@ const AdminDashboard = async () => {
     const uid = decoded.uid;
 
 
-    // const adminSnap = await db?.collection("users").doc(uid).get();
-    // if (!adminSnap) return redirect(`/login?role=${"admin"}`)
-    // if (!adminSnap.exists) redirect(`/login?role=${"admin"}`);
     if (!uid) redirect(`/login?role=${role}`)
 
+    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
 
-    const criticalIssues = mockIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
+    const allIssues = issuesCol.flatMap(doc => doc.issues);
+
+    // const assignedIssues = allIssues.filter(i => i.assignedTo === uid)
+    // const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open')
+    const criticalIssues = allIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
     return (
         <div className="mt-24">
             <DashboardLayout role={role} uid={uid}>

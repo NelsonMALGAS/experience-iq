@@ -1,12 +1,13 @@
 import { StatCard } from "@/components/dashboard/StatCard";
 import IssuesList from "@/components/issues/IssuesList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { mockIssues, mockStaffStats } from "@/constants/mockData";
+import { mockStaffStats } from "@/constants/mockData";
 import { auth } from "@/db/server";
-import { Role } from "@/types";
+import { IssueCollection, Role } from "@/types";
 import { AlertCircle, CheckCircle2, Loader2, TrendingUp } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { fetchCollection } from "../actions";
 
 
 const StaffDashboard = async () => {
@@ -22,8 +23,12 @@ const StaffDashboard = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
 
-    const assignedIssues = mockIssues.filter(i => i.assignedTo === '2').slice(0, 3);
-    const unassignedIssues = mockIssues.filter(i => !i.assignedTo && i.status === 'open').slice(0, 2);
+    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
+
+    const allIssues = issuesCol.flatMap(doc => doc.issues);
+
+    const assignedIssues = allIssues.filter(i => i.assignedTo === uid)
+    const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open')
 
     if (!uid) redirect(`/login?role=${role}`)
     return (

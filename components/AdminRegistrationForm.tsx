@@ -111,6 +111,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     ...base,
                     role: "guest",
                     property: null,
+                    email: null
                 };
 
             case "staff":

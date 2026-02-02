@@ -412,3 +412,7 @@ const AuthForm = ({ role }: AuthFormType) => {
 };
 
 export default AuthForm;
+
+
+
+// Added email validation for admin and staff registrations
