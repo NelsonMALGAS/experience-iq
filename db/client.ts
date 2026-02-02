@@ -1,13 +1,15 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
 import {
   getAnalytics,
   isSupported as analyticsSupported,
+  Analytics,
 } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import {
   getMessaging,
+  Messaging,
   isSupported as messagingSupported,
 } from "firebase/messaging";
 
@@ -23,7 +25,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app: FirebaseApp = initializeApp(firebaseConfig);
+const app: FirebaseApp = !getApps().length
+  ? initializeApp(firebaseConfig)
+  : getApp();
 
 // Auth and Firestore
 const auth: Auth = getAuth(app);
@@ -31,67 +35,47 @@ const db: Firestore = getFirestore(app);
 const googleAuth = new GoogleAuthProvider();
 const storage: FirebaseStorage = getStorage(app);
 
+let analyticsInstance: Analytics | null = null;
+let messagingInstance: Messaging | null = null;
+
 /**
- * Initializes Firebase Analytics safely and asynchronously.
- *
- * @description
- * This promise-based IIFE ensures that Firebase Analytics is only initialized
- * in supported environments (i.e., in the browser). It prevents runtime errors
- * during server-side rendering or in browsers that do not support Analytics.
- * By returning a promise that resolves to either an Analytics instance or `null`,
- * it allows the app to safely await this value without crashing.
- *
- * @returns {Promise<Analytics|null>} A promise that resolves to the Analytics
- * instance if supported, otherwise null.
+ * Safely initializes Firebase Analytics (client-only).
+ * Disabled automatically in development.
  */
-const analyticsPromise = (async () => {
+export const getAnalyticsSafe = async (): Promise<Analytics | null> => {
+  if (process.env.NODE_ENV !== "production") return null;
+  if (analyticsInstance) return analyticsInstance;
   if (typeof window === "undefined") return null;
+
   try {
     const supported = await analyticsSupported();
-    return supported ? getAnalytics(app) : null;
+    if (!supported) return null;
+
+    analyticsInstance = getAnalytics(app);
+    return analyticsInstance;
   } catch (err) {
-    if (err instanceof Error) {
-      console.warn("Analytics not supported:", err.message);
-    }
-    console.warn("Analytics not supported:", err);
+    console.warn("Firebase Analytics not supported:", err);
     return null;
   }
-})();
+};
 
 /**
- * Initializes Firebase Cloud Messaging safely and asynchronously.
- *
- * @description
- * This promise-based IIFE ensures that Firebase Messaging is only initialized
- * in environments that support it (i.e., browsers with service worker support).
- * It prevents errors in server-side contexts or unsupported browsers.
- * By returning a promise that resolves to either a Messaging instance or `null`,
- * it allows the rest of the app to safely integrate messaging features
- * like push notifications without risking crashes.
- *
- * @returns {Promise<Messaging|null>} A promise that resolves to the Messaging
- * instance if supported, otherwise null.
+ * Safely initializes Firebase Cloud Messaging (client-only).
  */
-const messagingPromise = (async () => {
+export const getMessagingSafe = async (): Promise<Messaging | null> => {
+  if (messagingInstance) return messagingInstance;
   if (typeof window === "undefined") return null;
+
   try {
     const supported = await messagingSupported();
-    return supported ? getMessaging(app) : null;
+    if (!supported) return null;
+
+    messagingInstance = getMessaging(app);
+    return messagingInstance;
   } catch (err) {
-    if (err instanceof Error) {
-      console.warn("Messaging not supported:", err.message);
-    }
-    console.warn("Messaging not supported:", err);
+    console.warn("Firebase Messaging not supported:", err);
     return null;
   }
-})();
-
-export {
-  app,
-  db,
-  auth,
-  storage,
-  googleAuth,
-  messagingPromise,
-  analyticsPromise,
 };
+
+export { app, db, auth, storage, googleAuth };

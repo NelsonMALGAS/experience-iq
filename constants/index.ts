@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Building2,
   Users,
+  CalendarClock,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
     { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
 } as const;
 
@@ -60,3 +62,15 @@ export const ISSUE_STATUSES = [
 export const roles: Role[] = ["guest", "admin", "staff"];
 
 export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+export const roleConfig = {
+  guest: { label: "Guest", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  staff: {
+    label: "Staff",
+    color: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  },
+  admin: {
+    label: "Admin",
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+};

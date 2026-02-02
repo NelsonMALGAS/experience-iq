@@ -1,4 +1,5 @@
 import { db, auth } from "@/db/server";
+import { AppUser } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -18,17 +19,32 @@ export async function POST(request: NextRequest) {
     const decodedToken = await auth?.verifySessionCookie(token, true);
 
     const data = await request.json();
-    const { userId, role } = data;
+    const { uid, role, email } = data;
 
-    if (!userId || !decodedToken || decodedToken.uid !== userId || !role) {
+    if (!uid || !decodedToken || decodedToken.uid !== uid || !role) {
       return NextResponse.json(
         { error: "Invalid or missing fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
+    if (role === "admin" || role === "staff") {
+      const existingUserSnap = await db
+        ?.collection("users")
+        .where("email", "==", email)
+        .limit(1)
+        .get();
+
+      if (!existingUserSnap || !existingUserSnap.empty) {
+        return NextResponse.json(
+          { error: "A user with this email already exists" },
+          { status: 409 },
+        );
+      }
+    }
+
     const collectionName = "users";
-    const userDocRef = db?.collection(collectionName).doc(userId);
+    const userDocRef = db?.collection(collectionName).doc(uid);
 
     if (!userDocRef) {
       return NextResponse.json({ message: "No userDocRef" }, { status: 404 });
@@ -38,42 +54,38 @@ export async function POST(request: NextRequest) {
     if (docSnapshot.exists) {
       return NextResponse.json(
         { message: "User already exists" },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
     const now = new Date();
-    const userDoc = {
+    const userDoc: AppUser = {
       ...data,
       createdAt: now,
       updatedAt: now,
     };
 
     if (role === "admin" || role === "staff") {
-      //   userDoc.isVerified = false;
-      //   userDoc.available = false;
-
-      console.log("ADMIN/STAFF");
+      userDoc.isVerified = false;
     } else if (role === "guest") {
-      //   userDoc.isActive = true;
-      console.log("GUEST");
+      userDoc.isVerified = true;
     }
 
     await userDocRef.set(userDoc);
 
     if (role === "admin" || role === "staff") {
-      await auth?.setCustomUserClaims(userId, { role });
+      await auth?.setCustomUserClaims(uid, { role });
     }
 
     return NextResponse.json(
       { message: "User registration complete" },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

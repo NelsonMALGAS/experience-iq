@@ -7,15 +7,15 @@ import { AppUser } from "@/types";
 interface UserStore {
   currentUser: AppUser | null;
   isLoading: boolean;
-  fetchUserInfo: (userDoc: AppUser | null) => Promise<void>;
+  fetchUserInfo: (id: string, userDoc: AppUser | null) => Promise<void>;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
   currentUser: null,
   isLoading: true,
 
-  fetchUserInfo: async (userDoc) => {
-    if (!userDoc || !userDoc.uid) {
+  fetchUserInfo: async (id, userDoc) => {
+    if (!userDoc || !userDoc.uid || !id) {
       set({ currentUser: null, isLoading: false });
       return;
     }

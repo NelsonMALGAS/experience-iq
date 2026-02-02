@@ -44,8 +44,8 @@ Traditional guest feedback methods suffer from:
 A **real-time, multi-role service recovery platform** that allows:
 - Guests to submit issues instantly via QR codes
 - Staff to receive and resolve issues in real-time
-- Managers to track resolution times and staff performance
-- Executives to monitor guest experience across properties
+- Admin to track resolution times and staff performance , and create a monthly roaster for staff, to monitor guest experience across properties
+  
 
 ---
 
@@ -56,6 +56,9 @@ A **real-time, multi-role service recovery platform** that allows:
 - **React**
 - **Tailwind CSS**
 - **TypeScript**
+- **Shadcn UI & Themes**
+- **React Icons**
+- **Lucide React Icons**
 
 ### Backend & Infrastructure
 - **Firebase Authentication**
@@ -63,7 +66,13 @@ A **real-time, multi-role service recovery platform** that allows:
 - **Firebase Cloud Functions**
 - **Firebase Cloud Messaging (FCM)**
 - **Firebase Hosting**
+- **Sentry**
+- **UploadThing**
 
+
+### State Management
+- **Zustand**
+- **React Context**
 ---
 
 ## 👥 User Roles
@@ -76,22 +85,28 @@ A **real-time, multi-role service recovery platform** that allows:
 
 ### 2. Staff
 - Secure login
+- Register
 - View assigned issues
 - Update issue status
 - Communicate internally
 - Receive real-time notifications
 
-### 3. Manager
+### 3. Admin
 - Monitor all active issues
 - SLA tracking & escalation
 - Staff performance insights
 - Analytics dashboards
-
-### 4. Admin / Executive
+- Secure login
+- Register
+- View assigned issues
+- Update issue status
+- Communicate internally
+- Receive real-time notifications
 - Multi-property oversight
 - System configuration
 - Performance comparison
 - Strategic analytics
+
 
 ---
 
@@ -111,12 +126,6 @@ A **real-time, multi-role service recovery platform** that allows:
 - Push notifications
 - Issue history tracking
 
-### Manager Features
-- SLA timers & escalation rules
-- Department-based filtering
-- Resolution time analytics
-- Staff performance metrics
-- Issue trend analysis
 
 ### Admin Features
 - Multi-property management
@@ -124,7 +133,15 @@ A **real-time, multi-role service recovery platform** that allows:
 - Category & SLA configuration
 - Data exports
 - Audit logs
-
+- Verified admins can mark staff as verified or not
+- SLA timers & escalation rules
+- Department-based filtering
+- Create roster(monthly shifts for staff)
+- Resolution time analytics
+- Staff performance metrics
+- Issue trend analysis
+- Assign issues to staff
+- Mark staff as verified or not
 ---
 
 ## 🔄 Application Flow
@@ -139,4 +156,63 @@ A **real-time, multi-role service recovery platform** that allows:
 8. Data is stored for analytics
 
 ---
+
+## ⏱️ What is an SLA?
+
+**SLA** stands for **Service Level Agreement**.
+
+In this platform, an **SLA defines the maximum acceptable time allowed to respond to and resolve a guest issue**.
+
+---
+
+## 📌 How SLA works in the app
+
+* Each **issue category** (e.g. Housekeeping, Maintenance, F&B) has a predefined SLA time.
+* The SLA timer **starts automatically** when a guest submits an issue.
+* The platform continuously tracks how long the issue has been open.
+* If the issue is **not resolved within the SLA time**, it is considered **breached**.
+
+---
+
+## 🚨 SLA Breach
+
+An **SLA breach** occurs when:
+
+* The issue remains unresolved after the allowed SLA time expires.
+
+When this happens, the system:
+
+* Visually flags the issue as **Overdue**
+* Notifies **Admins** in real time
+* Allows the issue to be **escalated or reassigned**
+* Logs the breach for reporting and performance tracking
+
+---
+
+## 🎯 Why SLAs matter
+
+SLAs help the business to:
+
+* Ensure consistent guest service standards
+* Hold staff accountable
+* Identify operational bottlenecks
+* Prevent negative guest experiences before checkout
+* Improve response times and guest satisfaction
+
+---
+
+## 🧠 Example
+
+> **Housekeeping Issue SLA:** 30 minutes
+>
+> If a guest reports a room cleanliness issue at **14:00**, it must be resolved by **14:30**.
+>
+> If unresolved at **14:30**, the issue is marked as **SLA Breached** and escalated to an Admin.
+
+---
+
+NB: SOME PARTS OF THE APP STILL USING DUMMY DATA
+
+
+
 
