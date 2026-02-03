@@ -1,18 +1,21 @@
-"use client"
+'use client';
 
-import { Issue } from "@/types"
-import { IssueCard } from "./IssueCard"
-import Link from "next/link"
+import { Issue, Role, StaffMember } from "@/types";
+import { IssueCard } from "./IssueCard";
 
-type IssuesListProps = {
-    issues: Issue[]
+interface IssuesListProps {
+    issues: Issue[];
+    staffMembers?: StaffMember[];
+    currentUserId?: string;
+    userRole?: Role;
 }
 
-const IssuesList = ({ issues }: IssuesListProps) => {
-
-    const handleIssueClick = (issue: Issue) => {
-        console.log(issue, "ISSUE")
-    }
+export default function IssuesList({
+    issues,
+    staffMembers = [],
+    currentUserId,
+    userRole = 'staff'
+}: IssuesListProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {issues.map((issue, index) => (
@@ -21,13 +24,14 @@ const IssuesList = ({ issues }: IssuesListProps) => {
                     className="animate-slide-up"
                     style={{ animationDelay: `${index * 50}ms` }}
                 >
-                    <Link href={`/staff/issues/${issue.id}`}>
-                        <IssueCard issue={issue} onClick={() => handleIssueClick(issue)} />
-                    </Link>
+                    <IssueCard
+                        issue={issue}
+                        staffMembers={staffMembers}
+                        currentUserId={currentUserId}
+                        userRole={userRole}
+                    />
                 </div>
             ))}
         </div>
-    )
+    );
 }
-
-export default IssuesList

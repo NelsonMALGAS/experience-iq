@@ -153,12 +153,9 @@ export interface CalendarGridProps {
   selectedMonth: number;
   selectedDate: string;
   selectedStaff: string;
-
   staffMembers: StaffMember[];
   shiftTemplates: ShiftTemplate[];
-
   isMobileMenuOpen: boolean;
-
   getShiftsForDate: (date: string) => Shift[];
   setSelectedDate: (date: string) => void;
   setIsMobileMenuOpen: (open: boolean) => void;

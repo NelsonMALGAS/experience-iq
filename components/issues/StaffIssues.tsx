@@ -5,39 +5,28 @@ import { IssueFilters } from '@/components/issues/IssueFilters';
 import { IssueDetailsDialog } from '@/components/issues/IssueDetailsDialog';
 import { useIssueFilters } from '@/hooks/useIssueFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AppUser, Issue, Role } from '@/types';
-import { useIssues } from '@/contexts/IssuesContext';
+import { AppUser, Issue, Role, StaffMember } from '@/types';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { IssueCard } from './IssueCard';
-
 
 type StaffIssuesProps = {
     role: Role,
     uid: AppUser["uid"]
+    issues: Issue[],
+    staff: StaffMember[]
 }
 
-export default function StaffIssues({ role, uid }: StaffIssuesProps) {
-    const { issues } = useIssues();
+export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesProps) {
     const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    // Filter for property issues
-    const propertyIssues = issues.filter(i => i.propertyId === 'prop-1');
-    const assignedIssues = propertyIssues.filter(i => i.assignedTo === '2');
-
-    console.log("Assigned Issues", assignedIssues)
-
-    const { filters, setFilters, filteredIssues } = useIssueFilters(propertyIssues);
+    const { filters, setFilters, filteredIssues } = useIssueFilters(issues);
 
     const openIssues = filteredIssues.filter(i => i.status === 'open');
     const inProgressIssues = filteredIssues.filter(i => i.status === 'in_progress');
-    const filteredAssigned = filteredIssues.filter(i => i.assignedTo === '2');
+    const filteredAssigned = filteredIssues.filter(i => i.assignedTo === uid);
 
-    const handleIssueClick = (issue: Issue) => {
-        setSelectedIssue(issue);
-        setDialogOpen(true);
-    };
-
+    console.log(setSelectedIssue)
     return (
         <DashboardLayout role={role} uid={uid}>
             <div className="space-y-6 animate-fade-in">
@@ -73,7 +62,12 @@ export default function StaffIssues({ role, uid }: StaffIssuesProps) {
                                     className="animate-slide-up"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    <IssueCard issue={issue} onClick={() => handleIssueClick(issue)} />
+                                    <IssueCard
+                                        issue={issue}
+                                        staffMembers={staff}
+                                        currentUserId={uid}
+                                        userRole={role}
+                                    />
                                 </div>
                             ))}
                             {filteredAssigned.length === 0 && (
@@ -86,8 +80,19 @@ export default function StaffIssues({ role, uid }: StaffIssuesProps) {
 
                     <TabsContent value="open" className="mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {openIssues.map((issue) => (
-                                <IssueCard key={issue.id} issue={issue} onClick={() => handleIssueClick(issue)} />
+                            {openIssues.map((issue, index) => (
+                                <div
+                                    key={issue.id}
+                                    className="animate-slide-up"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <IssueCard
+                                        issue={issue}
+                                        staffMembers={staff}
+                                        currentUserId={uid}
+                                        userRole={role}
+                                    />
+                                </div>
                             ))}
                             {openIssues.length === 0 && (
                                 <p className="text-muted-foreground col-span-full text-center py-8">
@@ -99,8 +104,19 @@ export default function StaffIssues({ role, uid }: StaffIssuesProps) {
 
                     <TabsContent value="progress" className="mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {inProgressIssues.map((issue) => (
-                                <IssueCard key={issue.id} issue={issue} onClick={() => handleIssueClick(issue)} />
+                            {inProgressIssues.map((issue, index) => (
+                                <div
+                                    key={issue.id}
+                                    className="animate-slide-up"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <IssueCard
+                                        issue={issue}
+                                        staffMembers={staff}
+                                        currentUserId={uid}
+                                        userRole={role}
+                                    />
+                                </div>
                             ))}
                             {inProgressIssues.length === 0 && (
                                 <p className="text-muted-foreground col-span-full text-center py-8">

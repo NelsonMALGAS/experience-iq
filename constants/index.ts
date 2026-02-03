@@ -8,6 +8,7 @@ import {
   Users,
   CalendarClock,
   type LucideIcon,
+  Clock,
 } from "lucide-react";
 
 export interface NavLink {
@@ -137,3 +138,45 @@ export const STAFF_DEPARTMENTS: IssueCategory[] = [
   "staff",
   "other",
 ];
+
+export const statusConfig = {
+  open: {
+    label: "Open",
+    className: "bg-status-open-bg text-status-open border-status-open/20",
+    dotColor: "bg-status-open",
+  },
+  in_progress: {
+    label: "In Progress",
+    className: "bg-blue-50 text-blue-700 border-blue-200",
+    dotColor: "bg-blue-500",
+  },
+  resolved: {
+    label: "Resolved",
+    className:
+      "bg-status-resolved-bg text-status-resolved border-status-resolved/20",
+    dotColor: "bg-status-resolved",
+  },
+};
+
+export const priorityConfig = {
+  critical: {
+    label: "Critical",
+    className: "bg-red-100 text-red-700 border-red-200",
+    icon: AlertCircle,
+  },
+  high: {
+    label: "High",
+    className: "bg-orange-100 text-orange-700 border-orange-200",
+    icon: AlertCircle,
+  },
+  medium: {
+    label: "Medium",
+    className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    icon: Clock,
+  },
+  low: {
+    label: "Low",
+    className: "bg-gray-100 text-gray-600 border-gray-200",
+    icon: Clock,
+  },
+};

@@ -1,17 +1,17 @@
 import { StatCard } from "@/components/dashboard/StatCard";
 import IssuesList from "@/components/issues/IssuesList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { mockStaffStats } from "@/constants/mockData";
 import { auth } from "@/db/server";
-import { IssueCollection, Role } from "@/types";
-import { AlertCircle, CheckCircle2, Loader2, TrendingUp } from "lucide-react";
+import { IssueCollection, Role, StaffMember } from "@/types";
+import { AlertCircle, CheckCircle2, Loader2, TrendingUp, Users } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { fetchCollection } from "../actions";
-
+import { fetchCollection, getStaffUsers } from "../actions";
+import { staffColorPalette } from "@/constants";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { calculateStaffStats } from "@/utils/staffDashboardUtils";
 
 const StaffDashboard = async () => {
-
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
     const role: Role = "staff"
@@ -23,20 +23,36 @@ const StaffDashboard = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
 
-    console.log(decoded, "DECODED")
+    if (!uid) redirect(`/login?role=${role}`)
+
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []
+    const staffUsers = await getStaffUsers();
+
+    const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
+        id: user.uid,
+        name: user.displayName ?? user.email ?? "Unknown",
+        email: user.email ?? "unknown@example.com",
+        isVerified: user.emailVerified ?? false,
+        color: staffColorPalette[index % staffColorPalette.length],
+        department: user.customClaims?.department || "other",
+    }));
 
     const allIssues = issuesCol.flatMap(doc => doc.issues);
 
     const assignedIssues = allIssues.filter(i => i.assignedTo === uid)
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open')
 
-    if (!uid) redirect(`/login?role=${role}`)
+    // Calculate real-time statistics
+    const stats = calculateStaffStats(assignedIssues, unassignedIssues);
+
+    // Combine issues for display - assigned first, then unassigned
+    const displayIssues = [...assignedIssues, ...unassignedIssues];
+
+    // Get active issues (not resolved)
+    const activeIssues = displayIssues.filter(i => i.status !== 'resolved');
+
     return (
         <div className="mt-24">
-
-
-
             <DashboardLayout role={role} uid={uid}>
                 <div className="space-y-8 animate-fade-in">
                     {/* Header */}
@@ -53,74 +69,143 @@ const StaffDashboard = async () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
                             title="My Assigned"
-                            value={mockStaffStats.totalIssues}
-                            icon={AlertCircle}
+                            value={stats.myAssigned}
+                            subtitle={`${stats.inProgressIssues} in progress`}
+                            icon={Users}
                             variant="primary"
                         />
                         <StatCard
                             title="Open Issues"
-                            value={mockStaffStats.openIssues}
-                            subtitle="Needs attention"
+                            value={stats.openIssues}
+                            subtitle="Needs assignment"
                             icon={AlertCircle}
                             variant="danger"
                         />
                         <StatCard
                             title="In Progress"
-                            value={mockStaffStats.inProgressIssues}
+                            value={stats.inProgressIssues}
+                            subtitle="Active work"
                             icon={Loader2}
                             variant="warning"
                         />
                         <StatCard
                             title="Resolved Today"
-                            value={mockStaffStats.resolvedIssues}
+                            value={stats.resolvedToday}
                             icon={CheckCircle2}
-                            trend={{ value: 12, isPositive: true }}
                             variant="success"
                         />
                     </div>
 
-                    {/* Performance Card */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div className="lg:col-span-1 bg-gradient-primary rounded-xl p-6 text-primary-foreground">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                                    <TrendingUp className="h-6 w-6" />
+                    {/* Performance and Quick Actions */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Performance Card */}
+                        <Card className="lg:col-span-1 bg-gradient-primary border-none text-primary-foreground">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <TrendingUp className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-primary-foreground/70">SLA Compliance</p>
+                                        <p className="text-3xl font-display font-bold">{stats.slaCompliance}%</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-primary-foreground/70">SLA Compliance</p>
-                                    <p className="text-3xl font-display font-bold">{mockStaffStats.slaCompliance}%</p>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-primary-foreground/70">Average Resolution</span>
+                                        <span className="font-semibold text-primary-foreground">
+                                            {stats.avgResolutionTime}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-primary-foreground/70">Total Resolved</span>
+                                        <span className="font-semibold text-primary-foreground">
+                                            {assignedIssues.filter(i => i.status === 'resolved').length}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <p className="text-sm text-primary-foreground/70">
-                                Average resolution time: <span className="font-semibold text-primary-foreground">{mockStaffStats.avgResolutionTime}</span>
-                            </p>
-                        </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
-                            <h3 className="font-display font-semibold text-lg mb-4">Quick Actions</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button className="p-4 rounded-lg bg-status-open-bg border border-status-open/20 text-left hover:shadow-md transition-all">
-                                    <p className="text-2xl font-bold text-status-open">{mockStaffStats.openIssues}</p>
-                                    <p className="text-sm text-muted-foreground">Unassigned Issues</p>
-                                </button>
-                                <button className="p-4 rounded-lg bg-status-progress-bg border border-status-progress/20 text-left hover:shadow-md transition-all">
-                                    <p className="text-2xl font-bold text-status-progress">{mockStaffStats.inProgressIssues}</p>
-                                    <p className="text-sm text-muted-foreground">In Progress</p>
-                                </button>
-                            </div>
-                        </div>
+                        {/* Quick Actions */}
+                        <Card className="lg:col-span-2">
+                            <CardHeader>
+                                <CardTitle className="font-display">Quick Actions</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button className="group p-5 rounded-lg bg-status-open-bg border-2 border-status-open/20 text-left hover:border-status-open/40 hover:shadow-md transition-all">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="text-3xl font-bold text-status-open">{stats.openIssues}</p>
+                                            <AlertCircle className="h-6 w-6 text-status-open/60 group-hover:text-status-open transition-colors" />
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">Unassigned Issues</p>
+                                        <p className="text-xs text-muted-foreground mt-1">Available to claim</p>
+                                    </button>
+                                    <button className="group p-5 rounded-lg bg-status-progress-bg border-2 border-status-progress/20 text-left hover:border-status-progress/40 hover:shadow-md transition-all">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="text-3xl font-bold text-status-progress">{stats.inProgressIssues}</p>
+                                            <Loader2 className="h-6 w-6 text-status-progress/60 group-hover:text-status-progress transition-colors" />
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">In Progress</p>
+                                        <p className="text-xs text-muted-foreground mt-1">Needs attention</p>
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
-                    {/* Assigned Issues */}
+                    {/* Active Issues Section */}
                     <div>
-                        <h2 className="text-xl font-display font-semibold text-foreground mb-4">
-                            My Active Issues
-                        </h2>
-                        <IssuesList issues={[...assignedIssues, ...unassignedIssues]} />
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-xl font-display font-semibold text-foreground">
+                                    My Active Issues
+                                </h2>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    {activeIssues.length > 0
+                                        ? `${activeIssues.length} issue${activeIssues.length === 1 ? '' : 's'} requiring attention`
+                                        : 'All caught up!'}
+                                </p>
+                            </div>
+                            {activeIssues.length > 0 && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-3 h-3 rounded-full bg-primary/20 border-2 border-primary" />
+                                        <span>Assigned</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-3 h-3 rounded-full bg-muted border-2 border-border" />
+                                        <span>Unassigned</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {displayIssues.length > 0 ? (
+                            <IssuesList
+                                issues={displayIssues}
+                                staffMembers={plainStaffUsers}
+                                currentUserId={uid}
+                                userRole={role}
+                            />
+                        ) : (
+                            <Card className="border-dashed">
+                                <CardContent className="flex flex-col items-center justify-center py-16">
+                                    <CheckCircle2 className="h-16 w-16 text-muted-foreground/40 mb-4" />
+                                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                                        No Issues Found
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground text-center max-w-md">
+                                        You don&apos;t have any assigned issues and there are no open issues available.
+                                        Great job staying on top of things!
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </DashboardLayout>
-
         </div>
     )
 }

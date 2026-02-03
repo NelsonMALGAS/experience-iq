@@ -1,6 +1,9 @@
 "use server";
 
-import { db, auth } from "@/db/server";
+import { auth, db } from "@/db/server";
+import { Issue } from "@/types";
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { transformFirebaseDates } from "@/lib/transformTimeStamp";
 import { AppUser } from "@/types";
 import webpush from "web-push";
@@ -219,3 +222,179 @@ export const getStaffUsers = async () => {
     return [];
   }
 };
+
+interface UpdateIssuePayload {
+  assignedTo?: string;
+  assignedToName?: string;
+  status?: Issue["status"];
+  propertyId?: string;
+  priority?: Issue["priority"];
+}
+
+export async function updateIssue(
+  issueId: string,
+  propertyId: string,
+  updates: UpdateIssuePayload,
+) {
+  try {
+    if (!db) {
+      console.error("❌ Firebase is not initialized");
+      return {
+        success: false,
+        message: "Firebase is not initialized",
+      };
+    }
+
+    // Verify admin authentication
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+
+    if (!session) {
+      throw new Error("Unauthorized: No session found");
+    }
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+    if (!decoded) {
+      throw new Error("Unauthorized: Invalid session");
+    }
+
+    // Try to get the issue document
+    // First, try using propertyId as document ID
+    let issueDocRef = db.collection("issues").doc(propertyId);
+    let issueDoc = await issueDocRef.get();
+
+    // If not found, try to find the document by querying
+    if (!issueDoc.exists) {
+      console.log(
+        `Document not found with ID: ${propertyId}, searching all documents...`,
+      );
+
+      const allIssuesSnapshot = await db.collection("issues").get();
+
+      // Search through all documents to find the one containing this issue
+      for (const doc of allIssuesSnapshot.docs) {
+        const data = doc.data();
+        if (data?.issues) {
+          const hasIssue = data.issues.some(
+            (issue: Issue) => issue.id === issueId,
+          );
+          if (hasIssue) {
+            issueDocRef = doc.ref;
+            issueDoc = doc;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!issueDoc.exists) {
+      const errorMsg = `Issue document not found. Issue ID: ${issueId}, Property ID: ${propertyId}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    const data = issueDoc.data();
+    if (!data?.issues) {
+      throw new Error("Issues array not found in document");
+    }
+
+    // Find and update the specific issue
+    const issues = data.issues as Issue[];
+    const issueIndex = issues.findIndex((i: Issue) => i.id === issueId);
+
+    if (issueIndex === -1) {
+      throw new Error(
+        `Issue with ID ${issueId} not found in document ${issueDoc.id}`,
+      );
+    }
+
+    // Update the issue with new data and timestamp
+    issues[issueIndex] = {
+      ...issues[issueIndex],
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    // Write back to Firestore
+    await issueDocRef.update({
+      issues,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/admin");
+
+    return { success: true, message: "Issue updated successfully" };
+  } catch (error) {
+    console.error("Error updating issue:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to update issue",
+    };
+  }
+}
+
+export async function bulkUpdateIssueStatus(
+  issueIds: string[],
+  propertyId: string,
+  status: Issue["status"],
+) {
+  try {
+    if (!db) {
+      console.error("❌ Firebase is not initialized");
+      return {
+        success: false,
+        message: "Firebase is not initialized",
+      };
+    }
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+
+    if (!session) {
+      throw new Error("Unauthorized");
+    }
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+    if (!decoded) {
+      throw new Error("Unauthorized");
+    }
+
+    const issueDocRef = db.collection("issues").doc(propertyId);
+    const issueDoc = await issueDocRef.get();
+
+    if (!issueDoc.exists) {
+      throw new Error("Issue document not found");
+    }
+
+    const data = issueDoc.data();
+    const issues = data?.issues as Issue[];
+
+    // Update all matching issues
+    const updatedIssues = issues.map((issue: Issue) => {
+      if (issueIds.includes(issue.id)) {
+        return {
+          ...issue,
+          status,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return issue;
+    });
+
+    await issueDocRef.update({
+      issues: updatedIssues,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath("/admin");
+
+    return { success: true, message: "Issues updated successfully" };
+  } catch (error) {
+    console.error("Error bulk updating issues:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to update issues",
+    };
+  }
+}
