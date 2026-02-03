@@ -54,6 +54,7 @@ export const mockUsers: AppUser[] = [
     role: "staff",
     property: [mockProperties[0]], // ✅ full Property object
     isVerified: false,
+    department: "food",
   },
   {
     uid: "3",
