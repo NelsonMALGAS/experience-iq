@@ -7,13 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QrCode, Shield, Eye, EyeOff } from "lucide-react";
 import { FaGoogle } from "react-icons/fa"
-import { Role } from "@/types";
+import { IssueCategory, Role } from "@/types";
 import { toast } from "sonner";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { signInAnonymously, signInWithPopup } from "firebase/auth";
 import { auth, googleAuth } from "@/db/client";
 import { useRouter } from "next/navigation";
 import { DUMMY_ROOMS } from "@/constants/mockData";
+import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { STAFF_DEPARTMENTS } from "@/constants";
 
 interface AuthFormType {
     role: Role
@@ -24,6 +27,7 @@ interface Errors {
     password?: string,
     name?: string,
     confirmPassword?: string
+    department?: string
 }
 
 interface Data {
@@ -31,6 +35,7 @@ interface Data {
     password: string,
     name: string,
     confirmPassword: string
+    department: IssueCategory
 }
 
 const AuthForm = ({ role }: AuthFormType) => {
@@ -44,7 +49,8 @@ const AuthForm = ({ role }: AuthFormType) => {
         email: "",
         password: "",
         name: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        department: "other",
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +60,17 @@ const AuthForm = ({ role }: AuthFormType) => {
     const router = useRouter()
 
     useEffect(() => {
+        if (userRole === "admin") {
+            setFormData((prev) => ({ ...prev, department: "management" }));
+        } else if (userRole === "guest") {
+            setFormData((prev) => ({ ...prev, department: "other" }));
+        } else if (userRole === "staff") {
+            setFormData((prev) => ({ ...prev, department: "other" }));
+        }
+    }, [userRole]);
+
+
+    useEffect(() => {
         if (typeof window === "undefined") return;
 
         const url = new URL(window.location.href);
@@ -61,7 +78,7 @@ const AuthForm = ({ role }: AuthFormType) => {
 
         if (currentRole !== userRole) {
             url.searchParams.set("role", userRole);
-            router.replace(url.toString(), { scroll: false }); // prevent scroll jump
+            router.replace(url.toString(), { scroll: false });
         }
     }, [userRole, router]);
 
@@ -107,14 +124,14 @@ const AuthForm = ({ role }: AuthFormType) => {
             const result = await signInWithPopup(auth, googleAuth);
             const user = result?.user;
 
-            await createSession(user, role)
+            await createSession(user, role, formData.department)
             const token = await user?.getIdToken(true);
-
+            const { department } = formData
 
             await fetch(`${process.env.NEXT_PUBLIC_URL}/api/session`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, role }),
+                body: JSON.stringify({ token, role, department }),
             });
 
             toast.success("Logged in successfully", {
@@ -154,7 +171,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         setIsLoading(true);
         setFormErrors({});
 
-        const { email, password } = formData;
+        const { email, password, department } = formData;
 
         if (!userRole) {
             toast.error("Role is reqired")
@@ -162,9 +179,9 @@ const AuthForm = ({ role }: AuthFormType) => {
         }
 
         if (mode === "signup") {
-            await handleRegister(email, password, userRole);
+            await handleRegister(email, password, userRole, department);
         } else {
-            await handleLogin(email, password, userRole);
+            await handleLogin(email, password, userRole, department);
         }
     };
 
@@ -188,7 +205,7 @@ const AuthForm = ({ role }: AuthFormType) => {
             // 2️⃣ Anonymous Firebase login (guest)
             const result = await signInAnonymously(auth);
 
-            await createSession(result.user, "guest")
+            await createSession(result.user, "guest", "other")
 
 
             const guestSession = {
@@ -379,6 +396,34 @@ const AuthForm = ({ role }: AuthFormType) => {
                                         </Button>
                                     </form>
                                 )}
+
+                                {/* Department Select (only for staff) */}
+                                {userRole === "staff" && (
+                                    <div className="flex flex-col gap-1">
+                                        <Label htmlFor="department" className="text-sm sm:text-base">Department</Label>
+                                        <Select
+                                            value={formData.department}
+                                            onValueChange={(val) =>
+                                                setFormData({ ...formData, department: val as IssueCategory })
+                                            }
+                                        >
+                                            <SelectTrigger id="department">
+                                                <SelectValue placeholder="Select Department" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {STAFF_DEPARTMENTS.map((dept) => (
+                                                    <SelectItem key={dept} value={dept}>
+                                                        {dept}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {formErrors?.department && (
+                                            <p className="text-sm text-red-500">{formErrors.department}</p>
+                                        )}
+                                    </div>
+                                )}
+
                             </TabsContent>
 
                             {/* --- GUEST --- */}
@@ -414,5 +459,3 @@ const AuthForm = ({ role }: AuthFormType) => {
 export default AuthForm;
 
 
-
-// Added email validation for admin and staff registrations

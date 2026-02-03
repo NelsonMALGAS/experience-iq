@@ -1,4 +1,4 @@
-import { Role } from "@/types";
+import { IssueCategory, Role } from "@/types";
 import {
   LayoutDashboard,
   AlertCircle,
@@ -74,3 +74,66 @@ export const roleConfig = {
     color: "bg-purple-100 text-purple-700 border-purple-200",
   },
 };
+
+export const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+export const shiftTemplates = [
+  {
+    label: "Morning",
+    start: "06:00",
+    end: "14:00",
+    color: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+  },
+  {
+    label: "Afternoon",
+    start: "14:00",
+    end: "22:00",
+    color: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
+  },
+  {
+    label: "Night",
+    start: "22:00",
+    end: "06:00",
+    color: "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+  },
+  {
+    label: "Full Day",
+    start: "09:00",
+    end: "17:00",
+    color: "bg-green-500/20 text-green-700 dark:text-green-300",
+  },
+];
+
+export const staffColorPalette = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
+export const STAFF_DEPARTMENTS: IssueCategory[] = [
+  "amenities",
+  "billing",
+  "cleanliness",
+  "food",
+  "maintenance",
+  "noise",
+  "room",
+  "security",
+  "staff",
+  "other",
+];

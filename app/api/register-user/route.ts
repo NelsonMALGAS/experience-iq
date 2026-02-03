@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const decodedToken = await auth?.verifySessionCookie(token, true);
 
     const data = await request.json();
-    const { uid, role, email } = data;
+    const { uid, role, email, department } = data;
 
     if (!uid || !decodedToken || decodedToken.uid !== uid || !role) {
       return NextResponse.json(
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     await userDocRef.set(userDoc);
 
     if (role === "admin" || role === "staff") {
-      await auth?.setCustomUserClaims(uid, { role });
+      await auth?.setCustomUserClaims(uid, { role, department });
     }
 
     return NextResponse.json(

@@ -118,7 +118,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${poppins.variable}  antialiased`}
+        className={`${poppins.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -128,21 +128,17 @@ export default function RootLayout({
         >
 
           <IssueProvider>
-
             <NotificationProvider>
-
               <Header />
-              <main className="container mx-auto p-8 flex-1 w-full h-screen">
+              <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen">
                 <NextSSRPlugin
                   routerConfig={extractRouterConfig(ourFileRouter)}
                 />
                 {children}
               </main>
               <Toaster richColors position="top-center" />
-
             </NotificationProvider>
           </IssueProvider>
-
         </ThemeProvider>
       </body>
     </html>

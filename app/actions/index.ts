@@ -199,3 +199,23 @@ export const handleSignUp = async (
     );
   }
 };
+
+export const getStaffUsers = async () => {
+  if (!auth) {
+    console.error("❌ Firebase Admin auth is not initialized");
+    return [];
+  }
+
+  try {
+    const listUsersResult = await auth.listUsers();
+
+    const staffUsers = listUsersResult.users.filter(
+      (user) => user.customClaims?.role === "staff",
+    );
+
+    return staffUsers;
+  } catch (error) {
+    console.error("❌ Error fetching staff users:", error);
+    return [];
+  }
+};

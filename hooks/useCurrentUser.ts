@@ -9,7 +9,7 @@ import {
 import { auth } from "@/db/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Role } from "@/types";
+import { IssueCategory, Role } from "@/types";
 import { toast } from "sonner";
 
 /**
@@ -47,7 +47,11 @@ const useCurrentUser = () => {
     return () => unsubscribe();
   }, []);
 
-  const createSession = async (user: User, role: Role) => {
+  const createSession = async (
+    user: User,
+    role: Role,
+    department: IssueCategory,
+  ) => {
     if (!user || !role) return;
 
     const token = await user.getIdToken();
@@ -56,7 +60,7 @@ const useCurrentUser = () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, role }),
+      body: JSON.stringify({ token, role, department }),
     });
 
     if (!res.ok) {
@@ -77,17 +81,18 @@ const useCurrentUser = () => {
   const handleRegister = async (
     email: string,
     password: string,
-    role: Role
+    role: Role,
+    department: IssueCategory,
   ) => {
     setLoading(true);
     try {
       const result = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = result.user;
-      await createSession(user, role);
+      await createSession(user, role, department);
 
       toast.success("Registered successfully", {
         description: "🎉 Success",
@@ -107,12 +112,17 @@ const useCurrentUser = () => {
     }
   };
 
-  const handleLogin = async (email: string, password: string, role: Role) => {
+  const handleLogin = async (
+    email: string,
+    password: string,
+    role: Role,
+    department: IssueCategory,
+  ) => {
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
-      await createSession(user, role);
+      await createSession(user, role, department);
 
       toast.success("Logged in successfully", {
         description: "🎉 Success",

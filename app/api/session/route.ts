@@ -1,19 +1,20 @@
 import { SEVEN_DAYS_MS } from "@/constants";
 import { auth } from "@/db/server";
-import { Role } from "@/types";
+import { IssueCategory, Role } from "@/types";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 type SessionRequestBody = {
   token: string;
   role: Role;
+  department: IssueCategory;
   fcmToken?: string;
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body: SessionRequestBody = await req.json();
-    const { token, role } = body;
+    const { token, role, department } = body;
 
     const cookieStore = await cookies();
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (expiresIn <= 0) {
       return NextResponse.json(
         { error: "Token already expired. Please sign in again" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
     if (!decodedToken.role || decodedToken.role !== role) {
       await auth?.setCustomUserClaims(uid, {
         role: role || decodedToken?.role,
+        department: department || decodedToken?.department || "other",
       });
     }
 

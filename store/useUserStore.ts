@@ -7,12 +7,14 @@ import { AppUser } from "@/types";
 interface UserStore {
   currentUser: AppUser | null;
   isLoading: boolean;
+  hasAdminAccess: () => boolean;
   fetchUserInfo: (id: string, userDoc: AppUser | null) => Promise<void>;
 }
 
-export const useUserStore = create<UserStore>((set) => ({
+export const useUserStore = create<UserStore>((set, get) => ({
   currentUser: null,
   isLoading: true,
+  hasAdminAccess: () => get().currentUser?.role === "admin",
 
   fetchUserInfo: async (id, userDoc) => {
     if (!userDoc || !userDoc.uid || !id) {
@@ -46,6 +48,7 @@ export const useUserStore = create<UserStore>((set) => ({
           role: "staff",
           property: userDoc.property,
           isVerified: false,
+          department: "other",
         };
         break;
 

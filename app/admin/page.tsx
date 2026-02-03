@@ -25,7 +25,6 @@ const AdminDashboard = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
 
-
     if (!uid) redirect(`/login?role=${role}`)
 
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []

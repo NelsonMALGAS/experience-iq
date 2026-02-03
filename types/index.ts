@@ -30,7 +30,8 @@ export type GuestUser = BaseAppUser & {
 
 export type StaffUser = BaseAppUser & {
   role: "staff";
-  property: [Property]; // exactly one
+  property: [Property];
+  department: IssueCategory;
 };
 
 export type AdminUser = BaseAppUser & {
@@ -45,6 +46,7 @@ export type IssueStatus = "open" | "in_progress" | "resolved";
 export type IssuePriority = "low" | "medium" | "high" | "critical";
 
 export type IssueCategory =
+  | "management"
   | "room"
   | "food"
   | "maintenance"
@@ -53,6 +55,7 @@ export type IssueCategory =
   | "amenities"
   | "billing"
   | "staff"
+  | "security"
   | "other";
 
 export interface Issue {
@@ -96,4 +99,68 @@ export interface IssueCollection {
   guestId: string;
   issues: Issue[];
   updatedAt: Date;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  department: IssueCategory | null;
+  color: string;
+  isVerified: boolean;
+}
+
+export interface Shift {
+  id: string;
+  staffId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  notes?: string;
+}
+
+export interface RosterData {
+  month: string;
+  year: number;
+  shifts: Shift[];
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface Shift {
+  id: string;
+  staffId: string;
+}
+
+export interface ShiftTemplate {
+  label: string;
+  end: string;
+  start: string;
+  color: string;
+}
+
+export interface CalendarGridProps {
+  firstDay: number;
+  daysInMonth: number;
+  selectedYear: number;
+  selectedMonth: number;
+  selectedDate: string;
+  selectedStaff: string;
+
+  staffMembers: StaffMember[];
+  shiftTemplates: ShiftTemplate[];
+
+  isMobileMenuOpen: boolean;
+
+  getShiftsForDate: (date: string) => Shift[];
+  setSelectedDate: (date: string) => void;
+  setIsMobileMenuOpen: (open: boolean) => void;
+  removeShift: (shiftId: string) => void;
+  quickAddShift: (day: number, template: ShiftTemplate) => void;
 }

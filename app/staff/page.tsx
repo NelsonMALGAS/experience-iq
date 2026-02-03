@@ -23,6 +23,7 @@ const StaffDashboard = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
 
+    console.log(decoded, "DECODED")
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []
 
     const allIssues = issuesCol.flatMap(doc => doc.issues);

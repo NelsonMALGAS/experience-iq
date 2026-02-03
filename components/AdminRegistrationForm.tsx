@@ -1,6 +1,6 @@
 "use client";
 
-import { AppUser, Property, Role } from "@/types";
+import { AppUser, IssueCategory, Property, Role } from "@/types";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,14 @@ import useCurrentUser from "@/hooks/useCurrentUser";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { User } from "firebase/auth";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { STAFF_DEPARTMENTS } from "@/constants";
 
 type AdminRegistrationFormProps = {
     role: Role;
@@ -16,13 +24,16 @@ type AdminRegistrationFormProps = {
 
 type FormErrors = {
     properties?: string;
-    name?: string
+    name?: string;
+    department?: string;
 };
+
 
 const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
 
     const { currentUser, loading } = useCurrentUser();
     const [properties, setProperties] = useState<Property[]>([]);
+    const [department, setDepartment] = useState<IssueCategory>("other")
     const [name, setName] = useState(currentUser?.displayName || "");
     const [errors, setErrors] = useState<FormErrors>({});
     const [submitting, setSubmitting] = useState(false);
@@ -69,6 +80,11 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
         if ((role === "admin" || role === "staff") && properties.length === 0) {
             newErrors.properties = "At least one property is required";
         }
+
+        if (role === "staff" && !department) {
+            newErrors.department = "Please select a department";
+        }
+
 
         if (
             properties.some(
@@ -119,6 +135,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     ...base,
                     role: "staff",
                     property: [properties[0]],
+                    department: department
                 };
 
             case "admin":
@@ -156,7 +173,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/register-user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ ...payload, department }),
             });
 
             const result = await response.json();
@@ -210,7 +227,38 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     </p>
                 )}
             </div>
+            {role === "staff" && (
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                        Department
+                    </label>
 
+                    <Select
+                        value={department}
+                        onValueChange={(value) =>
+                            setDepartment(value as IssueCategory)
+                        }
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                            {STAFF_DEPARTMENTS.map((dept) => (
+                                <SelectItem key={dept} value={dept}>
+                                    {dept.charAt(0).toUpperCase() + dept.slice(1)}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.department && (
+                        <p className="text-sm text-destructive">
+                            {errors.department}
+                        </p>
+                    )}
+
+                </div>
+            )}
 
             {(role === "staff" || role === "admin") && (
                 <div className="space-y-3">
