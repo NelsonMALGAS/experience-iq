@@ -1,3 +1,4 @@
+import { shiftTemplates } from "@/constants";
 import { User } from "firebase/auth";
 
 export type PwaModalProps = {
@@ -163,4 +164,12 @@ export interface CalendarGridProps {
   setIsMobileMenuOpen: (open: boolean) => void;
   removeShift: (shiftId: string) => void;
   quickAddShift: (day: number, template: ShiftTemplate) => void;
+  rangeStart: string | null;
+  rangeEnd: string | null;
+  isDraggingRange: boolean;
+  setIsDraggingRange: (val: boolean) => void;
+  onDateSelect: (date: string) => void;
+  isDateInRange: (date: string) => boolean;
+  selectedTemplate: (typeof shiftTemplates)[0] | null;
+  setSelectedTemplate: (t: (typeof shiftTemplates)[0]) => void;
 }

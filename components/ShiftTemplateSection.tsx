@@ -3,13 +3,21 @@
 import { AlertCircle, Clock } from "lucide-react";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dispatch, SetStateAction } from "react";
 
 export const ShiftTemplatesSection = ({
     shiftTemplates,
     selectedDate,
+    setSelectedTemplate,
 }: {
     shiftTemplates: Array<{ label: string; start: string; end: string; color: string }>;
     selectedDate: string;
+    setSelectedTemplate: Dispatch<SetStateAction<{
+        label: string;
+        start: string;
+        end: string;
+        color: string;
+    } | null>>
 }) => {
     return (
         <>
@@ -23,7 +31,8 @@ export const ShiftTemplatesSection = ({
                 {shiftTemplates.map((template, idx) => (
                     <div
                         key={idx}
-                        className={`p-3 rounded-lg border ${template.color}`}
+                        className={`p-3 rounded-lg border cursor-pointer ${template.color}`}
+                        onClick={() => setSelectedTemplate(template)}
                     >
                         <div className="font-semibold text-sm">{template.label}</div>
                         <div className="text-xs flex items-center gap-1 mt-1 opacity-80">

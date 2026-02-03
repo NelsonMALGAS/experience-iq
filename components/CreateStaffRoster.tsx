@@ -48,6 +48,10 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [selectedStaff, setSelectedStaff] = useState<string>('');
     const [selectedDate, setSelectedDate] = useState<string>('');
+    const [rangeStart, setRangeStart] = useState<string | null>(null);
+    const [rangeEnd, setRangeEnd] = useState<string | null>(null);
+    const [isDraggingRange, setIsDraggingRange] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<typeof shiftTemplates[0] | null>(null);
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [showSuccess, setShowSuccess] = useState(false);
     const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
@@ -60,6 +64,24 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
 
     if (!user) return <NotAdmin role={role} />;
+
+    const onDateSelect = (date: string) => {
+        if (!rangeStart || !isDraggingRange) {
+            setRangeStart(date);
+            setRangeEnd(null);
+        } else {
+            setRangeEnd(date);
+        }
+    };
+
+    const isDateInRange = (date: string): boolean => {
+        if (!rangeStart || !rangeEnd) return false;
+        const [start, end] = rangeStart <= rangeEnd
+            ? [rangeStart, rangeEnd]
+            : [rangeEnd, rangeStart];
+        return date > start && date < end;   // exclusive of endpoints
+    };
+
 
 
     // Get days in month
@@ -149,7 +171,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
             return;
         }
 
-        if (!currentUser?.uid || !user) {
+        if (!user) {
             alert('User not authenticated.');
             return;
         }
@@ -158,7 +180,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
             month: months[selectedMonth],
             year: selectedYear,
             shifts,
-            createdBy: currentUser.uid,
+            createdBy: user.uid,
             createdAt: new Date().toISOString(),
         };
         console.log('Saving roster:', rosterData);
@@ -367,6 +389,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
                                         <ShiftTemplatesSection
                                             shiftTemplates={shiftTemplates}
                                             selectedDate={selectedDate}
+                                            setSelectedTemplate={setSelectedTemplate}
                                         />
                                     )}
                                 </div>
@@ -396,7 +419,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
                                 <ShiftTemplatesSection
                                     shiftTemplates={shiftTemplates}
                                     selectedDate={selectedDate}
-                                />
+                                    setSelectedTemplate={setSelectedTemplate} />
                             </Card>
                         )}
                     </div>
@@ -432,6 +455,14 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
                                         setSelectedDate={setSelectedDate}
                                         shiftTemplates={shiftTemplates}
                                         staffMembers={staffMembers}
+                                        isDateInRange={isDateInRange}
+                                        isDraggingRange={isDraggingRange}
+                                        onDateSelect={onDateSelect}
+                                        setIsDraggingRange={setIsDraggingRange}
+                                        rangeStart={rangeStart}
+                                        rangeEnd={rangeEnd}
+                                        selectedTemplate={selectedTemplate}
+                                        setSelectedTemplate={setSelectedTemplate}
 
                                     />
 
