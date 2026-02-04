@@ -324,8 +324,6 @@ export async function updateIssue(
         nextStatus === "resolved" ? (prevIssue.resolvedAt ?? new Date()) : null,
     };
 
-    // Added room management feature to Add Property Dialog and updated various components to accommodate new room data
-
     // Write back to Firestore
     await issueDocRef.update({
       issues,
