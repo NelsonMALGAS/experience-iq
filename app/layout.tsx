@@ -1,3 +1,5 @@
+export const revalidate = 300;
+
 import type { Metadata, Viewport } from "next";
 import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";

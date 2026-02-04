@@ -36,9 +36,11 @@ const RosterPage = async () => {
     }));
 
 
+
+
     return (
         <div className="mt-24">
-            <AdminCreateRosterPage role={userRole} user={decoded} staff={plainStaffUsers} />
+            <AdminCreateRosterPage role={userRole} staff={plainStaffUsers} uid={uid} />
         </div>
     )
 }

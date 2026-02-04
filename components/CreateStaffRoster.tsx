@@ -25,20 +25,22 @@ import NotAdmin from './NotAdmin';
 import SuccessAlert from './SuccessAlert';
 import CalendarGrid from './CalendarGrid';
 import { months, shiftTemplates, staffColorPalette } from '@/constants';
-import type { DecodedIdToken } from 'firebase-admin/auth';
+
 
 type AdminCreateProps = {
     role: Role
-    user: DecodedIdToken
+    uid: string
     staff: StaffMember[]
 }
+
+
 
 type NewStaffType = {
     name: string
     email: string
     department: IssueCategory
 }
-const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
+const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
     const { currentUser } = useUserStore();
 
 
@@ -63,7 +65,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
     });
 
 
-    if (!user) return <NotAdmin role={role} />;
+    if (!uid) return <NotAdmin role={role} />;
 
     const onDateSelect = (date: string) => {
         if (!rangeStart || !isDraggingRange) {
@@ -100,7 +102,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
     // Add shift (admin only)
     const addShift = (staffId: string, date: string, startTime: string, endTime: string, notes?: string) => {
-        if (!user) {
+        if (!uid) {
             alert('Access denied. Only administrators can create shifts.');
             return;
         }
@@ -125,7 +127,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
     // Remove shift (admin only)
     const removeShift = (shiftId: string) => {
-        if (!user) {
+        if (!uid) {
             alert('Access denied. Only administrators can remove shifts.');
             return;
         }
@@ -144,7 +146,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
     // Add new staff member (admin only)
     const addStaffMember = () => {
-        if (!user) {
+        if (!uid) {
             alert('Access denied. Only administrators can add staff members.');
             return;
         }
@@ -166,12 +168,12 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
     // Save roster (admin only)
     const saveRoster = () => {
-        if (!user) {
+        if (!uid) {
             alert('Access denied. Only administrators can save rosters.');
             return;
         }
 
-        if (!user) {
+        if (!uid) {
             alert('User not authenticated.');
             return;
         }
@@ -180,7 +182,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
             month: months[selectedMonth],
             year: selectedYear,
             shifts,
-            createdBy: user.uid,
+            createdBy: uid,
             createdAt: new Date().toISOString(),
         };
         console.log('Saving roster:', rosterData);
@@ -192,7 +194,7 @@ const AdminCreateRosterPage = ({ role, user, staff }: AdminCreateProps) => {
 
     // Copy previous month's roster (admin only)
     const copyPreviousMonth = () => {
-        if (!user) {
+        if (!uid) {
             alert('Access denied. Only administrators can copy rosters.');
             return;
         }

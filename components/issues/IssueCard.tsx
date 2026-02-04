@@ -1,7 +1,7 @@
 'use client';
 
 import { Issue, Role, StaffMember } from "@/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Clock, User, Lock, Image as ImageIcon } from "lucide-react";
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { updateIssue } from "@/app/actions";
 import { toast } from "sonner";
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "../ui/button";
 
 interface IssueCardProps {
     issue: Issue;
@@ -358,6 +360,11 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                     )}
                 </div>
             </CardContent>
+            <CardFooter>
+                <Link href={`/staff/issues/${issue.id}`}>
+                    <Button variant="default">View Details</Button>
+                </Link>
+            </CardFooter>
         </Card>
     );
 }
