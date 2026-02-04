@@ -53,6 +53,8 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                 resolvedIssues: 0,
                 openIssues: 0,
                 avgResolutionTime: 0,
+                code: "",
+                rooms: []
             },
         ]);
     };
