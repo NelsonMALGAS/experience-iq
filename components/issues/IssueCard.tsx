@@ -273,12 +273,15 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                 <div className="flex items-center gap-3 pt-3 border-t">
                     {/* Status Select */}
                     <Select value={optimisticStatus} onValueChange={handleStatusChange}>
-                        <SelectTrigger className="h-8 w-35 text-xs">
-                            <div className="flex items-center gap-2">
-                                <div className={cn("w-2 h-2 rounded-full", currentStatus.dotColor)} />
-                                <SelectValue />
+                        <SelectTrigger className="h-8 w-20 text-xs flex items-center justify-between">
+                            {/* Left side: dot + value */}
+                            <div className="flex items-center gap-2 truncate">
+                                <div className={cn("w-2 h-2 rounded-full shrink-0", currentStatus.dotColor)} />
+                                <SelectValue placeholder="Status" />
                             </div>
+
                         </SelectTrigger>
+
                         <SelectContent>
                             {Object.entries(statusConfig).map(([value, config]) => (
                                 <SelectItem key={value} value={value} className="text-xs">
@@ -297,7 +300,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                             value={optimisticAssignee || "unassigned"}
                             onValueChange={handleAssigneeChange}
                         >
-                            <SelectTrigger className="h-8 flex-1 text-xs">
+                            <SelectTrigger className="h-8 w-full text-xs">
                                 <div className="flex items-center gap-2">
                                     {assignedStaff ? (
                                         <>
@@ -305,7 +308,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                                 className="w-2 h-2 rounded-full"
                                                 style={{ backgroundColor: assignedStaff.color }}
                                             />
-                                            <span className="truncate">{assignedStaff.name}</span>
+                                            <span className="truncate w-full">{assignedStaff.name}</span>
                                         </>
                                     ) : (
                                         <>

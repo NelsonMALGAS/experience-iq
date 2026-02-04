@@ -79,6 +79,7 @@ const AddIssuePage = () => {
         try {
             const issueRef = doc(db, "issues", issue.guestId);
 
+
             const newIssue = {
                 id: crypto.randomUUID(),
                 title: issue.title,

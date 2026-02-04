@@ -13,28 +13,68 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { createProperty } from "@/app/actions";
 import { generateRandomCode } from "@/utils/staffDashboardUtils";
+import { Room } from "@/types";
+
+type FormDataTypes = {
+    name: string,
+    location: string,
+    rooms: Room[]
+}
 
 export function AddPropertyDialog() {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormDataTypes>({
         name: "",
         location: "",
+        rooms: []
     });
+
+    const addRoom = () => {
+        setFormData((prev) => ({
+            ...prev,
+            rooms: [
+                ...prev.rooms,
+                {
+                    id: crypto.randomUUID(),
+                    roomNumber: "",
+                    status: "available",
+                    createdAt: new Date()
+                },
+            ],
+        }));
+    };
+
+    const updateRoom = (index: number, field: keyof Room, value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            rooms: prev.rooms.map((room, i) =>
+                i === index ? { ...room, [field]: value } : room
+            ),
+        }));
+    };
+
+    const removeRoom = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            rooms: prev.rooms.filter((_, i) => i !== index),
+        }));
+    };
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         startTransition(async () => {
-            const result = await createProperty({ ...formData, code: generateRandomCode(6), });
+            const result = await createProperty({ ...formData, code: generateRandomCode(6, 6, ""), });
 
             if (result.success) {
                 toast.success(result.message);
-                setFormData({ name: "", location: "" });
+                setFormData({ name: "", location: "", rooms: [] });
                 setOpen(false);
             } else {
                 toast.error(result.message);
@@ -45,6 +85,7 @@ export function AddPropertyDialog() {
     const handleChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
+
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -94,6 +135,52 @@ export function AddPropertyDialog() {
                                 required
                                 className="h-11"
                             />
+                        </div>
+                        {/* Rooms Section */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium">Rooms</Label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addRoom}
+                                    disabled={isPending}
+                                >
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Add Room
+                                </Button>
+                            </div>
+
+                            {formData.rooms.length === 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    No rooms added yet. Click “Add Room” to add rooms for this property.
+                                </p>
+                            )}
+
+                            <div className="space-y-2">
+                                {formData.rooms.map((room, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <Input
+                                            placeholder="Room Number"
+                                            value={room.roomNumber}
+                                            onChange={(e) => updateRoom(index, "roomNumber", e.target.value)}
+                                            required
+                                            className="h-10 flex-1"
+                                        />
+
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeRoom(index)}
+                                            disabled={isPending}
+                                        >
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Info Note */}

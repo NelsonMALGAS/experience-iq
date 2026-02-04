@@ -89,6 +89,13 @@ const PropertiesPage = async () => {
                                             {/* Gradient overlay */}
                                             <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent" />
 
+                                            {/* Property code badge */}
+                                            <div className="absolute top-3 left-3">
+                                                <span className="px-2 py-1 text-xs font-mono tracking-widest rounded-md bg-background/80 border border-border text-muted-foreground uppercase">
+                                                    {property.code?.toUpperCase()}
+                                                </span>
+                                            </div>
+
                                             {/* Property info */}
                                             <div className="absolute bottom-4 left-4 space-y-1">
                                                 <h3 className="text-lg font-semibold text-card-foreground">
@@ -109,6 +116,7 @@ const PropertiesPage = async () => {
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </div>
+
 
                                         {/* Content */}
                                         <CardContent className="p-6 space-y-4">

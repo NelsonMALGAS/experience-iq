@@ -8,6 +8,13 @@ export type PwaModalProps = {
 };
 
 export type Role = "admin" | "staff" | "guest";
+
+export interface Room {
+  id: string;
+  roomNumber: string;
+  status: "available" | "occupied" | "maintenance";
+  createdAt: Date;
+}
 export interface Property {
   id: string;
   name: string;
@@ -17,6 +24,30 @@ export interface Property {
   avgResolutionTime: number;
   resolvedIssues: number;
   code: string;
+  rooms: Room[];
+  createdAt?: Date;
+}
+
+/**
+ * Guest session data stored in localStorage
+ */
+export interface GuestSession {
+  uid: string;
+  role: "guest";
+  propertyId: string;
+  propertyName: string;
+  roomId: string;
+  roomNumber: string;
+}
+
+/**
+ * Room code validation result
+ */
+export interface RoomCodeValidation {
+  isValid: boolean;
+  property?: Property;
+  room?: Room;
+  error?: string;
 }
 
 type BaseAppUser = Partial<User> & {
@@ -76,7 +107,7 @@ export interface Issue {
   propertyName?: string;
   createdAt: Date;
   updatedAt: Date;
-  resolvedAt?: Date;
+  resolvedAt?: Date | null;
   isAnonymous: boolean;
   images?: string[];
 }
@@ -176,6 +207,7 @@ export interface CreatePropertyData {
   name: string;
   location: string;
   code: string;
+  rooms: Room[];
 }
 
 /**

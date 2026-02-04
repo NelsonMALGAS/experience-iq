@@ -92,17 +92,23 @@ export function calculateStaffStats(
   };
 }
 
-export function generateRandomCode(length = 6): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-    "abcdefghijklmnopqrstuvwxyz" +
-    "0123456789" +
-    "!@#$%^&*_-+=";
+export function generateRandomCode(
+  length = 6,
+  groupSize = 3,
+  separator = "-",
+): string {
+  // Exclude confusing characters: 0,O,1,I,L
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
   let result = "";
-
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  // Optional: split into groups for readability, e.g., "ABC-DEF"
+  if (groupSize && length > groupSize) {
+    const regex = new RegExp(`.{1,${groupSize}}`, "g");
+    return result.match(regex)?.join(separator) ?? result;
   }
 
   return result;

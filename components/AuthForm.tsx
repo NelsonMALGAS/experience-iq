@@ -13,10 +13,11 @@ import useCurrentUser from "@/hooks/useCurrentUser";
 import { signInAnonymously, signInWithPopup } from "firebase/auth";
 import { auth, googleAuth } from "@/db/client";
 import { useRouter } from "next/navigation";
-import { DUMMY_ROOMS } from "@/constants/mockData";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { STAFF_DEPARTMENTS } from "@/constants";
+import { setGuestSession, validateRoomCode } from "@/utils/guestAuthUtils";
+
 
 interface AuthFormType {
     role: Role
@@ -192,40 +193,37 @@ const AuthForm = ({ role }: AuthFormType) => {
         setIsLoading(true);
 
         try {
-            // 1️⃣ Validate room code
-            const room = DUMMY_ROOMS.find(
-                (r) => r.code.toUpperCase() === qrCode.trim().toUpperCase()
-            );
+            // Validate against Firestore rooms array
+            const validation = await validateRoomCode(qrCode);
 
-            if (!room) {
-                toast.error("Invalid room code. Please try again.");
+
+            if (!validation.isValid || !validation.property || !validation.room) {
+                toast.error(validation.error || "Invalid room code");
                 return;
             }
 
-            // 2️⃣ Anonymous Firebase login (guest)
+            // Anonymous login
             const result = await signInAnonymously(auth);
+            await createSession(result.user, "guest", "other");
 
-            await createSession(result.user, "guest", "other")
-
-
-            const guestSession = {
+            // Store session
+            setGuestSession({
                 uid: result.user.uid,
                 role: "guest",
-                roomId: room.roomId,
-                propertyId: room.propertyId,
-                roomNumber: room.roomNumber,
-            };
+                propertyId: validation.property.id,
+                propertyName: validation.property.name,
+                roomId: validation.room.id,
+                roomNumber: validation.room.roomNumber,
+            });
 
-            // 3️⃣ Store guest session (localStorage for now)
-            localStorage.setItem("guestSession", JSON.stringify(guestSession));
-
-            toast.success(`Welcome! Room ${room.roomNumber}`);
-
-            // 4️⃣ Redirect to issue creation
+            toast.success(`Welcome! Room ${validation.room.roomNumber}`);
             router.push("/guest/add-issue");
         } catch (error) {
-            console.error(error);
-            toast.error("Unable to login as guest");
+
+            if (error instanceof Error) {
+                toast.error(error.message)
+            }
+            toast.error("Unable to login");
         } finally {
             setIsLoading(false);
         }
@@ -435,14 +433,21 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             Scan the QR code in your room or enter a code manually
                                         </p>
                                     </div>
-                                    <Input
-                                        placeholder="Enter Room Code"
-                                        value={qrCode}
-                                        onChange={(e) => setQrCode(e.target.value.toUpperCase())}
-                                        maxLength={8}
-                                        className="text-center text-lg tracking-widest"
-                                        autoFocus
-                                    />
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="roomCode" className="text-sm text-muted-foreground">
+                                            Room Code <span className="font-mono">(PROPERTYCODE-ROOM)</span>
+                                        </Label>
+
+                                        <Input
+                                            id="roomCode"
+                                            placeholder="e.g. SUNSET12-305"
+                                            value={qrCode}
+                                            onChange={(e) => setQrCode(e.target.value.toUpperCase())}
+                                            maxLength={16}
+                                            className="text-center text-lg tracking-widest font-mono"
+                                            autoFocus
+                                        />
+                                    </div>
                                     <Button type="submit" className="w-full" disabled={isLoading || qrCode.length <= 5}>
                                         {isLoading ? "Verifying..." : "Access Guest Portal"}
                                     </Button>

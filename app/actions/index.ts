@@ -313,12 +313,18 @@ export async function updateIssue(
       );
     }
 
-    // Update the issue with new data and timestamp
+    const prevIssue = issues[issueIndex];
+    const nextStatus = updates.status ?? prevIssue.status;
+
     issues[issueIndex] = {
-      ...issues[issueIndex],
+      ...prevIssue,
       ...updates,
       updatedAt: new Date(),
+      resolvedAt:
+        nextStatus === "resolved" ? (prevIssue.resolvedAt ?? new Date()) : null,
     };
+
+    // Added room management feature to Add Property Dialog and updated various components to accommodate new room data
 
     // Write back to Firestore
     await issueDocRef.update({
@@ -455,6 +461,7 @@ export async function fetchProperties(): Promise<Property[]> {
         createdAt: data.createdAt?.toDate?.() || new Date(),
         updatedAt: data.updatedAt?.toDate?.() || undefined,
         code: data.code,
+        rooms: data.rooms,
       };
     });
 
@@ -484,6 +491,10 @@ export async function createProperty(data: CreatePropertyData) {
       return { success: false, message: "Code is required" };
     }
 
+    if (!data.rooms.length || data.rooms.length === 0) {
+      return { success: false, message: "Please add atleast 1 room" };
+    }
+
     if (!db) throw new Error("Firestore not initialized");
 
     // Create property document
@@ -498,9 +509,9 @@ export async function createProperty(data: CreatePropertyData) {
       updatedAt: new Date(),
       createdBy: uid,
       code: data.code.trim(),
+      rooms: data.rooms,
     });
 
-    // Revalidate properties page
     revalidatePath("/admin/properties");
 
     return {
