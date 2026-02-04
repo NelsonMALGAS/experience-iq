@@ -16,6 +16,7 @@ export interface Property {
   openIssues: number;
   avgResolutionTime: number;
   resolvedIssues: number;
+  code: string;
 }
 
 type BaseAppUser = Partial<User> & {
@@ -169,4 +170,22 @@ export interface CalendarGridProps {
   isDateInRange: (date: string) => boolean;
   selectedTemplate: (typeof shiftTemplates)[0] | null;
   setSelectedTemplate: (t: (typeof shiftTemplates)[0]) => void;
+}
+
+export interface CreatePropertyData {
+  name: string;
+  location: string;
+  code: string;
+}
+
+/**
+ * Property update payload
+ */
+export interface UpdatePropertyData {
+  name?: string;
+  location?: string;
+  code: string;
+  totalIssues?: number;
+  openIssues?: number;
+  avgResolutionTime?: number;
 }

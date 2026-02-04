@@ -26,6 +26,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   staff: [
     { label: "Dashboard", href: "/staff", icon: LayoutDashboard },
     { label: "Assigned Issues", href: "/staff/issues", icon: ClipboardList },
+    { label: "Roster", href: "/staff/roster", icon: CalendarClock },
   ],
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },

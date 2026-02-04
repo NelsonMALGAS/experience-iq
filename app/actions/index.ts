@@ -1,7 +1,12 @@
 "use server";
 
 import { auth, db } from "@/db/server";
-import { Issue } from "@/types";
+import {
+  CreatePropertyData,
+  Issue,
+  Property,
+  UpdatePropertyData,
+} from "@/types";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { transformFirebaseDates } from "@/lib/transformTimeStamp";
@@ -395,6 +400,250 @@ export async function bulkUpdateIssueStatus(
       success: false,
       message:
         error instanceof Error ? error.message : "Failed to update issues",
+    };
+  }
+}
+
+/**
+ * Verify admin authentication
+ */
+async function verifyAdmin() {
+  const cookieStore = await cookies();
+  const session = cookieStore?.get("_SESSION_")?.value;
+
+  if (!session) {
+    throw new Error("Unauthorized: No session found");
+  }
+
+  const decoded = await auth?.verifySessionCookie(session, true);
+  if (!decoded) {
+    throw new Error("Unauthorized: Invalid session");
+  }
+
+  // Optional: Check if user has admin role in custom claims
+  // if (decoded.role !== 'admin') {
+  //   throw new Error("Forbidden: Admin access required");
+  // }
+
+  return { uid: decoded.uid, role: decoded.role };
+}
+
+/**
+ * Fetch all properties from Firestore
+ */
+export async function fetchProperties(): Promise<Property[]> {
+  try {
+    await verifyAdmin();
+
+    if (!db) throw new Error("Firestore not initialized");
+
+    const propertiesSnapshot = await db
+      .collection("properties")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const properties: Property[] = propertiesSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        location: data.location,
+        totalIssues: data.totalIssues || 0,
+        openIssues: data.openIssues || 0,
+        resolvedIssues: 0,
+        avgResolutionTime: data.avgResolutionTime || 0,
+        createdAt: data.createdAt?.toDate?.() || new Date(),
+        updatedAt: data.updatedAt?.toDate?.() || undefined,
+        code: data.code,
+      };
+    });
+
+    return properties;
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new property
+ */
+export async function createProperty(data: CreatePropertyData) {
+  try {
+    const { uid } = await verifyAdmin();
+
+    // Validate input
+    if (!data.name?.trim()) {
+      return { success: false, message: "Property name is required" };
+    }
+    if (!data.location?.trim()) {
+      return { success: false, message: "Location is required" };
+    }
+
+    if (!data.code?.trim()) {
+      return { success: false, message: "Code is required" };
+    }
+
+    if (!db) throw new Error("Firestore not initialized");
+
+    // Create property document
+    const propertyRef = db.collection("properties").doc();
+    await propertyRef.set({
+      name: data.name.trim(),
+      location: data.location.trim(),
+      totalIssues: 0,
+      openIssues: 0,
+      avgResolutionTime: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: uid,
+      code: data.code.trim(),
+    });
+
+    // Revalidate properties page
+    revalidatePath("/admin/properties");
+
+    return {
+      success: true,
+      message: "Property created successfully",
+      propertyId: propertyRef.id,
+    };
+  } catch (error) {
+    console.error("Error creating property:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to create property",
+    };
+  }
+}
+
+/**
+ * Update an existing property
+ */
+export async function updateProperty(
+  propertyId: string,
+  data: UpdatePropertyData,
+) {
+  try {
+    await verifyAdmin();
+
+    if (!db) throw new Error("Firestore not initialized");
+
+    const propertyRef = db.collection("properties").doc(propertyId);
+    const propertyDoc = await propertyRef.get();
+
+    if (!propertyDoc.exists) {
+      return { success: false, message: "Property not found" };
+    }
+
+    // Update property
+    await propertyRef.update({
+      ...data,
+      updatedAt: new Date(),
+    });
+
+    revalidatePath("/admin/properties");
+
+    return { success: true, message: "Property updated successfully" };
+  } catch (error) {
+    console.error("Error updating property:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to update property",
+    };
+  }
+}
+
+/**
+ * Delete a property
+ */
+export async function deleteProperty(propertyId: string) {
+  try {
+    await verifyAdmin();
+    if (!db) throw new Error("Firestore not initialized");
+
+    const propertyRef = db.collection("properties").doc(propertyId);
+    const propertyDoc = await propertyRef.get();
+
+    if (!propertyDoc.exists) {
+      return { success: false, message: "Property not found" };
+    }
+
+    // Delete property
+    await propertyRef.delete();
+
+    revalidatePath("/admin/properties");
+
+    return { success: true, message: "Property deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to delete property",
+    };
+  }
+}
+
+/**
+ * Update property statistics (called when issues are created/resolved)
+ */
+export async function updatePropertyStats(propertyId: string) {
+  try {
+    if (!db) throw new Error("Firestore not initialized");
+    // Fetch all issues for this property
+    const issuesSnapshot = await db.collection("issues").doc(propertyId).get();
+
+    if (!issuesSnapshot.exists) {
+      return { success: false, message: "Issues document not found" };
+    }
+
+    const issues = issuesSnapshot.data()?.issues || [];
+
+    // Calculate stats
+    const totalIssues = issues.length;
+    const openIssues = issues.filter(
+      (i: Issue) => i.status === "open" || i.status === "in_progress",
+    ).length;
+
+    // Calculate average resolution time
+    const resolvedIssues = issues.filter(
+      (i: Issue) => i.status === "resolved" && i.createdAt && i.updatedAt,
+    );
+    let avgResolutionTime = 0;
+
+    if (resolvedIssues.length > 0) {
+      const totalMinutes = resolvedIssues.reduce(
+        (sum: number, issue: Issue) => {
+          const created = new Date(issue.createdAt).getTime();
+          const resolved = new Date(issue.updatedAt).getTime();
+          const minutes = (resolved - created) / (1000 * 60);
+          return sum + minutes;
+        },
+        0,
+      );
+      avgResolutionTime = Math.round(totalMinutes / resolvedIssues.length);
+    }
+
+    // Update property stats
+    await db.collection("properties").doc(propertyId).update({
+      totalIssues,
+      openIssues,
+      avgResolutionTime,
+      updatedAt: new Date(),
+    });
+
+    revalidatePath("/admin/properties");
+
+    return { success: true, message: "Property stats updated" };
+  } catch (error) {
+    console.error("Error updating property stats:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to update stats",
     };
   }
 }

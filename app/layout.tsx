@@ -137,7 +137,7 @@ export default function RootLayout({
           <IssueProvider>
             <NotificationProvider>
               <Header />
-              <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen">
+              <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen overflow-x-hidden">
                 <NextSSRPlugin
                   routerConfig={extractRouterConfig(ourFileRouter)}
                 />
