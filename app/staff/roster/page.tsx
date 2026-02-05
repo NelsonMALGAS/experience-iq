@@ -19,7 +19,7 @@ const StaffRoster = async () => {
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
     return (
-        <div>StaffRoster - {role}</div>
+        <div className="mt-24">StaffRoster - {role}</div>
     )
 }
 
