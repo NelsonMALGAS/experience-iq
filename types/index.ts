@@ -36,6 +36,7 @@ export interface GuestSession {
   role: "guest";
   propertyId: string;
   propertyName: string;
+  propertyLocation: string | null;
   roomId: string;
   roomNumber: string;
 }
@@ -105,6 +106,7 @@ export interface Issue {
   assignedToName?: string;
   propertyId: string;
   propertyName?: string;
+  propertyLocation?: string;
   createdAt: Date;
   updatedAt: Date;
   resolvedAt?: Date | null;
@@ -153,6 +155,7 @@ export interface Shift {
 }
 
 export interface RosterData {
+  id?: string;
   month: string;
   year: number;
   shifts: Shift[];

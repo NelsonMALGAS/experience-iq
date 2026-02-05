@@ -1,5 +1,5 @@
 import { fetchCollection } from "@/app/actions"
-import { IssueCollection } from "@/types"
+import { IssueCollection, Role } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,9 +28,9 @@ import { ImageGallery } from "@/components/issueDetails/Imagegallery"
 import { Timeline } from "@/components/issueDetails/Timeline"
 import { MetadataCard } from "@/components/issueDetails/MetadataCard"
 import { ErrorState, NotFoundState } from "@/components/issueDetails/ErrorStates"
-import { requireAuth } from "@/app/actions/requireAuth"
 import { redirect } from "next/navigation"
-
+import { cookies } from "next/headers"
+import { auth } from "@/db/server"
 
 
 const IssueDetailsPage = async ({
@@ -40,7 +40,16 @@ const IssueDetailsPage = async ({
 }) => {
     const { id } = await params
 
-    const { uid, role } = await requireAuth({ role: "admin" });
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "admin"
+
+    if (!session) redirect(`/login?role=${role}`);
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+
+    if (!decoded) redirect(`/login?role=${role}`)
+    const uid = decoded.uid;
 
     if (!uid) redirect(`/login?role=${role || "admin"}`)
 
@@ -78,8 +87,6 @@ const IssueDetailsPage = async ({
     const priorityConfig = getPriorityConfig(issue.priority)
     const timeline = generateTimeline(issue)
     const goBackUrl = role === "admin" ? "/admin" : "/staff/issues"
-
-    console.log(issue.createdAt, "123456")
 
     // Render success state
     return (
@@ -248,7 +255,7 @@ const IssueDetailsPage = async ({
                             },
                             {
                                 label: "Location",
-                                value: issue.propertyName,
+                                value: issue.propertyLocation || issue.propertyName,
                                 icon: "map-pin",
                                 fallback: "Not specified",
                                 className: "bg-yellow-100 text-yellow-600",

@@ -3,17 +3,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Property } from "@/types";
+import { Property, Role } from "@/types";
 import { MapPin, MoreHorizontal, Search, Building2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { fetchProperties } from "@/app/actions";
 import { AddPropertyDialog } from "@/components/Addpropertydialog";
-import { requireAuth } from "@/app/actions/requireAuth";
+import { cookies } from "next/headers";
+import { auth } from "@/db/server";
+
 
 const PropertiesPage = async () => {
-    const { role, uid } = await requireAuth({ role: "admin" });
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "admin"
+
+    if (!session) redirect(`/login?role=${role}`);
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+
+    if (!decoded) redirect(`/login?role=${role}`)
+    const uid = decoded.uid;
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -62,7 +73,7 @@ const PropertiesPage = async () => {
 
                     {/* Properties Grid */}
                     {properties.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {properties.map((property, index) => {
                                 const resolutionRate = property.totalIssues > 0
                                     ? Math.round(((property.totalIssues - property.openIssues) / property.totalIssues) * 100)

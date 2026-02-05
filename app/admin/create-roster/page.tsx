@@ -1,14 +1,24 @@
 import { getStaffUsers } from "@/app/actions";
-import { requireAuth } from "@/app/actions/requireAuth"
 import AdminCreateRosterPage from "@/components/CreateStaffRoster";
 import { staffColorPalette } from "@/constants";
-import { StaffMember } from "@/types";
+import { auth } from "@/db/server";
+import { Role, StaffMember } from "@/types";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 
 const RosterPage = async () => {
 
-    const { role, uid } = await requireAuth({ role: "admin" });
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "admin"
+
+    if (!session) redirect(`/login?role=${role}`);
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+
+    if (!decoded) redirect(`/login?role=${role}`)
+    const uid = decoded.uid;
 
     const userRole = role || "admin"
 
@@ -25,8 +35,6 @@ const RosterPage = async () => {
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.customClaims?.department || "other",
     }));
-
-
 
 
     return (

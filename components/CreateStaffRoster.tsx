@@ -81,7 +81,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
         const [start, end] = rangeStart <= rangeEnd
             ? [rangeStart, rangeEnd]
             : [rangeEnd, rangeStart];
-        return date > start && date < end;   // exclusive of endpoints
+        return date > start && date < end;
     };
 
 

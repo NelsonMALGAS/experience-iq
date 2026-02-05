@@ -5,6 +5,7 @@ export const createDefaultIssue = (guestSession: {
   roomNumber?: string;
   propertyId: string;
   propertyName: string;
+  propertyLocation: string;
 }): Issue => {
   const now = new Date();
 
@@ -22,6 +23,7 @@ export const createDefaultIssue = (guestSession: {
 
     propertyId: guestSession.propertyId,
     propertyName: guestSession.propertyName,
+    propertyLocation: guestSession.propertyLocation,
     assignedTo: undefined,
     assignedToName: undefined,
 

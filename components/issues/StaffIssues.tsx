@@ -17,7 +17,7 @@ type StaffIssuesProps = {
 }
 
 export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesProps) {
-    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+    const [selectedIssue] = useState<Issue | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
     const { filters, setFilters, filteredIssues } = useIssueFilters(issues);
@@ -26,7 +26,6 @@ export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesPro
     const inProgressIssues = filteredIssues.filter(i => i.status === 'in_progress');
     const filteredAssigned = filteredIssues.filter(i => i.assignedTo === uid);
 
-    console.log(setSelectedIssue)
     return (
         <DashboardLayout role={role} uid={uid}>
             <div className="space-y-6 animate-fade-in">
@@ -42,7 +41,7 @@ export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesPro
                 </div>
 
                 <Tabs defaultValue="assigned" className="w-full">
-                    <TabsList className="bg-muted/50 p-1">
+                    <TabsList className="bg-muted/50 p-1 flex flex-row flex-wrap">
                         <TabsTrigger value="assigned" className="data-[state=active]:bg-card data-[state=active]:shadow-sm">
                             My Assigned ({filteredAssigned.length})
                         </TabsTrigger>

@@ -94,6 +94,7 @@ const AddIssuePage = () => {
                 assignedToName: null,
                 propertyId: issue.propertyId,
                 propertyName: issue.propertyName ?? null,
+                propertyLocation: issue.propertyLocation ?? null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 resolvedAt: null,

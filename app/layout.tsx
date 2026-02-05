@@ -1,5 +1,4 @@
 export const revalidate = 300;
-export const dynamic = "force-dynamic";
 
 import type { Metadata, Viewport } from "next";
 import { Poppins, Playfair_Display } from "next/font/google";

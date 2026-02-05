@@ -212,6 +212,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                 role: "guest",
                 propertyId: validation.property.id,
                 propertyName: validation.property.name,
+                propertyLocation: validation.property.location,
                 roomId: validation.room.id,
                 roomNumber: validation.room.roomNumber,
             });

@@ -1,17 +1,27 @@
 import { StatCard } from "@/components/dashboard/StatCard";
 import IssuesList from "@/components/issues/IssuesList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { IssueCollection, StaffMember } from "@/types";
+import { IssueCollection, Role, StaffMember } from "@/types";
 import { AlertCircle, CheckCircle2, Loader2, TrendingUp, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { fetchCollection, getStaffUsers } from "../actions";
 import { staffColorPalette } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateStaffStats } from "@/utils/staffDashboardUtils";
-import { requireAuth } from "../actions/requireAuth";
+import { cookies } from "next/headers";
+import { auth } from "@/db/server";
 
 const StaffDashboard = async () => {
-    const { uid, role } = await requireAuth({ role: "staff" });
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "staff"
+
+    if (!session) redirect(`/login?role=${role}`);
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+
+    if (!decoded) redirect(`/login?role=${role}`)
+    const uid = decoded.uid;
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
 

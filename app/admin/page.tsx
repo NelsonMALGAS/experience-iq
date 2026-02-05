@@ -2,21 +2,29 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { IssueCollection, StaffMember } from "@/types";
+import { IssueCollection, Role, StaffMember } from "@/types";
 import { AlertCircle, BarChart3, Building2, CheckCircle2, Clock, TrendingUp, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { fetchCollection, getStaffUsers } from "../actions";
 import { staffColorPalette } from "@/constants";
 import { aggregatePropertyStats, calculateDashboardStats } from "@/utils/dashboardUtiils";
 import { IssueCard } from "@/components/issues/IssueCard";
-import { requireAuth } from "../actions/requireAuth";
+import { cookies } from "next/headers";
+import { auth } from "@/db/server";
 
 
 
 const AdminDashboard = async () => {
-    const { uid, role } = await requireAuth({ role: "admin" });
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "admin"
 
-    if (!uid) redirect(`/login?role=${role || "guest"}`)
+    if (!session) redirect(`/login?role=${role}`);
+
+    const decoded = await auth?.verifySessionCookie(session, true);
+
+    if (!decoded) redirect(`/login?role=${role}`)
+    const uid = decoded.uid;
 
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []
     const staffUsers = await getStaffUsers();

@@ -95,7 +95,7 @@ export function AddPropertyDialog() {
                     Add Property
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-125">
+            <DialogContent className="sm:max-w-125 overflow-y-auto">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-display">Add New Property</DialogTitle>
