@@ -114,7 +114,7 @@ const AddIssuePage = () => {
 
             toast.success("Issue submitted successfully");
             localStorage.removeItem("guestSession");
-            router.push("/guest/issues");
+            router.push("/guest");
         } catch (error) {
             console.error(error);
             toast.error("Failed to submit issue");

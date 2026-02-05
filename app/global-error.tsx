@@ -6,18 +6,11 @@ import "./globals.css";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertTriangle,
-  RefreshCcw,
-  Home,
-  LogOut,
-  Bug,
-  ArrowLeft
-} from "lucide-react";
+import { AlertTriangle, RefreshCcw, Home, LogOut, ArrowLeft } from "lucide-react";
 
 export default function GlobalError({
   error,
-  reset
+  reset,
 }: {
   error: Error & { digest?: string };
   reset?: () => void;
@@ -27,7 +20,7 @@ export default function GlobalError({
   }, [error]);
 
   /**
-   * Handles broken session deletion and page refresh
+   * Clears session and resets the app
    */
   const handleClearSession = async () => {
     try {
@@ -36,161 +29,122 @@ export default function GlobalError({
         credentials: "include",
       });
 
-      // Clear local storage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
       }
 
-      // Redirect to home
+      if (reset) reset();
       window.location.href = "/";
     } catch (err) {
       console.error("Error clearing session:", err);
-      // Force reload even if session clear fails
-      window.location.href = "/";
-    }
-  };
-
-  /**
-   * Simple page refresh to retry
-   */
-  const handleRefresh = () => {
-    if (reset) {
-      reset();
-    } else {
-      window.location.reload();
-    }
-  };
-
-  /**
-   * Go back to previous page
-   */
-  const handleGoBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      window.history.back();
-    } else {
       window.location.href = "/";
     }
   };
 
   return (
-    <html lang="en">
-      <body>
-        <div className="min-h-screen bg-linear-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl animate-fade-in">
-            {/* Error Icon */}
-            <div className="flex justify-center mb-8">
-              <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
-                <div className="relative bg-red-100 dark:bg-red-900/30 p-6 rounded-full">
-                  <AlertTriangle className="h-16 w-16 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Main Error Card */}
-            <Card className="border-2 shadow-2xl">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-3xl font-bold text-foreground mb-2">
-                  Oops! Something went wrong
-                </CardTitle>
-                <CardDescription className="text-base">
-                  We encountered an unexpected error. Don&apos;t worry, we&apos;re here to help you get back on track.
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {/* Error Details */}
-                {error.message && (
-                  <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-                    <Bug className="h-4 w-4" />
-                    <AlertDescription className="ml-2">
-                      <span className="font-semibold">Error:</span> {error.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Error Digest */}
-                {error.digest && (
-                  <div className="bg-muted rounded-lg p-3 text-center">
-                    <p className="text-xs text-muted-foreground">
-                      Error ID: <span className="font-mono font-semibold">{error.digest}</span>
-                    </p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="space-y-3 pt-4">
-                  {/* Primary Action - Refresh */}
-                  <Button
-                    onClick={handleRefresh}
-                    className="w-full h-12 text-base font-semibold"
-                    size="lg"
-                  >
-                    <RefreshCcw className="h-5 w-5 mr-2" />
-                    Try Again
-                  </Button>
-
-                  {/* Secondary Actions */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      onClick={handleGoBack}
-                      variant="outline"
-                      className="h-11"
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Go Back
-                    </Button>
-                    <Button
-                      onClick={() => window.location.href = '/'}
-                      variant="outline"
-                      className="h-11"
-                    >
-                      <Home className="h-4 w-4 mr-2" />
-                      Home
-                    </Button>
-                  </div>
-
-                  {/* Session Clear Action */}
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground text-center mb-3">
-                      If the problem persists, try clearing your session:
-                    </p>
-                    <Button
-                      onClick={handleClearSession}
-                      variant="destructive"
-                      className="w-full h-11"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Clear Session & Restart
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Help Text */}
-                <div className="text-center pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Need help? Contact our support team at{" "}
-                    <a
-                      href="mailto:support@example.com"
-                      className="text-primary hover:underline font-medium"
-                    >
-                      support@example.com
-                    </a>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Additional Info */}
-            <div className="mt-6 text-center">
-              <p className="text-xs text-muted-foreground">
-                This error has been automatically reported to our team.
-              </p>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-in">
+        {/* Friendly Error Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-accent/20 blur-2xl rounded-full" />
+            <div className="relative bg-accent/10 p-6 rounded-full">
+              <AlertTriangle className="h-14 w-14 text-destructive" />
             </div>
           </div>
         </div>
-      </body>
-    </html>
+
+        {/* Error Card */}
+        <Card className="shadow-lg border border-border">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+              Oops! Something went wrong
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base text-muted-foreground">
+              Don&apos;t worry, this happens sometimes. Let&apos;s get you back on track.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Error Summary */}
+            {error.message && (
+              <Alert variant="destructive" className="bg-destructive/10 border-destructive/50">
+                <AlertDescription className="ml-2 text-sm">
+                  <span className="font-semibold">Error:</span> Try refreshing the page
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Error Digest */}
+            {error.digest && (
+              <div className="bg-muted rounded-md p-2 text-center">
+                <p className="text-xs text-muted-foreground">
+                  Error ID: <span className="font-mono font-semibold">Something went wrong. Try refreshing the page</span>
+                </p>
+              </div>
+            )}
+
+            {/* Main Actions */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleClearSession}
+                className="w-full h-12 text-base font-semibold flex items-center justify-center gap-2"
+                size="lg"
+              >
+                <RefreshCcw className="h-5 w-5" />
+                Refresh & Restart
+              </Button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={handleClearSession}
+                  variant="outline"
+                  className="h-11 flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Go Back
+                </Button>
+                <Button
+                  onClick={handleClearSession}
+                  variant="outline"
+                  className="h-11 flex items-center justify-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Home
+                </Button>
+              </div>
+
+              <Button
+                onClick={handleClearSession}
+                variant="destructive"
+                className="w-full h-11 flex items-center justify-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Clear Session & Restart
+              </Button>
+            </div>
+
+            {/* Help Text */}
+            <div className="text-center pt-3 border-t border-border">
+              <p className="text-sm text-muted-foreground">
+                Need help? Contact our support at{" "}
+                <a
+                  href="mailto:zmalgas69@gmail.com"
+                  className="text-primary hover:underline font-medium"
+                >
+                  zmalgas69@gmail.com
+                </a>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer Info */}
+        <div className="mt-4 text-center text-xs text-muted-foreground">
+          <p>This error has been automatically reported to our team.</p>
+        </div>
+      </div>
+    </div>
   );
 }

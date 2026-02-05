@@ -8,7 +8,7 @@ type DateInput =
   | Timestamp
   | { _seconds: number; _nanoseconds: number };
 
-const toDate = (value: DateInput): Date | null => {
+export const toDate = (value: DateInput): Date | null => {
   try {
     if (!value) return null;
 
