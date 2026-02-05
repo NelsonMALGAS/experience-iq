@@ -27,14 +27,10 @@ const UsersPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
 
-
-    // const adminSnap = await db?.collection("users").doc(uid).get();
-    // if (!adminSnap) return redirect(`/login?role=${"admin"}`)
-    // if (!adminSnap.exists) redirect(`/login?role=${"admin"}`);
     if (!uid) redirect(`/login?role=${role}`)
     return (
         <div className="mt-24">
-            <DashboardLayout role={role} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid}>
                 <div className="space-y-6 animate-fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>

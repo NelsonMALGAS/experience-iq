@@ -1,4 +1,4 @@
-import { Role } from "@/types";
+import { IssueCategory, Role } from "@/types";
 import {
   LayoutDashboard,
   AlertCircle,
@@ -8,6 +8,7 @@ import {
   Users,
   CalendarClock,
   type LucideIcon,
+  Clock,
 } from "lucide-react";
 
 export interface NavLink {
@@ -25,6 +26,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   staff: [
     { label: "Dashboard", href: "/staff", icon: LayoutDashboard },
     { label: "Assigned Issues", href: "/staff/issues", icon: ClipboardList },
+    { label: "Roster", href: "/staff/roster", icon: CalendarClock },
   ],
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -72,5 +74,110 @@ export const roleConfig = {
   admin: {
     label: "Admin",
     color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+};
+
+export const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+export const shiftTemplates = [
+  {
+    label: "Morning",
+    start: "06:00",
+    end: "14:00",
+    color: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+  },
+  {
+    label: "Afternoon",
+    start: "14:00",
+    end: "22:00",
+    color: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
+  },
+  {
+    label: "Night",
+    start: "22:00",
+    end: "06:00",
+    color: "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+  },
+  {
+    label: "Full Day",
+    start: "09:00",
+    end: "17:00",
+    color: "bg-green-500/20 text-green-700 dark:text-green-300",
+  },
+];
+
+export const staffColorPalette = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
+export const STAFF_DEPARTMENTS: IssueCategory[] = [
+  "amenities",
+  "billing",
+  "cleanliness",
+  "food",
+  "maintenance",
+  "noise",
+  "room",
+  "security",
+  "staff",
+  "other",
+];
+
+export const statusConfig = {
+  open: {
+    label: "Open",
+    className: "bg-status-open-bg text-status-open border-status-open/20",
+    dotColor: "bg-status-open",
+  },
+  in_progress: {
+    label: "In Progress",
+    className: "bg-blue-50 text-blue-700 border-blue-200",
+    dotColor: "bg-blue-500",
+  },
+  resolved: {
+    label: "Resolved",
+    className:
+      "bg-status-resolved-bg text-status-resolved border-status-resolved/20",
+    dotColor: "bg-status-resolved",
+  },
+};
+
+export const priorityConfig = {
+  critical: {
+    label: "Critical",
+    className: "bg-red-100 text-red-700 border-red-200",
+    icon: AlertCircle,
+  },
+  high: {
+    label: "High",
+    className: "bg-orange-100 text-orange-700 border-orange-200",
+    icon: AlertCircle,
+  },
+  medium: {
+    label: "Medium",
+    className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    icon: Clock,
+  },
+  low: {
+    label: "Low",
+    className: "bg-gray-100 text-gray-600 border-gray-200",
+    icon: Clock,
   },
 };

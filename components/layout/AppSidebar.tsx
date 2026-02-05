@@ -9,6 +9,7 @@ import Link from 'next/link';
 import useCurrentUser from '@/hooks/useCurrentUser';
 import { Role } from '@/types';
 import { ProfileInfo } from './ProfileInfo';
+import LoadingState from '../LoadingState';
 
 type AppSidebarProps = {
     sidebarOpen: boolean
@@ -22,7 +23,7 @@ export function AppSidebar({ sidebarOpen, role }: AppSidebarProps) {
 
     if (!role) return null;
 
-    if (loading) return <span className='mt-24'>Loading...</span>
+    if (loading) return <LoadingState />
 
     const navLinks = NAV_LINKS[role];
 

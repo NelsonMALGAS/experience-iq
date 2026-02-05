@@ -1,5 +1,7 @@
+export const revalidate = 300;
+
 import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/Header";
@@ -16,6 +18,11 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
 });
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
+  subsets: ["latin"]
+})
 
 
 export const metadata: Metadata = {
@@ -34,6 +41,13 @@ export const metadata: Metadata = {
     "guest experience",
     "real-time support",
     "staff dashboard",
+    "roster",
+    "scheduling",
+    "staff-management",
+    "hospitality",
+    "nextjs",
+    "firebase",
+    "typescript"
   ],
   authors: [{ name: "Nelson Zongezile Malgas", url: "https://github.com/NelsonMALGAS" }],
   creator: "Nelson Malgas",
@@ -118,7 +132,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${poppins.variable}  antialiased`}
+        className={`${poppins.variable} ${playfairDisplay.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -128,21 +142,17 @@ export default function RootLayout({
         >
 
           <IssueProvider>
-
             <NotificationProvider>
-
               <Header />
-              <main className="container mx-auto p-8 flex-1 w-full h-screen">
+              <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen overflow-x-hidden">
                 <NextSSRPlugin
                   routerConfig={extractRouterConfig(ourFileRouter)}
                 />
                 {children}
               </main>
               <Toaster richColors position="top-center" />
-
             </NotificationProvider>
           </IssueProvider>
-
         </ThemeProvider>
       </body>
     </html>

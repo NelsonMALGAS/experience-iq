@@ -79,6 +79,7 @@ const AddIssuePage = () => {
         try {
             const issueRef = doc(db, "issues", issue.guestId);
 
+
             const newIssue = {
                 id: crypto.randomUUID(),
                 title: issue.title,
@@ -93,6 +94,7 @@ const AddIssuePage = () => {
                 assignedToName: null,
                 propertyId: issue.propertyId,
                 propertyName: issue.propertyName ?? null,
+                propertyLocation: issue.propertyLocation ?? null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 resolvedAt: null,

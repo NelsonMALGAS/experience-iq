@@ -9,6 +9,8 @@ export const mockProperties: Property[] = [
     openIssues: 12,
     avgResolutionTime: 45,
     resolvedIssues: 0,
+    code: "",
+    rooms: [],
   },
   {
     id: "prop-2",
@@ -18,6 +20,8 @@ export const mockProperties: Property[] = [
     openIssues: 8,
     avgResolutionTime: 38,
     resolvedIssues: 0,
+    code: "",
+    rooms: [],
   },
   {
     id: "prop-3",
@@ -27,6 +31,8 @@ export const mockProperties: Property[] = [
     openIssues: 5,
     avgResolutionTime: 52,
     resolvedIssues: 0,
+    code: "",
+    rooms: [],
   },
   {
     id: "prop-4",
@@ -36,6 +42,8 @@ export const mockProperties: Property[] = [
     openIssues: 15,
     avgResolutionTime: 41,
     resolvedIssues: 0,
+    code: "",
+    rooms: [],
   },
 ];
 export const mockUsers: AppUser[] = [
@@ -54,6 +62,7 @@ export const mockUsers: AppUser[] = [
     role: "staff",
     property: [mockProperties[0]], // ✅ full Property object
     isVerified: false,
+    department: "food",
   },
   {
     uid: "3",

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, Dispatch, SetStateAction } from 'react';
 import { Issue, IssueStatus, IssuePriority } from '@/types';
 import { mockIssues } from '@/constants/mockData';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 interface IssueContextType {
     issues: Issue[];
+    setIssues: Dispatch<SetStateAction<Issue[]>>,
     updateIssueStatus: (issueId: string, status: IssueStatus) => void;
     updateIssuePriority: (issueId: string, priority: IssuePriority) => void;
     assignIssue: (issueId: string, staffId: string, staffEmail: string) => void;
@@ -104,6 +105,7 @@ export function IssueProvider({ children }: { children: ReactNode }) {
     return (
         <IssueContext.Provider value={{
             issues,
+            setIssues,
             updateIssueStatus,
             updateIssuePriority,
             assignIssue,

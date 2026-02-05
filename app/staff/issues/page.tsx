@@ -1,6 +1,8 @@
+import { fetchCollection, getStaffUsers } from "@/app/actions";
 import StaffIssues from "@/components/issues/StaffIssues"
+import { staffColorPalette } from "@/constants";
 import { auth } from "@/db/server";
-import { Role } from "@/types";
+import { IssueCollection, Role, StaffMember } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -17,9 +19,26 @@ const StaffIssuesPage = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const uid = decoded.uid;
+
+    if (!uid) redirect(`/login?role=${role || "staff"}`)
+
+    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
+
+    const allIssues = issuesCol.flatMap(doc => doc.issues);
+
+    const staffUsers = await getStaffUsers();
+
+    const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
+        id: user.uid,
+        name: user.displayName ?? user.email ?? "Unknown",
+        email: user.email ?? "unknown@example.com",
+        isVerified: user.emailVerified ?? false,
+        color: staffColorPalette[index % staffColorPalette.length],
+        department: user.customClaims?.department || "other",
+    }));
     return (
         <div className="mt-24">
-            <StaffIssues role={role} uid={uid} />
+            <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} />
         </div>
     )
 }

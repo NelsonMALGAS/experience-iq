@@ -11,6 +11,7 @@ import { AppSidebar } from './AppSidebar';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/store/useUserStore';
+import LoadingState from '../LoadingState';
 
 
 export interface DashboardLayoutProps {
@@ -49,7 +50,7 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
         }
     }, [loading, uid, role, router]);
 
-    if (loading) return <span>Loading...</span>
+    if (loading) return <LoadingState message='Loading Dashboard...' />
 
     if (!isAuthenticated) {
         return null;

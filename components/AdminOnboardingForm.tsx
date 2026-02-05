@@ -4,6 +4,7 @@ import { AppUser, Role } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import AdminRegistrationForm from "./AdminRegistrationForm";
+import LoadingState from "./LoadingState";
 
 
 type AdminOnboardingFormProps = {
@@ -57,7 +58,7 @@ const AdminOnboardingForm = ({ role, uid }: AdminOnboardingFormProps) => {
 
     if (loading || !showForm) {
         return (
-            <div className="mt-24 text-foreground">Loading...</div>
+            <LoadingState message="Checking your account..." />
         )
     }
     return (
