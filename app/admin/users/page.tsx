@@ -1,3 +1,4 @@
+import { requireAuth } from "@/app/actions/requireAuth";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6,35 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { roleConfig } from "@/constants";
 import { mockUsers } from "@/constants/mockData";
-import { auth } from "@/db/server";
 import { cn } from "@/lib/utils";
-import { Role } from "@/types";
 import { MoreHorizontal, Plus, Search, Shield, UserIcon, UsersIcon } from "lucide-react";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 
 const UsersPage = async () => {
 
-    const cookieStore = await cookies();
-    const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
+    const { role, uid } = await requireAuth({ role: "admin" });
 
-    if (!session) redirect(`/login?role=${role}`);
-
-    const decoded = await auth?.verifySessionCookie(session, true);
-
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
-
-
-    // const adminSnap = await db?.collection("users").doc(uid).get();
-    // if (!adminSnap) return redirect(`/login?role=${"admin"}`)
-    // if (!adminSnap.exists) redirect(`/login?role=${"admin"}`);
     if (!uid) redirect(`/login?role=${role}`)
     return (
         <div className="mt-24">
-            <DashboardLayout role={role} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid}>
                 <div className="space-y-6 animate-fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>

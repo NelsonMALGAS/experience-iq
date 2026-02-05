@@ -3,27 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { auth } from "@/db/server";
-import { Property, Role } from "@/types";
+import { Property } from "@/types";
 import { MapPin, MoreHorizontal, Search, Building2 } from "lucide-react";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { fetchProperties } from "@/app/actions";
 import { AddPropertyDialog } from "@/components/Addpropertydialog";
+import { requireAuth } from "@/app/actions/requireAuth";
 
 const PropertiesPage = async () => {
-    const cookieStore = await cookies();
-    const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
-
-    if (!session) redirect(`/login?role=${role}`);
-
-    const decoded = await auth?.verifySessionCookie(session, true);
-
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const { role, uid } = await requireAuth({ role: "admin" });
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -40,7 +30,7 @@ const PropertiesPage = async () => {
 
     return (
         <div className="mt-24">
-            <DashboardLayout role={role} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid}>
                 <div className="space-y-6 animate-fade-in">
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -53,8 +53,8 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
                 <CardContent>
                     <div className={cn(
                         "grid gap-3",
-                        images.length === 1 && "grid-cols-1",
-                        images.length === 2 && "grid-cols-2",
+                        images.length === 1 && "grid-cols-3",
+                        images.length === 2 && "grid-cols-3",
                         images.length >= 3 && "grid-cols-2 md:grid-cols-3"
                     )}>
                         {images.map((imageUrl, index) => (

@@ -1,10 +1,10 @@
 'use client';
 
 import { Issue, Role, StaffMember } from "@/types";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Clock, User, Lock, Image as ImageIcon } from "lucide-react";
+import { User, Lock, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { updateIssue } from "@/app/actions";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { priorityConfig, statusConfig } from "@/constants";
 
 interface IssueCardProps {
     issue: Issue;
@@ -20,46 +21,6 @@ interface IssueCardProps {
     userRole?: Role;
 }
 
-const statusConfig = {
-    open: {
-        label: "Open",
-        className: "bg-status-open-bg text-status-open border-status-open/20",
-        dotColor: "bg-status-open",
-    },
-    "in_progress": {
-        label: "In Progress",
-        className: "bg-blue-50 text-blue-700 border-blue-200",
-        dotColor: "bg-blue-500",
-    },
-    resolved: {
-        label: "Resolved",
-        className: "bg-status-resolved-bg text-status-resolved border-status-resolved/20",
-        dotColor: "bg-status-resolved",
-    },
-};
-
-const priorityConfig = {
-    critical: {
-        label: "Critical",
-        className: "bg-red-100 text-red-700 border-red-200",
-        icon: AlertCircle,
-    },
-    high: {
-        label: "High",
-        className: "bg-orange-100 text-orange-700 border-orange-200",
-        icon: AlertCircle,
-    },
-    medium: {
-        label: "Medium",
-        className: "bg-yellow-100 text-yellow-700 border-yellow-200",
-        icon: Clock,
-    },
-    low: {
-        label: "Low",
-        className: "bg-gray-100 text-gray-600 border-gray-200",
-        icon: Clock,
-    },
-};
 
 export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staff' }: IssueCardProps) {
     const [isPending, startTransition] = useTransition();
@@ -69,7 +30,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
 
     const isAdmin = userRole === 'admin';
     const isAssignedToMe = issue.assignedTo === currentUserId;
-    const hasImages = issue.images && issue.images.length > 0 || 0
+    const hasImages = issue.images && issue.images.length > 0;
 
     const handleStatusChange = (newStatus: Issue['status']) => {
         setOptimisticStatus(newStatus);
@@ -85,13 +46,11 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     };
 
     const handleAssigneeChange = (staffId: string) => {
-        // Only admins can assign/reassign issues
         if (!isAdmin) {
             toast.error("Only administrators can assign issues");
             return;
         }
 
-        // Handle unassignment
         if (staffId === "unassigned") {
             setOptimisticAssignee(undefined);
             startTransition(async () => {
@@ -109,12 +68,8 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
             return;
         }
 
-        // Handle staff assignment
         const staff = staffMembers?.find(s => s.id === staffId);
-        if (!staff) {
-            console.error("Staff member not found:", staffId);
-            return;
-        }
+        if (!staff) return;
 
         setOptimisticAssignee(staffId);
 
@@ -132,7 +87,6 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
         });
     };
 
-    const currentStatus = statusConfig[optimisticStatus];
     const currentPriority = priorityConfig[issue.priority];
     const PriorityIcon = currentPriority.icon;
     const assignedStaff = staffMembers?.find(s => s.id === optimisticAssignee);
@@ -157,7 +111,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     return (
         <Card
             className={cn(
-                "hover:shadow-lg transition-all border-l-4 overflow-hidden",
+                "hover:shadow-lg transition-all duration-300 border-l-4 overflow-hidden h-full flex flex-col",
                 issue.priority === 'critical' && "border-l-red-500",
                 issue.priority === 'high' && "border-l-orange-500",
                 issue.priority === 'medium' && "border-l-yellow-500",
@@ -166,34 +120,40 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                 isPending && "opacity-60 pointer-events-none"
             )}
         >
-            <CardContent className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-foreground line-clamp-2">
+            <CardContent className="p-4 sm:p-5 flex flex-col flex-1 gap-4">
+                {/* Header Section */}
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-2">
+                        {/* Title & Mine Badge */}
+                        <div className="flex items-start gap-2">
+                            <h4 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2 leading-tight">
                                 {issue.title}
                             </h4>
                             {isAssignedToMe && (
-                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs px-1.5 py-0 shrink-0">
+                                <Badge
+                                    variant="outline"
+                                    className="bg-primary/10 text-primary border-primary/20 text-[10px] px-1.5 py-0.5 shrink-0 h-fit"
+                                >
                                     Mine
                                 </Badge>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                            <span>{issue.propertyName}</span>
+
+                        {/* Metadata Row */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                            <span className="font-medium">{issue.propertyName}</span>
                             {issue.roomNumber && (
                                 <>
-                                    <span>•</span>
-                                    <span>Room {issue.roomNumber}</span>
+                                    <span className="hidden xs:inline">•</span>
+                                    <span className="truncate">Room {issue.roomNumber}</span>
                                 </>
                             )}
-                            <span>•</span>
-                            <span>{timeAgo(issue.createdAt)}</span>
+                            <span className="hidden xs:inline">•</span>
+                            <span className="shrink-0">{timeAgo(issue.createdAt)}</span>
                             {hasImages && (
                                 <>
-                                    <span>•</span>
-                                    <span className="flex items-center gap-1">
+                                    <span className="hidden sm:inline">•</span>
+                                    <span className="flex items-center gap-1 shrink-0">
                                         <ImageIcon className="h-3 w-3" />
                                         {issue?.images?.length}
                                     </span>
@@ -205,19 +165,22 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                     {/* Priority Badge */}
                     <Badge
                         variant="outline"
-                        className={cn("flex items-center gap-1 px-2 py-1 shrink-0", currentPriority.className)}
+                        className={cn(
+                            "flex items-center gap-1 px-2 py-1 shrink-0 h-fit",
+                            currentPriority.className
+                        )}
                     >
                         <PriorityIcon className="h-3 w-3" />
-                        <span className="text-xs font-medium">{currentPriority.label}</span>
+                        <span className="hidden sm:inline text-xs font-medium">{currentPriority.label}</span>
                     </Badge>
                 </div>
 
-                {/* Images Gallery */}
+                {/* Images Gallery - Optimized for all screen sizes */}
                 {hasImages && (
                     <div className={cn(
-                        "mb-3 rounded-lg overflow-hidden",
-                        issue?.images?.length === 1 && "grid grid-cols-3",
-                        issue?.images?.length === 2 && "grid grid-cols-3 gap-2",
+                        "rounded-lg overflow-hidden",
+                        issue?.images?.length === 1 && "grid grid-cols-1",
+                        issue?.images?.length === 2 && "grid grid-cols-2 gap-2",
                         (issue?.images?.length || 0) >= 3 && "grid grid-cols-3 gap-2"
                     )}>
                         {issue?.images?.slice(0, 3).map((imageUrl, index) => (
@@ -225,7 +188,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                 key={index}
                                 className={cn(
                                     "relative bg-muted rounded-md overflow-hidden group",
-                                    issue?.images?.length === 1 && "aspect-square",
+                                    issue?.images?.length === 1 && "aspect-video sm:aspect-16/10",
                                     issue?.images?.length === 2 && "aspect-square",
                                     (issue?.images?.length || 0) >= 3 && "aspect-square"
                                 )}
@@ -236,12 +199,11 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                             src={imageUrl}
                                             alt={`Issue image ${index + 1}`}
                                             fill
-                                            className="object-cover group-hover:scale-105 w-12 h-12 transition-transform duration-200"
+                                            className="object-cover group-hover:scale-105 transition-transform duration-200"
                                             onError={() => handleImageError(index)}
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                             unoptimized
-
                                         />
-                                        {/* Overlay on hover */}
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                                     </>
                                 ) : (
@@ -249,10 +211,10 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                         <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
                                     </div>
                                 )}
-                                {/* Image count badge for 3+ images */}
+                                {/* Image count badge */}
                                 {index === 2 && (issue?.images?.length || 0) > 3 && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                        <span className="text-white font-semibold text-lg">
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <span className="text-white font-semibold text-base sm:text-lg">
                                             +{(issue?.images?.length || 0) - 3}
                                         </span>
                                     </div>
@@ -264,110 +226,120 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
 
                 {/* Description */}
                 {issue.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                         {issue.description}
                     </p>
                 )}
 
-                {/* Controls */}
-                <div className="flex items-center gap-3 pt-3 border-t">
-                    {/* Status Select */}
-                    <Select value={optimisticStatus} onValueChange={handleStatusChange}>
-                        <SelectTrigger className="h-8 w-20 text-xs flex items-center justify-between">
-                            {/* Left side: dot + value */}
-                            <div className="flex items-center gap-2 truncate">
-                                <div className={cn("w-2 h-2 rounded-full shrink-0", currentStatus.dotColor)} />
-                                <SelectValue placeholder="Status" />
-                            </div>
-
-                        </SelectTrigger>
-
-                        <SelectContent>
-                            {Object.entries(statusConfig).map(([value, config]) => (
-                                <SelectItem key={value} value={value} className="text-xs">
+                {/* Controls Section - Responsive Layout */}
+                <div className="flex flex-col gap-3 pt-3 border-t mt-auto">
+                    {/* Status & Assignee Row */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        {/* Status Select */}
+                        <div className="shrink-0 w-full sm:w-auto">
+                            <Select value={optimisticStatus} onValueChange={handleStatusChange}>
+                                <SelectTrigger className="h-9 w-full sm:w-32 text-xs">
                                     <div className="flex items-center gap-2">
-                                        <div className={cn("w-2 h-2 rounded-full", config.dotColor)} />
-                                        <span>{config.label}</span>
+                                        <SelectValue placeholder="Status" />
                                     </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(statusConfig).map(([value, config]) => (
+                                        <SelectItem key={value} value={value} className="text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <div className={cn("w-2 h-2 rounded-full", config.dotColor)} />
+                                                <span>{config.label}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    {/* Assignee Select - Admin Only */}
-                    {isAdmin ? (
-                        <Select
-                            value={optimisticAssignee || "unassigned"}
-                            onValueChange={handleAssigneeChange}
-                        >
-                            <SelectTrigger className="h-8 w-full text-xs">
-                                <div className="flex items-center gap-2">
+                        {/* Assignee Select - Admin Only */}
+                        <div className="flex-1 min-w-0">
+                            {isAdmin ? (
+                                <Select
+                                    value={optimisticAssignee || "unassigned"}
+                                    onValueChange={handleAssigneeChange}
+                                >
+                                    <SelectTrigger className="h-9 w-full text-xs">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            {assignedStaff ? (
+                                                <>
+                                                    <div
+                                                        className="w-2 h-2 rounded-full shrink-0"
+                                                        style={{ backgroundColor: assignedStaff.color }}
+                                                    />
+                                                    <span className="truncate">{assignedStaff.name}</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                                                    <span className="text-muted-foreground">Unassigned</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" className="max-w-70">
+                                        <SelectItem value="unassigned" className="text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-3 w-3" />
+                                                <span>Unassigned</span>
+                                            </div>
+                                        </SelectItem>
+                                        {staffMembers?.map((staff) => (
+                                            <SelectItem key={staff.id} value={staff.id} className="text-xs">
+                                                <div className="flex items-center gap-2 justify-between w-full">
+                                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                        <div
+                                                            className="w-2 h-2 rounded-full shrink-0"
+                                                            style={{ backgroundColor: staff.color }}
+                                                        />
+                                                        <span className="truncate">{staff.name}</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                                                        {staff.department}
+                                                    </span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="h-9 px-3 py-2 rounded-md border border-input bg-muted/50 flex items-center gap-2 text-xs cursor-not-allowed">
                                     {assignedStaff ? (
                                         <>
                                             <div
-                                                className="w-2 h-2 rounded-full"
+                                                className="w-2 h-2 rounded-full shrink-0"
                                                 style={{ backgroundColor: assignedStaff.color }}
                                             />
-                                            <span className="truncate w-full">{assignedStaff.name}</span>
+                                            <span className="truncate text-foreground flex-1">{assignedStaff.name}</span>
                                         </>
                                     ) : (
                                         <>
-                                            <User className="h-3 w-3 text-muted-foreground" />
-                                            <span className="text-muted-foreground">Unassigned</span>
+                                            <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                                            <span className="text-muted-foreground flex-1">Unassigned</span>
                                         </>
                                     )}
+                                    <Lock className="h-3 w-3 text-muted-foreground shrink-0" />
                                 </div>
-                            </SelectTrigger>
-                            <SelectContent position="popper">
-                                <SelectItem value="unassigned" className="text-xs text-muted-foreground">
-                                    <div className="flex items-center gap-2">
-                                        <User className="h-3 w-3" />
-                                        <span>Unassigned</span>
-                                    </div>
-                                </SelectItem>
-                                {staffMembers?.map((staff) => (
-                                    <SelectItem key={staff.id} value={staff.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
-                                            <div
-                                                className="w-2 h-2 rounded-full"
-                                                style={{ backgroundColor: staff.color }}
-                                            />
-                                            <span>{staff.name}</span>
-                                            <span className="ml-auto text-[10px] text-muted-foreground">
-                                                {staff.department}
-                                            </span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    ) : (
-                        // Read-only assignee display for staff
-                        <div className="h-8 flex-1 px-3 py-2 rounded-md border border-input bg-muted/50 flex items-center gap-2 text-xs cursor-not-allowed">
-                            {assignedStaff ? (
-                                <>
-                                    <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: assignedStaff.color }}
-                                    />
-                                    <span className="truncate text-foreground">{assignedStaff.name}</span>
-                                </>
-                            ) : (
-                                <>
-                                    <User className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Unassigned</span>
-                                </>
                             )}
-                            <Lock className="h-3 w-3 text-muted-foreground ml-auto" />
                         </div>
-                    )}
+                    </div>
+
+                    {/* View Details Button - Full Width on Mobile */}
+                    <Link href={`/${userRole}/issues/${issue.id}`} className="w-full">
+                        <Button
+                            variant="default"
+                            className="w-full h-9 text-xs sm:text-sm group"
+                        >
+                            <span>View Details</span>
+                            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                    </Link>
                 </div>
             </CardContent>
-            <CardFooter>
-                <Link href={`/staff/issues/${issue.id}`}>
-                    <Button variant="default">View Details</Button>
-                </Link>
-            </CardFooter>
         </Card>
     );
 }

@@ -1,5 +1,37 @@
 import { Issue } from "@/types";
 import { formatDistanceToNow, format } from "date-fns";
+import { Timestamp } from "firebase/firestore";
+
+type DateInput =
+  | string
+  | Date
+  | Timestamp
+  | { _seconds: number; _nanoseconds: number };
+
+const toDate = (value: DateInput): Date | null => {
+  try {
+    if (!value) return null;
+
+    // Firestore Timestamp instance
+    if (value instanceof Timestamp) {
+      return value.toDate();
+    }
+
+    // Firestore timestamp-like object
+    if (
+      typeof value === "object" &&
+      "_seconds" in value &&
+      typeof value._seconds === "number"
+    ) {
+      return new Date(value._seconds * 1000);
+    }
+
+    // ISO string or Date
+    return new Date(value.toString());
+  } catch {
+    return null;
+  }
+};
 
 // Status badge configuration
 export const getStatusConfig = (status: Issue["status"]) => {
@@ -78,7 +110,7 @@ export const generateTimeline = (issue: Issue): TimelineEvent[] => {
     type: "created",
     title: "Issue Created",
     description: `Reported by ${issue.guestName || "Guest"}`,
-    timestamp: new Date(issue.createdAt),
+    timestamp: toDate(issue.createdAt) || new Date(issue.createdAt),
     icon: "plus",
   });
 
@@ -89,7 +121,7 @@ export const generateTimeline = (issue: Issue): TimelineEvent[] => {
       type: "assigned",
       title: "Issue Assigned",
       description: `Assigned to ${issue.assignedToName}`,
-      timestamp: new Date(issue.createdAt),
+      timestamp: toDate(issue.createdAt) || new Date(issue.createdAt),
       icon: "user-check",
     });
   }
@@ -101,7 +133,7 @@ export const generateTimeline = (issue: Issue): TimelineEvent[] => {
       type: "status_change",
       title: "Work Started",
       description: "Issue status changed to In Progress",
-      timestamp: new Date(issue.updatedAt),
+      timestamp: toDate(issue.updatedAt) || new Date(issue.updatedAt),
       icon: "play",
     });
   }
@@ -123,20 +155,24 @@ export const generateTimeline = (issue: Issue): TimelineEvent[] => {
 };
 
 // Date formatting utilities
-export const formatRelativeTime = (date: string | Date): string => {
-  try {
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
-  } catch {
+export const formatRelativeTime = (date: DateInput): string => {
+  const parsedDate = toDate(date);
+
+  if (!parsedDate || isNaN(parsedDate.getTime())) {
     return "Unknown";
   }
+
+  return formatDistanceToNow(parsedDate, { addSuffix: true });
 };
 
-export const formatFullDate = (date: string | Date): string => {
-  try {
-    return format(new Date(date), "PPpp"); // e.g., "Apr 29, 2023, 9:30 AM"
-  } catch {
+export const formatFullDate = (date: DateInput): string => {
+  const parsedDate = toDate(date);
+
+  if (!parsedDate || isNaN(parsedDate.getTime())) {
     return "Unknown";
   }
+
+  return format(parsedDate, "PPpp");
 };
 
 // Category icon mapping

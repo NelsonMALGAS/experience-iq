@@ -1,25 +1,16 @@
 import { getStaffUsers } from "@/app/actions";
+import { requireAuth } from "@/app/actions/requireAuth"
 import AdminCreateRosterPage from "@/components/CreateStaffRoster";
 import { staffColorPalette } from "@/constants";
-import { auth } from "@/db/server";
-import { Role, StaffMember } from "@/types";
-import { cookies } from "next/headers";
+import { StaffMember } from "@/types";
 import { redirect } from "next/navigation";
 
 
 const RosterPage = async () => {
 
-    const cookieStore = await cookies();
-    const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
+    const { role, uid } = await requireAuth({ role: "admin" });
 
-    if (!session) redirect(`/login?role=${role}`);
-
-    const decoded = await auth?.verifySessionCookie(session, true);
-
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
-    const userRole = decoded.role
+    const userRole = role || "admin"
 
     if (!uid) redirect(`/login?role=${role}`)
 

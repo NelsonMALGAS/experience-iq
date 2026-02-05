@@ -1,24 +1,16 @@
 import { fetchCollection, getStaffUsers } from "@/app/actions";
+import { requireAuth } from "@/app/actions/requireAuth";
 import StaffIssues from "@/components/issues/StaffIssues"
 import { staffColorPalette } from "@/constants";
-import { auth } from "@/db/server";
-import { IssueCollection, Role, StaffMember } from "@/types";
-import { cookies } from "next/headers";
+import { IssueCollection, StaffMember } from "@/types";
 import { redirect } from "next/navigation";
 
 
 const StaffIssuesPage = async () => {
 
-    const cookieStore = await cookies();
-    const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "staff"
+    const { uid, role } = await requireAuth({ role: "staff" });
 
-    if (!session) redirect(`/login?role=${role}`);
-
-    const decoded = await auth?.verifySessionCookie(session, true);
-
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    if (!uid) redirect(`/login?role=${role || "staff"}`)
 
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []
 
@@ -36,7 +28,7 @@ const StaffIssuesPage = async () => {
     }));
     return (
         <div className="mt-24">
-            <StaffIssues role={role} uid={uid} issues={allIssues} staff={plainStaffUsers} />
+            <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} />
         </div>
     )
 }

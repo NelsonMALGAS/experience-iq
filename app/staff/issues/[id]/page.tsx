@@ -10,7 +10,6 @@ import {
     Calendar,
     Clock,
     Tag,
-
     CheckCircle2,
     Info
 } from "lucide-react"
@@ -29,6 +28,8 @@ import { ImageGallery } from "@/components/issueDetails/Imagegallery"
 import { Timeline } from "@/components/issueDetails/Timeline"
 import { MetadataCard } from "@/components/issueDetails/MetadataCard"
 import { ErrorState, NotFoundState } from "@/components/issueDetails/ErrorStates"
+import { requireAuth } from "@/app/actions/requireAuth"
+import { redirect } from "next/navigation"
 
 
 
@@ -38,6 +39,10 @@ const IssueDetailsPage = async ({
     params: Promise<{ id: string }>
 }) => {
     const { id } = await params
+
+    const { uid, role } = await requireAuth({ role: "staff" });
+
+    if (!uid) redirect(`/login?role=${role || "staff"}`)
 
     // Fetch data outside of JSX
     let issuesCol: IssueCollection[] | null = null;
