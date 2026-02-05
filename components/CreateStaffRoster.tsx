@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from 'react';
-import { Calendar, Users, Clock, Save, Download, Copy, Trash2, Shield, Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Calendar, Users, Clock, Save, Download, Copy, Trash2, Shield, Menu, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import {
     Sheet,
@@ -25,24 +26,25 @@ import NotAdmin from './NotAdmin';
 import SuccessAlert from './SuccessAlert';
 import CalendarGrid from './CalendarGrid';
 import { months, shiftTemplates, staffColorPalette } from '@/constants';
-
+import { toast } from 'sonner';
+import { addShiftToRoster, createRoster, removeShiftFromRoster } from '@/app/actions/rosterActions';
+import Link from 'next/link';
 
 type AdminCreateProps = {
     role: Role
     uid: string
     staff: StaffMember[]
+    existingRosterId?: string
 }
-
-
 
 type NewStaffType = {
     name: string
     email: string
     department: IssueCategory
 }
-const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
-    const { currentUser } = useUserStore();
 
+const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCreateProps) => {
+    const { currentUser } = useUserStore();
 
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -58,11 +60,18 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [rosterId, setRosterId] = useState<string | undefined>(existingRosterId);
     const [newStaffData, setNewStaffData] = useState<NewStaffType>({
         name: '',
         email: '',
         department: 'other',
     });
+
+    useEffect(() => {
+        setRosterId(undefined);
+        setShifts([]);
+    }, [selectedMonth, selectedYear]);
 
 
     if (!uid) return <NotAdmin role={role} />;
@@ -84,8 +93,6 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
         return date > start && date < end;
     };
 
-
-
     // Get days in month
     const getDaysInMonth = (month: number, year: number) => {
         return new Date(year, month + 1, 0).getDate();
@@ -100,38 +107,100 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
 
     const firstDay = getFirstDayOfMonth(selectedMonth, selectedYear);
 
-    // Add shift (admin only)
-    const addShift = (staffId: string, date: string, startTime: string, endTime: string, notes?: string) => {
+
+    // Add shift - now using server action
+    const addShift = async (staffId: string, date: string, startTime: string, endTime: string, notes?: string) => {
         if (!uid) {
-            alert('Access denied. Only administrators can create shifts.');
+            toast.error("Access Denied", { description: 'Only administrators can create shifts.' });
             return;
         }
 
-        // Check if staff member exists and has 'staff' role (in production)
         const staffMember = staffMembers.find(s => s.id === staffId);
         if (!staffMember) {
-            alert('Invalid staff member selected.');
+            toast.error('Error', { description: 'Invalid staff member selected.' });
             return;
         }
 
-        const newShift: Shift = {
-            id: crypto.randomUUID(),
-            staffId,
-            date,
-            startTime,
-            endTime,
-            notes,
-        };
-        setShifts([...shifts, newShift]);
+        // Ensure roster exists (create if doesn't exist)
+        if (!rosterId) {
+            const result = await createRoster({
+                month: months[selectedMonth],
+                year: selectedYear,
+                shifts: [],
+            });
+
+            if (result.success && result.data) {
+                setRosterId(result.data.id);
+                toast.success('Roster ready', { description: 'Now adding your shift...' });
+            } else {
+                toast.error('Error', { description: result.message });
+                return;
+            }
+        }
+
+        // Create new shift
+        const newShift: Shift = { id: crypto.randomUUID(), staffId, date, startTime, endTime, notes };
+        setShifts(prev => [...prev, newShift]);
+
+        // Add shift to server
+        try {
+            const result = await addShiftToRoster(rosterId!, { staffId, date, startTime, endTime, notes });
+            if (!result.success) {
+                setShifts(prev => prev.filter(s => s.id !== newShift.id));
+                toast.error('Error', { description: result.message });
+            } else {
+                toast.success('Success', { description: 'Shift added successfully.' });
+            }
+        } catch (error) {
+            console.error("Error adding shift:", error);
+            setShifts(prev => prev.filter(s => s.id !== newShift.id));
+            toast.error('Error', { description: 'Failed to add shift.' });
+        }
     };
 
-    // Remove shift (admin only)
-    const removeShift = (shiftId: string) => {
+
+    // Remove shift - now using server action
+    const removeShift = async (shiftId: string) => {
         if (!uid) {
-            alert('Access denied. Only administrators can remove shifts.');
+            toast.error('Access Denied', {
+                description: 'Only administrators can remove shifts.',
+            });
             return;
         }
+
+        if (!rosterId) {
+            toast.error('Error', {
+                description: 'Roster ID not found.',
+            });
+            return;
+        }
+
+        // Remove locally first for immediate UI update
+        const originalShifts = [...shifts];
         setShifts(shifts.filter(s => s.id !== shiftId));
+
+        // Then sync with server
+        try {
+            const result = await removeShiftFromRoster(rosterId, shiftId);
+
+            if (!result.success) {
+                // Rollback on failure
+                setShifts(originalShifts);
+                toast.error('Error', {
+                    description: result.message,
+                });
+            } else {
+                toast.success('Success', {
+                    description: 'Shift removed successfully.',
+                });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            setShifts(originalShifts);
+            toast.error('Error', {
+                description: 'Failed to remove shift.',
+            });
+        }
     };
 
     // Get shifts for a specific date
@@ -147,7 +216,9 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
     // Add new staff member (admin only)
     const addStaffMember = () => {
         if (!uid) {
-            alert('Access denied. Only administrators can add staff members.');
+            toast.error('Access Denied', {
+                description: 'Only administrators can add staff members.',
+            });
             return;
         }
 
@@ -158,54 +229,89 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                 email: newStaffData.email,
                 department: newStaffData.department,
                 color: staffColorPalette[staffMembers.length % staffColorPalette.length],
-                isVerified: false, // New staff members start unverified
+                isVerified: false,
             };
             setStaffMembers([...staffMembers, newStaff]);
             setNewStaffData({ name: '', email: '', department: 'other' });
             setIsAddStaffDialogOpen(false);
+
+            toast.success('Success', {
+                description: 'Staff member added successfully.',
+            });
         }
     };
 
-    // Save roster (admin only)
-    const saveRoster = () => {
+    // Save roster - now using server action
+    const saveRoster = async () => {
         if (!uid) {
-            alert('Access denied. Only administrators can save rosters.');
+            toast.error('Access Denied', {
+                description: 'Only administrators can save rosters.',
+            });
             return;
         }
 
-        if (!uid) {
-            alert('User not authenticated.');
-            return;
-        }
+        setIsSaving(true);
 
-        const rosterData: RosterData = {
-            month: months[selectedMonth],
-            year: selectedYear,
-            shifts,
-            createdBy: uid,
-            createdAt: new Date().toISOString(),
-        };
-        console.log('Saving roster:', rosterData);
-        // In production, this would be a Firebase Firestore call:
-        // await addDoc(collection(db, 'rosters'), rosterData);
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        try {
+            // If rosterId doesn't exist, create new roster
+            if (!rosterId) {
+                const result = await createRoster({
+                    month: months[selectedMonth],
+                    year: selectedYear,
+                    shifts,
+                });
+
+                if (result.success && result.data) {
+                    setRosterId(result.data.id);
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 3000);
+
+                    toast.success('Success', {
+                        description: 'Roster created successfully. You can now add shifts!',
+                    });
+                } else {
+                    toast.error('Error', {
+                        description: result.message,
+                    });
+                }
+            } else {
+                // Roster already exists, shifts are auto-saved via server actions
+                setShowSuccess(true);
+                setTimeout(() => setShowSuccess(false), 3000);
+
+                toast.success('Success', {
+                    description: 'Roster saved successfully.',
+                });
+            }
+        } catch (error) {
+            console.error('Error saving roster:', error);
+            toast.error('Error', {
+                description: 'Failed to save roster.',
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Copy previous month's roster (admin only)
     const copyPreviousMonth = () => {
         if (!uid) {
-            alert('Access denied. Only administrators can copy rosters.');
+            toast.error('Access Denied', {
+                description: 'Only administrators can copy rosters.',
+            });
             return;
         }
-        console.log('Copying previous month roster');
+
+        toast.info('Info', {
+            description: 'Copy previous month feature coming soon.',
+        });
         // API call would go here
     };
 
     // Export roster
     const exportRoster = () => {
+        if (!currentUser) return;
 
-        if (!currentUser) return
         const rosterData: RosterData = {
             month: months[selectedMonth],
             year: selectedYear,
@@ -213,6 +319,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
             createdAt: new Date().toISOString(),
             createdBy: currentUser?.uid
         };
+
         const dataStr = JSON.stringify(rosterData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
         const exportFileDefaultName = `roster-${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}.json`;
@@ -221,6 +328,10 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
+
+        toast.success('Success', {
+            description: 'Roster exported successfully.',
+        });
     };
 
     // Quick add shift from template
@@ -230,66 +341,119 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
         addShift(selectedStaff, dateStr, template.start, template.end);
     };
 
-
     return (
-        <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 lg:p-8">
             {/* Success notification */}
             {showSuccess && (
                 <SuccessAlert />
             )}
 
-            <div className="max-w-400 mx-auto space-y-6">
+            <div className="max-w-480 mx-auto space-y-4 sm:space-y-6">
+                {/* Info Alert for new roster */}
+                {!rosterId && (
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>New Roster</AlertTitle>
+                        <AlertDescription>
+                            Click &quot;Save Roster&quot; to create this roster before adding shifts.
+                            Once saved, you can add shifts by clicking on dates.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Header */}
                 <Card>
-                    <CardHeader>
-                        <div className="flex flex-col gap-4">
-                            {/* Title and Actions Row */}
-                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                <div className="flex-1">
-                                    <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight">
-                                        Create Staff Roster
+                    <CardHeader className="p-4 sm:p-6">
+                        <div className="flex flex-col gap-5">
+
+                            {/* Back button */}
+                            <Link href="/admin" className="w-fit">
+                                <Button variant="ghost" size="sm" className="gap-2 hover:bg-muted">
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back to Dashboard
+                                </Button>
+                            </Link>
+
+                            {/* Title + primary actions */}
+                            <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+                                {/* Title section */}
+                                <div className="flex-1 min-w-0">
+                                    <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
+                                        {rosterId ? "Edit" : "Create"} Staff Roster
                                     </CardTitle>
-                                    <CardDescription className="text-sm sm:text-base mt-2">
-                                        Schedule your hospitality staff for {months[selectedMonth]} {selectedYear}
+
+                                    <CardDescription className="mt-2 text-sm sm:text-base">
+                                        Schedule your hospitality staff for{" "}
+                                        <span className="font-medium">
+                                            {months[selectedMonth]} {selectedYear}
+                                        </span>
                                     </CardDescription>
-                                    <Badge variant="secondary" className="mt-3 w-fit">
-                                        <Shield className="w-3 h-3 mr-1" />
-                                        Admin Access
-                                    </Badge>
+
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        <Badge variant="secondary" className="text-xs">
+                                            <Shield className="w-3 h-3 mr-1" />
+                                            Admin Access
+                                        </Badge>
+
+                                        {rosterId && (
+                                            <Badge variant="outline" className="text-xs">
+                                                Roster ID: {rosterId.slice(0, 8)}…
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Desktop Action Buttons */}
-                                <div className="hidden md:flex flex-wrap gap-2">
-                                    <Button variant="outline" onClick={copyPreviousMonth} className="gap-2">
+                                {/* Actions */}
+                                <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+                                    <Button
+                                        variant="outline"
+                                        onClick={copyPreviousMonth}
+                                        disabled={isSaving}
+                                        className="flex-1 sm:flex-none gap-2"
+                                    >
                                         <Copy className="w-4 h-4" />
-                                        <span className="hidden lg:inline">Copy Previous</span>
+                                        <span className="hidden sm:inline">Copy Previous</span>
                                     </Button>
-                                    <Button variant="outline" onClick={exportRoster} className="gap-2">
-                                        <Download className="w-4 h-4" />
-                                        <span className="hidden lg:inline">Export</span>
-                                    </Button>
-                                    <Button onClick={saveRoster} className="gap-2">
-                                        <Save className="w-4 h-4" />
-                                        Save Roster
-                                    </Button>
-                                </div>
 
-                                {/* Mobile Action Button */}
-                                <div className="md:hidden w-full">
-                                    <Button onClick={saveRoster} className="w-full gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={exportRoster}
+                                        disabled={isSaving}
+                                        className="flex-1 sm:flex-none gap-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Export</span>
+                                    </Button>
+
+                                    <Button
+                                        onClick={saveRoster}
+                                        disabled={isSaving}
+                                        className="flex-1 sm:flex-none gap-2"
+                                    >
                                         <Save className="w-4 h-4" />
-                                        Save Roster
+                                        {isSaving
+                                            ? "Saving…"
+                                            : rosterId
+                                                ? "Save Changes"
+                                                : "Create Roster"}
                                     </Button>
                                 </div>
                             </div>
 
-                            {/* Month/Year Selector and View Toggle */}
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                                <div className="grid grid-cols-2 sm:flex gap-3 flex-1">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="month" className="text-xs sm:text-sm">Month</Label>
-                                        <Select value={selectedMonth.toString()} onValueChange={(val) => setSelectedMonth(Number(val))}>
-                                            <SelectTrigger id="month" className="w-full">
+                            {/* Filters + view toggle */}
+                            <div className="flex flex-col md:flex-row md:items-end gap-4">
+                                {/* Month / Year */}
+                                <div className="flex items-end gap-2 sm:gap-3">
+
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="month" className="text-xs sm:text-sm">
+                                            Month
+                                        </Label>
+                                        <Select
+                                            value={selectedMonth.toString()}
+                                            onValueChange={(val) => setSelectedMonth(Number(val))}
+                                        >
+                                            <SelectTrigger id="month" className="h-9 sm:h-10">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -302,14 +466,19 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                         </Select>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="year" className="text-xs sm:text-sm">Year</Label>
-                                        <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(Number(val))}>
-                                            <SelectTrigger id="year" className="w-full">
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="year" className="text-xs sm:text-sm">
+                                            Year
+                                        </Label>
+                                        <Select
+                                            value={selectedYear.toString()}
+                                            onValueChange={(val) => setSelectedYear(Number(val))}
+                                        >
+                                            <SelectTrigger id="year" className="h-9 sm:h-10">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {[2024, 2025, 2026, 2027, 2028].map(year => (
+                                                {[2024, 2025, 2026, 2027, 2028].map((year) => (
                                                     <SelectItem key={year} value={year.toString()}>
                                                         {year}
                                                     </SelectItem>
@@ -319,61 +488,61 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                     </div>
                                 </div>
 
-                                <div className="w-full sm:w-auto sm:ml-auto">
-                                    <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as 'calendar' | 'list')} className="w-full">
-                                        <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="calendar" className="gap-2 text-xs sm:text-sm">
-                                                <Calendar className="w-4 h-4" />
-                                                <span className="hidden sm:inline">Calendar</span>
-                                            </TabsTrigger>
-                                            <TabsTrigger value="list" className="gap-2 text-xs sm:text-sm">
-                                                <Users className="w-4 h-4" />
-                                                <span className="hidden sm:inline">Staff List</span>
-                                            </TabsTrigger>
-                                        </TabsList>
-                                    </Tabs>
-                                </div>
-                            </div>
-
-                            {/* Mobile Action Buttons Row */}
-                            <div className="md:hidden grid grid-cols-2 gap-2">
-                                <Button variant="outline" size="sm" onClick={copyPreviousMonth} className="gap-2">
-                                    <Copy className="w-4 h-4" />
-                                    Copy
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={exportRoster} className="gap-2">
-                                    <Download className="w-4 h-4" />
-                                    Export
-                                </Button>
+                                {/* View toggle */}
+                                <Tabs
+                                    value={viewMode}
+                                    onValueChange={(val) =>
+                                        setViewMode(val as "calendar" | "list")
+                                    }
+                                    className="w-full md:w-auto"
+                                >
+                                    <TabsList className="grid grid-cols-2 h-9 sm:h-10">
+                                        <TabsTrigger
+                                            value="calendar"
+                                            className="gap-2 text-xs sm:text-sm"
+                                        >
+                                            <Calendar className="w-4 h-4" />
+                                            Calendar
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="list"
+                                            className="gap-2 text-xs sm:text-sm"
+                                        >
+                                            <Users className="w-4 h-4" />
+                                            Staff List
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
                             </div>
                         </div>
                     </CardHeader>
+
                 </Card>
 
                 {/* Main Content Grid */}
-                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[320px_1fr] lg:gap-6">
+                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] lg:gap-4 xl:gap-6">
                     {/* Mobile Staff Menu Button */}
                     <div className="lg:hidden">
                         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" className="w-full gap-2">
+                                <Button variant="outline" className="w-full gap-2 h-auto py-3">
                                     <Menu className="w-4 h-4" />
-                                    Staff & Templates
+                                    <span className="flex-1 text-left">Staff & Templates</span>
                                     {selectedStaff && (
-                                        <Badge variant="secondary" className="ml-auto">
+                                        <Badge variant="secondary" className="text-xs">
                                             {staffMembers.find(s => s.id === selectedStaff)?.name.split(' ')[0]}
                                         </Badge>
                                     )}
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="w-75 sm:w-100 overflow-y-auto">
-                                <SheetHeader>
-                                    <SheetTitle>Staff Management</SheetTitle>
-                                    <SheetDescription>
+                            <SheetContent side="left" className="w-[85vw] sm:w-100 overflow-y-auto p-4 sm:p-6">
+                                <SheetHeader className="mb-4">
+                                    <SheetTitle className="text-lg sm:text-xl">Staff Management</SheetTitle>
+                                    <SheetDescription className="text-xs sm:text-sm">
                                         Select staff and use quick shift templates
                                     </SheetDescription>
                                 </SheetHeader>
-                                <div className="mt-6 space-y-4">
+                                <div className="space-y-4">
                                     {/* Staff List in Sheet */}
                                     <StaffListSection
                                         staffMembers={staffMembers}
@@ -421,23 +590,24 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                 <ShiftTemplatesSection
                                     shiftTemplates={shiftTemplates}
                                     selectedDate={selectedDate}
-                                    setSelectedTemplate={setSelectedTemplate} />
+                                    setSelectedTemplate={setSelectedTemplate}
+                                />
                             </Card>
                         )}
                     </div>
 
                     {/* Main Calendar/List View */}
                     <Card>
-                        <CardContent className="p-3 sm:p-6">
+                        <CardContent className="p-3 sm:p-4 md:p-6">
                             {viewMode === 'calendar' ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     {/* Calendar Header */}
-                                    <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-semibold text-xs sm:text-sm text-muted-foreground mb-2">
+                                    <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-2 text-center font-semibold text-[10px] xs:text-xs sm:text-sm text-muted-foreground mb-2">
                                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                            <div key={day} className="hidden sm:block">{day}</div>
+                                            <div key={day} className="hidden sm:block py-1">{day}</div>
                                         ))}
                                         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                                            <div key={`mobile-${idx}`} className="sm:hidden">{day}</div>
+                                            <div key={`mobile-${idx}`} className="sm:hidden py-1">{day}</div>
                                         ))}
                                     </div>
 
@@ -465,13 +635,12 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                         rangeEnd={rangeEnd}
                                         selectedTemplate={selectedTemplate}
                                         setSelectedTemplate={setSelectedTemplate}
-
                                     />
 
                                     {/* Mobile Quick Add Panel */}
-                                    {selectedDate && selectedStaff && (
-                                        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-4 space-y-2 z-10">
-                                            <div className="text-sm font-semibold mb-2">
+                                    {selectedDate && selectedStaff && rosterId && (
+                                        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-3 sm:p-4 space-y-2 z-50 shadow-lg">
+                                            <div className="text-xs sm:text-sm font-semibold mb-2">
                                                 Add shift for {new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                             </div>
                                             <div className="grid grid-cols-2 gap-2">
@@ -480,6 +649,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                                         key={idx}
                                                         size="sm"
                                                         variant="secondary"
+                                                        className="text-xs h-9"
                                                         onClick={() => {
                                                             const day = new Date(selectedDate).getDate();
                                                             quickAddShift(day, template);
@@ -492,7 +662,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="w-full"
+                                                className="w-full text-xs h-9"
                                                 onClick={() => setSelectedDate('')}
                                             >
                                                 Close
@@ -502,7 +672,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                 </div>
                             ) : (
                                 // List View
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     {staffMembers.map(staff => {
                                         const staffShifts = getShiftsForStaff(staff.id).sort((a, b) =>
                                             new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -510,45 +680,45 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
 
                                         return (
                                             <Card key={staff.id}>
-                                                <CardHeader className="pb-3">
-                                                    <div className="flex items-center gap-3">
+                                                <CardHeader className="p-3 sm:p-4 md:pb-3">
+                                                    <div className="flex items-center gap-2 sm:gap-3">
                                                         <div
-                                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg sm:text-xl shrink-0"
+                                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-white font-bold text-base sm:text-lg md:text-xl shrink-0"
                                                             style={{ backgroundColor: staff.color }}
                                                         >
                                                             {staff.name.charAt(0)}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <CardTitle className="text-base sm:text-lg truncate">{staff.name}</CardTitle>
+                                                            <CardTitle className="text-sm sm:text-base md:text-lg truncate">{staff.name}</CardTitle>
                                                             <CardDescription className="text-xs sm:text-sm">
-                                                                {staff.department} • {staffShifts.length} shifts scheduled
+                                                                {staff.department} • {staffShifts.length} shift{staffShifts.length !== 1 ? 's' : ''} scheduled
                                                             </CardDescription>
                                                         </div>
                                                     </div>
                                                 </CardHeader>
-                                                <CardContent>
+                                                <CardContent className="p-3 sm:p-4 pt-0">
                                                     {staffShifts.length > 0 ? (
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                                        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                                             {staffShifts.map(shift => (
                                                                 <div
                                                                     key={shift.id}
-                                                                    className="p-3 rounded-lg border bg-muted/50 relative group"
+                                                                    className="p-2.5 sm:p-3 rounded-lg border bg-muted/50 relative group"
                                                                 >
-                                                                    <div className="font-semibold text-sm mb-1">
+                                                                    <div className="font-semibold text-xs sm:text-sm mb-1">
                                                                         {new Date(shift.date).toLocaleDateString('en-US', {
                                                                             month: 'short',
                                                                             day: 'numeric',
                                                                             weekday: 'short'
                                                                         })}
                                                                     </div>
-                                                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                                                    <div className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
                                                                         <Clock className="w-3 h-3" />
                                                                         {shift.startTime} - {shift.endTime}
                                                                     </div>
                                                                     <Button
                                                                         size="sm"
                                                                         variant="destructive"
-                                                                        className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 h-6 w-6 sm:h-7 sm:w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                                                         onClick={() => removeShift(shift.id)}
                                                                     >
                                                                         <Trash2 className="w-3 h-3" />
@@ -557,7 +727,7 @@ const AdminCreateRosterPage = ({ role, uid, staff }: AdminCreateProps) => {
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <div className="text-center py-8 text-muted-foreground text-sm">
+                                                        <div className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
                                                             No shifts scheduled yet
                                                         </div>
                                                     )}

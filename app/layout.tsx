@@ -41,6 +41,13 @@ export const metadata: Metadata = {
     "guest experience",
     "real-time support",
     "staff dashboard",
+    "roster",
+    "scheduling",
+    "staff-management",
+    "hospitality",
+    "nextjs",
+    "firebase",
+    "typescript"
   ],
   authors: [{ name: "Nelson Zongezile Malgas", url: "https://github.com/NelsonMALGAS" }],
   creator: "Nelson Malgas",
