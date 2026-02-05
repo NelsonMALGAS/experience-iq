@@ -255,7 +255,7 @@ const IssueDetailsPage = async ({
                             },
                             {
                                 label: "Location",
-                                value: issue.propertyName,
+                                value: issue.propertyLocation || issue.propertyName,
                                 icon: "map-pin",
                                 fallback: "Not specified",
                                 className: "bg-yellow-100 text-yellow-600",
