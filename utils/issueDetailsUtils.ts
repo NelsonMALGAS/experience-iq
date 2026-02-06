@@ -1,12 +1,6 @@
-import { Issue } from "@/types";
+import { DateInput, Issue } from "@/types";
 import { formatDistanceToNow, format } from "date-fns";
 import { Timestamp } from "firebase/firestore";
-
-type DateInput =
-  | string
-  | Date
-  | Timestamp
-  | { _seconds: number; _nanoseconds: number };
 
 export const toDate = (value: DateInput): Date | null => {
   try {
@@ -62,7 +56,7 @@ export const getPriorityConfig = (priority: Issue["priority"]) => {
     critical: {
       label: "Critical",
       variant: "destructive" as const,
-      className: "bg-red-100 text-red-700 border-red-300",
+      className: "bg-red-50 text-red-900 border-red-300",
       color: "text-red-600",
       bgColor: "bg-red-100",
     },
@@ -145,7 +139,7 @@ export const generateTimeline = (issue: Issue): TimelineEvent[] => {
       type: "resolved",
       title: "Issue Resolved",
       description: `Resolved by ${issue.assignedToName || "Staff"}`,
-      timestamp: new Date(issue.resolvedAt),
+      timestamp: toDate(issue.resolvedAt) || new Date(issue.resolvedAt),
       icon: "check-circle",
     });
   }

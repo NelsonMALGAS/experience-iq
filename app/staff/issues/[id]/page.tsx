@@ -88,6 +88,8 @@ const IssueDetailsPage = async ({
     const priorityConfig = getPriorityConfig(issue.priority)
     const timeline = generateTimeline(issue)
 
+    console.log(timeline, "TIME_LINE")
+
     // Render success state
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl mt-24 animate-fade-in">
@@ -117,8 +119,8 @@ const IssueDetailsPage = async ({
                                 variant={priorityConfig.variant}
                                 className={cn("px-3 py-1 text-sm", priorityConfig.className)}
                             >
-                                <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                                {priorityConfig.label} Priority
+                                <AlertCircle className="h-3.5 w-3.5 mr-1.5 text-foreground" />
+                                <span className="text-foreground">{priorityConfig.label} Priority</span>
                             </Badge>
                             <Badge variant="outline" className="px-3 py-1 text-sm">
                                 <Tag className="h-3.5 w-3.5 mr-1.5" />

@@ -1,4 +1,5 @@
-import { Issue } from "@/types";
+import { DateInput, Issue } from "@/types";
+import { Timestamp } from "firebase/firestore";
 
 export interface DashboardStats {
   totalIssues: number;
@@ -17,6 +18,37 @@ interface Property {
   totalIssues: number;
 }
 
+export function toMillis(value: DateInput | undefined): number | null {
+  if (!value) return null;
+
+  // Firestore Timestamp (client SDK)
+  if (value instanceof Timestamp) {
+    return value.toMillis();
+  }
+
+  // Serialized Firestore timestamp
+  if (
+    typeof value === "object" &&
+    "_seconds" in value &&
+    typeof value._seconds === "number"
+  ) {
+    return value._seconds * 1000;
+  }
+
+  // Native Date
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  // ISO string
+  if (typeof value === "string") {
+    const time = Date.parse(value);
+    return Number.isNaN(time) ? null : time;
+  }
+
+  return null;
+}
+
 export function calculateDashboardStats(issues: Issue[]): DashboardStats {
   const totalIssues = issues.length;
   const openIssues = issues.filter((i) => i.status === "open").length;
@@ -33,23 +65,29 @@ export function calculateDashboardStats(issues: Issue[]): DashboardStats {
   let avgResolutionTime = "N/A";
 
   if (resolvedWithTimestamps.length > 0) {
-    const totalMinutes = resolvedWithTimestamps.reduce((sum, issue) => {
-      const created = new Date(issue.createdAt).getTime();
-      const resolved = new Date(issue.updatedAt).getTime();
-      const minutes = (resolved - created) / (1000 * 60);
-      return sum + minutes;
-    }, 0);
+    const durations = resolvedWithTimestamps
+      .map((issue) => {
+        const created = toMillis(issue.createdAt);
+        const resolved = toMillis(issue.updatedAt);
 
-    const avgMinutes = totalMinutes / resolvedWithTimestamps.length;
+        if (created === null || resolved === null) return null;
+        if (resolved < created) return null;
 
-    if (avgMinutes < 60) {
-      avgResolutionTime = `${Math.round(avgMinutes)}m`;
-    } else if (avgMinutes < 1440) {
-      const hours = avgMinutes / 60;
-      avgResolutionTime = `${hours.toFixed(1)}h`;
-    } else {
-      const days = avgMinutes / 1440;
-      avgResolutionTime = `${days.toFixed(1)}d`;
+        return (resolved - created) / (1000 * 60);
+      })
+      .filter((v): v is number => v !== null);
+
+    if (durations.length > 0) {
+      const avgMinutes =
+        durations.reduce((sum, m) => sum + m, 0) / durations.length;
+
+      if (avgMinutes < 60) {
+        avgResolutionTime = `${Math.round(avgMinutes)}m`;
+      } else if (avgMinutes < 1440) {
+        avgResolutionTime = `${(avgMinutes / 60).toFixed(1)}h`;
+      } else {
+        avgResolutionTime = `${(avgMinutes / 1440).toFixed(1)}d`;
+      }
     }
   }
 
@@ -61,12 +99,16 @@ export function calculateDashboardStats(issues: Issue[]): DashboardStats {
   };
 
   const resolvedIssuesWithSLA = resolvedWithTimestamps.filter((issue) => {
-    const created = new Date(issue.createdAt).getTime();
-    const resolved = new Date(issue.updatedAt).getTime();
+    const created = toMillis(issue.createdAt);
+    const resolved = toMillis(issue.updatedAt);
+
+    if (created === null || resolved === null) return false;
+
     const resolutionMinutes = (resolved - created) / (1000 * 60);
     const threshold =
-      slaThresholds[issue.priority as keyof typeof slaThresholds] ||
+      slaThresholds[issue.priority as keyof typeof slaThresholds] ??
       slaThresholds.medium;
+
     return resolutionMinutes <= threshold;
   });
 
