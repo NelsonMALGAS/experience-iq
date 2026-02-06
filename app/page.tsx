@@ -3,6 +3,50 @@ import LandingPage from "@/components/LandingPage";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/db/server";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "ExperienceIQ – Real-Time Guest Experience Management",
+  description:
+    "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time. Improve service quality, staff efficiency, and guest satisfaction across all properties.",
+  keywords: [
+    ...baseKeywords,
+    "guest experience platform",
+    "hotel operations",
+    "hospitality technology",
+    "real-time issue management",
+    "guest satisfaction",
+    "hotel software",
+  ],
+  ...sharedMetadata,
+  openGraph: {
+    title: "ExperienceIQ – Real-Time Guest Experience Management",
+    description:
+      "Monitor, manage, and resolve guest issues in real time. ExperienceIQ empowers hospitality teams with live insights and operational clarity.",
+    url: `${baseUrl}/`,
+    siteName: "ExperienceIQ",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ExperienceIQ Platform Overview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ExperienceIQ – Real-Time Guest Experience Management",
+    description:
+      "A modern guest experience platform for hotels and resorts.",
+    images: ["/og-image.png", "/twitter-card.png"],
+    creator: "@ExperienceIQ",
+  },
+};
+
 
 const Home = async () => {
   const cookieStore = await cookies();

@@ -1,10 +1,15 @@
 import { shiftTemplates } from "@/constants";
 import { User } from "firebase/auth";
+import { Timestamp } from "firebase/firestore";
 
 export type PwaModalProps = {
   onInstall: () => void;
   onClose: () => void;
   show: boolean;
+};
+
+export type IssueDetailsPageProps = {
+  params: Promise<{ id: string }>;
 };
 
 export type Role = "admin" | "staff" | "guest";
@@ -162,6 +167,14 @@ export interface RosterData {
   createdBy: string;
   createdAt: string;
 }
+
+export type DateInput =
+  | Date
+  | string
+  | Timestamp
+  | { _seconds: number; _nanoseconds: number }
+  | null
+  | undefined;
 
 export interface StaffMember {
   id: string;

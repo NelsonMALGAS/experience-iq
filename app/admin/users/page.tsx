@@ -4,15 +4,58 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Unverified from "@/components/Unverified";
 import { roleConfig } from "@/constants";
 import { mockUsers } from "@/constants/mockData";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { cn } from "@/lib/utils";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { MoreHorizontal, Plus, Search, Shield, UserIcon, UsersIcon } from "lucide-react";
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const metadata: Metadata = {
+    title: "Users – ExperienceIQ",
+    description:
+        "Manage staff and admin users across all properties. Add, edit, verify users, assign roles, set permissions, and monitor user activity and performance.",
+    keywords: [
+        ...baseKeywords,
+        "user management",
+        "staff management",
+        "user roles",
+        "permissions",
+        "user administration",
+        "team management",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "User Management – ExperienceIQ",
+        description:
+            "Manage staff and admin users. Assign roles, set permissions, and monitor user activity.",
+        url: `${baseUrl}/admin/users`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "User Management Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "User Management – ExperienceIQ",
+        description: "Manage staff and admin users. Assign roles and set permissions.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 const UsersPage = async () => {
 
@@ -25,12 +68,19 @@ const UsersPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
+    const userRole = role || "admin"
 
     if (!uid) redirect(`/login?role=${role}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={userRole} uid={uid} />
+    }
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "admin"} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified}>
                 <div className="space-y-6 animate-fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>

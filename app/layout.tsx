@@ -11,6 +11,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { IssueProvider } from "@/contexts/IssuesContext";
+import PWAServiceWorkerRegister from "@/components/PWAServiceWorkerRegister"
 
 
 const poppins = Poppins({
@@ -119,7 +120,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1c1e" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+
   ],
 };
 
@@ -154,6 +156,7 @@ export default function RootLayout({
             </NotificationProvider>
           </IssueProvider>
         </ThemeProvider>
+        <PWAServiceWorkerRegister />
       </body>
     </html>
   );

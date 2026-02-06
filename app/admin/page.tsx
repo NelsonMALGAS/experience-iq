@@ -2,49 +2,170 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { IssueCollection, Role, StaffMember } from "@/types";
-import { AlertCircle, BarChart3, Building2, CheckCircle2, Clock, TrendingUp, Users } from "lucide-react";
-import { redirect } from "next/navigation";
-import { fetchCollection, getStaffUsers } from "../actions";
+import { Role, StaffMember } from "@/types";
+import { AlertCircle, BarChart3, Building2, CheckCircle2, Clock, TrendingUp, Users, ShieldAlert } from "lucide-react";
 import { staffColorPalette } from "@/constants";
 import { aggregatePropertyStats, calculateDashboardStats } from "@/utils/dashboardUtiils";
 import { IssueCard } from "@/components/issues/IssueCard";
 import { cookies } from "next/headers";
-import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
+import { RefreshButton } from "@/components/layout/RefreshButton";
+import { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { fetchAllIssues, getStaffUsers } from "../optimised-actions";
+import * as Sentry from "@sentry/nextjs"
 
 
+export const metadata: Metadata = {
+    title: "Executive Overview – ExperienceIQ",
+    description:
+        "Admin dashboard to monitor guest experience across all properties. View analytics, SLA compliance, critical issues, staff performance, and property-wide metrics in real time.",
+    keywords: [
+        ...baseKeywords,
+        "admin dashboard",
+        "executive overview",
+        "analytics",
+        "property management",
+        "performance metrics",
+        "hotel analytics",
+        "multi-property management",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Executive Overview – ExperienceIQ",
+        description:
+            "Monitor guest experience across all properties. View analytics, SLA compliance, and performance metrics in real time.",
+        url: `${baseUrl}/admin`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Admin Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Executive Overview – ExperienceIQ",
+        description:
+            "Monitor guest experience across all properties. View analytics and SLA compliance.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 const AdminDashboard = async () => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
+    const role: Role = "admin";
 
-    if (!session) redirect(`/login?role=${role}`);
+    // 🔐 VERIFICATION CHECK - Step 1: Verify user and get verification status
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
-    const decoded = await auth?.verifySessionCookie(session, true);
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return (
+            <div className="mt-24">
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+                    <div className="space-y-8 animate-fade-in">
+                        {/* Header with Refresh Button */}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-display font-bold text-foreground">
+                                    Executive Overview
+                                </h1>
+                                <p className="text-muted-foreground mt-1">
+                                    Monitor guest experience across all properties
+                                </p>
+                            </div>
+                            <RefreshButton />
+                        </div>
 
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+                        {/* Verification Pending State */}
+                        <Card className="border-warning bg-warning/5">
+                            <CardContent className="flex flex-col items-center justify-center py-16">
+                                <ShieldAlert className="h-16 w-16 text-warning mb-4" />
+                                <h3 className="text-lg font-semibold text-foreground mb-2">
+                                    Account Pending Verification
+                                </h3>
+                                <p className="text-sm text-muted-foreground text-center max-w-md">
+                                    Your administrator account is currently pending verification.
+                                    You&apos;ll gain full access to property analytics, issue management,
+                                    user administration, and all executive tools once verified.
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-4">
+                                    Please contact the system administrator if you need immediate access.
+                                </p>
+                            </CardContent>
+                        </Card>
 
-    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
+                        {/* Locked Stats Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 opacity-50 pointer-events-none">
+                            <StatCard
+                                title="Total Issues"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={BarChart3}
+                                variant="primary"
+                            />
+                            <StatCard
+                                title="Open Issues"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={AlertCircle}
+                                variant="danger"
+                            />
+                            <StatCard
+                                title="Avg. Resolution"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={Clock}
+                            />
+                            <StatCard
+                                title="SLA Compliance"
+                                value="—"
+                                icon={TrendingUp}
+                                variant="warning"
+                            />
+                        </div>
+                    </div>
+                </DashboardLayout>
+            </div>
+        );
+    }
+
+    // ✅ USER IS VERIFIED - Fetch data using optimized actions
+    // Issues are now returned flat - no need for flatMap!
+    const span = Sentry.startInactiveSpan({
+        name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
+        attributes: {
+            "db.system": "firestore",
+            "db.operation": "query",
+            "db.collection": "users",
+        },
+    })
+    const allIssues = await fetchAllIssues();
     const staffUsers = await getStaffUsers();
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
+        department: user.department,
     }));
 
-    const allIssues = issuesCol.flatMap(doc => doc.issues);
-
-    // Calculate real statistics
+    // Calculate statistics
     const stats = calculateDashboardStats(allIssues);
     const properties = aggregatePropertyStats(allIssues);
 
-    // Get critical and unassigned issues
+    // Filter critical and unassigned issues
     const criticalIssues = allIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status !== 'resolved');
     const recentIssues = allIssues
@@ -52,18 +173,23 @@ const AdminDashboard = async () => {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 10);
 
+    span.end()
+
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "admin"} uid={uid}>
+            <DashboardLayout role={role} uid={uid} isVerified={true}>
                 <div className="space-y-8 animate-fade-in">
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-3xl font-display font-bold text-foreground">
-                            Executive Overview
-                        </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Monitor guest experience across all properties
-                        </p>
+                    {/* Header with Refresh Button */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-display font-bold text-foreground">
+                                Executive Overview
+                            </h1>
+                            <p className="text-muted-foreground mt-1">
+                                Monitor guest experience across all properties
+                            </p>
+                        </div>
+                        <RefreshButton />
                     </div>
 
                     {/* Top Stats */}
@@ -151,7 +277,7 @@ const AdminDashboard = async () => {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Issues - Full Width Grid */}
+                    {/* Recent Issues */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-display flex items-center justify-between">
@@ -177,7 +303,7 @@ const AdminDashboard = async () => {
                                                 issue={issue}
                                                 staffMembers={plainStaffUsers}
                                                 currentUserId={uid}
-                                                userRole={role || "admin"}
+                                                userRole={role}
                                             />
                                         </div>
                                     ))}
@@ -192,9 +318,8 @@ const AdminDashboard = async () => {
                         </CardContent>
                     </Card>
 
-                    {/* Critical & Unassigned Issues - Side by Side */}
+                    {/* Critical & Unassigned Issues */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Critical Issues */}
                         <Card className="border-status-open/30">
                             <CardHeader className="pb-4">
                                 <CardTitle className="font-display flex items-center gap-2 text-status-open">
@@ -237,10 +362,9 @@ const AdminDashboard = async () => {
                             </CardContent>
                         </Card>
 
-                        {/* Unassigned Issues */}
-                        <Card className="border-orange-200 lg:col-span-2">
+                        <Card className="border-muted-foreground lg:col-span-2">
                             <CardHeader className="pb-4">
-                                <CardTitle className="font-display flex items-center gap-2 text-orange-600">
+                                <CardTitle className="font-display flex items-center gap-2 text-foreground">
                                     <Users className="h-5 w-5" />
                                     Unassigned Issues
                                 </CardTitle>
@@ -248,29 +372,32 @@ const AdminDashboard = async () => {
                             <CardContent>
                                 {unassignedIssues.length > 0 ? (
                                     <>
-                                        <div className="text-center py-4 mb-4 bg-orange-50 rounded-lg border border-orange-200">
-                                            <p className="text-3xl font-bold text-orange-600">
+                                        <div className="text-center py-4 mb-4 rounded-lg border bg-card">
+                                            <p className="text-3xl font-bold text-primary">
                                                 {unassignedIssues.length}
                                             </p>
-                                            <p className="text-sm text-orange-600/80 mt-1">
+                                            <p className="text-sm text-muted-foreground mt-1">
                                                 Awaiting assignment
                                             </p>
                                         </div>
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {unassignedIssues.slice(0, 6).map((issue, index) => (
+                                            {unassignedIssues.slice(0, 3).map((issue, index) => (
                                                 <div
                                                     key={issue.id}
-                                                    className="p-4 rounded-lg bg-orange-50 border border-orange-200 hover:border-orange-300 transition-all hover:shadow-sm animate-slide-up"
+                                                    className="p-4 rounded-lg bg-muted/40 border border-border hover:bg-muted/60 hover:shadow-sm transition-all animate-slide-up"
                                                     style={{ animationDelay: `${index * 50}ms` }}
                                                 >
                                                     <p className="font-medium text-sm text-foreground line-clamp-2 mb-2">
                                                         {issue.title}
                                                     </p>
+
                                                     <div className="flex items-center justify-between text-xs">
                                                         <span className="text-muted-foreground">
                                                             {issue.propertyName}
                                                         </span>
-                                                        <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+
+                                                        <span className="px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
                                                             {issue.priority}
                                                         </span>
                                                     </div>
@@ -291,7 +418,7 @@ const AdminDashboard = async () => {
                 </div>
             </DashboardLayout>
         </div>
-    )
+    );
 }
 
-export default AdminDashboard
+export default AdminDashboard;

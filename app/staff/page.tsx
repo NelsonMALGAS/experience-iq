@@ -1,68 +1,190 @@
 import { StatCard } from "@/components/dashboard/StatCard";
 import IssuesList from "@/components/issues/IssuesList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { IssueCollection, Role, StaffMember } from "@/types";
-import { AlertCircle, CheckCircle2, Loader2, TrendingUp, Users } from "lucide-react";
-import { redirect } from "next/navigation";
-import { fetchCollection, getStaffUsers } from "../actions";
+import { Role, StaffMember } from "@/types";
+import { AlertCircle, CheckCircle2, Loader2, TrendingUp, Users, ShieldAlert } from "lucide-react";
 import { staffColorPalette } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateStaffStats } from "@/utils/staffDashboardUtils";
 import { cookies } from "next/headers";
-import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
+import { RefreshButton } from "@/components/layout/RefreshButton";
+import { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { fetchStaffIssues, getStaffUsers } from "../optimised-actions";
+import * as Sentry from "@sentry/nextjs"
+
+
+export const metadata: Metadata = {
+    title: "Staff Dashboard – ExperienceIQ",
+    description:
+        "Staff dashboard to view assigned issues, track resolution progress, and manage workload efficiently. Monitor SLA compliance and performance metrics in real time.",
+    keywords: [
+        ...baseKeywords,
+        "staff dashboard",
+        "assigned issues",
+        "issue management",
+        "workload management",
+        "SLA compliance",
+        "staff performance",
+        "hotel staff app",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Staff Dashboard – ExperienceIQ",
+        description:
+            "View assigned issues, track resolution progress, and manage workload efficiently. Monitor SLA compliance in real time.",
+        url: `${baseUrl}/staff`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Staff Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Staff Dashboard – ExperienceIQ",
+        description:
+            "View assigned issues and track resolution progress. Monitor SLA compliance in real time.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 const StaffDashboard = async () => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "staff"
+    const role: Role = "staff";
 
-    if (!session) redirect(`/login?role=${role}`);
+    // 🔐 VERIFICATION CHECK
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
-    const decoded = await auth?.verifySessionCookie(session, true);
+    // 🚫 HARD RULE: If not verified, show restricted dashboard
+    if (!canAccessData) {
+        return (
+            <div className="mt-24">
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+                    <div className="space-y-8 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-display font-bold text-foreground">
+                                    Staff Dashboard
+                                </h1>
+                                <p className="text-muted-foreground mt-1">
+                                    Manage and resolve guest issues efficiently
+                                </p>
+                            </div>
+                            <RefreshButton />
+                        </div>
 
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+                        <Card className="border-warning bg-warning/5">
+                            <CardContent className="flex flex-col items-center justify-center py-16">
+                                <ShieldAlert className="h-16 w-16 text-warning mb-4" />
+                                <h3 className="text-lg font-semibold text-foreground mb-2">
+                                    Account Pending Verification
+                                </h3>
+                                <p className="text-sm text-muted-foreground text-center max-w-md">
+                                    Your account is currently pending verification by an administrator.
+                                    You&apos;ll be able to access issue data and staff tools once your account is verified.
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-4">
+                                    Please contact your administrator if you believe this is an error.
+                                </p>
+                            </CardContent>
+                        </Card>
 
-    if (!uid) redirect(`/login?role=${role || "staff"}`)
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-50 pointer-events-none">
+                            <StatCard
+                                title="My Assigned"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={Users}
+                                variant="primary"
+                            />
+                            <StatCard
+                                title="Open Issues"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={AlertCircle}
+                                variant="danger"
+                            />
+                            <StatCard
+                                title="In Progress"
+                                value="—"
+                                subtitle="Access restricted"
+                                icon={Loader2}
+                                variant="warning"
+                            />
+                            <StatCard
+                                title="Resolved Today"
+                                value="—"
+                                icon={CheckCircle2}
+                                variant="success"
+                            />
+                        </div>
+                    </div>
+                </DashboardLayout>
+            </div>
+        );
+    }
 
-    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
+    // ✅ USER IS VERIFIED - Fetch data using optimized actions
+    // Issues are pre-filtered and flattened - no flatMap needed!
+
+    const span = Sentry.startInactiveSpan({
+        name: "fetchStaffIssues-getStaffUsers(staff)-2-production",
+        attributes: {
+            "db.system": "firestore",
+            "db.operation": "query",
+            "db.collection": "users",
+        },
+    })
+    const allIssues = await fetchStaffIssues(uid);
     const staffUsers = await getStaffUsers();
+    span.end()
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
+        department: user.department,
     }));
 
-    const allIssues = issuesCol.flatMap(doc => doc.issues);
+    // Separate assigned and unassigned (already pre-filtered in fetchStaffIssues)
+    const assignedIssues = allIssues.filter(i => i.assignedTo === uid);
+    const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open');
 
-    const assignedIssues = allIssues.filter(i => i.assignedTo === uid)
-    const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open')
-
-    // Calculate real-time statistics
+    // Calculate statistics
     const stats = calculateStaffStats(assignedIssues, unassignedIssues);
 
-    // Combine issues for display - assigned first, then unassigned
+    // Combine for display
     const displayIssues = [...assignedIssues, ...unassignedIssues];
-
-    // Get active issues (not resolved)
     const activeIssues = displayIssues.filter(i => i.status !== 'resolved');
 
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "staff"} uid={uid}>
+            <DashboardLayout role={role} uid={uid} isVerified={true}>
                 <div className="space-y-8 animate-fade-in">
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-3xl font-display font-bold text-foreground">
-                            Staff Dashboard
-                        </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Manage and resolve guest issues efficiently
-                        </p>
+                    {/* Header with Refresh Button */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-display font-bold text-foreground">
+                                Staff Dashboard
+                            </h1>
+                            <p className="text-muted-foreground mt-1">
+                                Manage and resolve guest issues efficiently
+                            </p>
+                        </div>
+                        <RefreshButton />
                     </div>
 
                     {/* Stats Grid */}
@@ -187,7 +309,7 @@ const StaffDashboard = async () => {
                                 issues={displayIssues}
                                 staffMembers={plainStaffUsers}
                                 currentUserId={uid}
-                                userRole={role || "staff"}
+                                userRole={role}
                             />
                         ) : (
                             <Card className="border-dashed">
@@ -207,7 +329,7 @@ const StaffDashboard = async () => {
                 </div>
             </DashboardLayout>
         </div>
-    )
+    );
 }
 
-export default StaffDashboard
+export default StaffDashboard;

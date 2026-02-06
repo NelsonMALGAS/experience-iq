@@ -16,16 +16,20 @@ import LoadingState from '../LoadingState';
 
 export interface DashboardLayoutProps {
     children: ReactNode;
-    role: Role
-    uid: AppUser["uid"]
+    role: Role;
+    uid: AppUser["uid"];
+    isVerified: boolean; // Server-provided verification status
 }
 
-export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
-    const { currentUser, loading, handleSignOut } = useCurrentUser()
-    const { fetchUserInfo, currentUser: user } = useUserStore()
-    const isAuthenticated = !loading && !!uid
+export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified }: DashboardLayoutProps) {
+    const { currentUser, loading, handleSignOut } = useCurrentUser();
+    const { fetchUserInfo, currentUser: user } = useUserStore();
+    const isAuthenticated = !loading && !!uid;
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const router = useRouter()
+    const router = useRouter();
+
+    // Track verification status from server and Firestore
+    const [isVerified, setIsVerified] = useState(serverIsVerified);
 
     // 🔥 Realtime Firestore user listener
     useEffect(() => {
@@ -36,13 +40,18 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
         const unsubscribe = onSnapshot(userRef, (snapshot) => {
             if (!snapshot.exists()) return;
 
-            fetchUserInfo(snapshot.id, {
-                ...snapshot.data() as AppUser,
-            });
+            const userData = snapshot.data() as AppUser;
+
+            fetchUserInfo(snapshot.id, userData);
+
+            // Update verification status from Firestore (for staff/admin only)
+            if (role !== 'guest') {
+                setIsVerified(userData.isVerified ?? false);
+            }
         });
 
         return () => unsubscribe();
-    }, [uid, fetchUserInfo]);
+    }, [uid, fetchUserInfo, role]);
 
     useEffect(() => {
         if (!loading && !uid) {
@@ -56,10 +65,16 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
         return null;
     }
 
+    // Use the tracked verification status (guest is always verified)
+    const effectiveIsVerified = role === 'guest' ? true : isVerified;
 
     return (
         <div className="min-h-screen bg-background flex w-full">
-            <AppSidebar sidebarOpen={sidebarOpen} role={user?.role || role} />
+            <AppSidebar
+                sidebarOpen={sidebarOpen}
+                role={user?.role || role}
+                isVerified={effectiveIsVerified}
+            />
 
             {/* Main Content */}
             <main className="flex-1 lg:ml-64">
@@ -75,7 +90,16 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
                             </button>
                             <div className="hidden sm:block">
                                 <p className="text-sm text-muted-foreground">Welcome back,</p>
-                                <p className="font-medium text-foreground">{currentUser?.displayName || currentUser?.email} </p>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-foreground">
+                                        {currentUser?.displayName || currentUser?.email}
+                                    </p>
+                                    {!effectiveIsVerified && role !== 'guest' && (
+                                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-warning/10 text-warning border border-warning/20">
+                                            Pending Verification
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -91,7 +115,6 @@ export function DashboardLayout({ children, role, uid }: DashboardLayoutProps) {
                             </Button>
                         </div>
                     </div>
-
                 </header>
 
                 {/* Page Content */}

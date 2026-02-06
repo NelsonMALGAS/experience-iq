@@ -1,5 +1,5 @@
 import { fetchCollection } from "@/app/actions"
-import { IssueCollection, Role } from "@/types"
+import { IssueCollection, IssueDetailsPageProps, Role } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,14 +31,91 @@ import { ErrorState, NotFoundState } from "@/components/issueDetails/ErrorStates
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { auth } from "@/db/server"
+import { requireVerifiedUser } from "@/lib/verificationGuards"
+import Unverified from "@/components/Unverified"
+import type { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata"
 
 
+
+export async function generateMetadata(
+    { params }: IssueDetailsPageProps,
+): Promise<Metadata> {
+    const { id } = await params;
+
+    try {
+        // Lightweight fetch (no auth, no cookies)
+        const issuesCol = await fetchCollection<IssueCollection>("issues");
+        const allIssues = issuesCol.flatMap((doc) => doc.issues);
+        const issue = allIssues.find((i) => i.id === id);
+
+        // Fallback if issue not found
+        if (!issue) {
+            return {
+                ...sharedMetadata,
+                title: "Issue Not Found – ExperienceIQ",
+                description: "The requested issue could not be found.",
+                keywords: [...baseKeywords, "issue not found"],
+            };
+        }
+
+        const title = `${issue.title} – ExperienceIQ`;
+        const description =
+            issue.description ||
+            "View detailed issue information. Track status, priority, and resolution progress.";
+
+        return {
+            ...sharedMetadata,
+            title,
+            description,
+            keywords: [
+                ...baseKeywords,
+                "issue details",
+                "issue tracking",
+                "resolution notes",
+                issue.category?.toLowerCase() ?? "service issue",
+            ],
+
+            openGraph: {
+                title,
+                description,
+                url: `${baseUrl}/staff/issues/${id}`,
+                siteName: "ExperienceIQ",
+                images: [
+                    {
+                        url: "og-image.png",
+                        width: 1200,
+                        height: 630,
+                        alt: "Issue Details and Resolution",
+                    },
+                ],
+                locale: "en_US",
+                type: "website",
+            },
+
+            twitter: {
+                card: "summary_large_image",
+                title,
+                description,
+                images: ["/og-image.png", "/twitter-card.png"],
+                creator: "@ExperienceIQ",
+            },
+        };
+    } catch {
+        // Absolute-safe fallback
+        return {
+            ...sharedMetadata,
+            title: "Issue Details – ExperienceIQ",
+            description:
+                "View detailed information about a guest issue and track resolution progress.",
+            keywords: [...baseKeywords, "issue details"],
+        };
+    }
+}
 
 const IssueDetailsPage = async ({
     params,
-}: {
-    params: Promise<{ id: string }>
-}) => {
+}: IssueDetailsPageProps) => {
     const { id } = await params
 
     const cookieStore = await cookies();
@@ -50,9 +127,15 @@ const IssueDetailsPage = async ({
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+    }
 
     // Fetch data outside of JSX
     let issuesCol: IssueCollection[] | null = null;
@@ -88,6 +171,7 @@ const IssueDetailsPage = async ({
     const priorityConfig = getPriorityConfig(issue.priority)
     const timeline = generateTimeline(issue)
 
+
     // Render success state
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl mt-24 animate-fade-in">
@@ -117,8 +201,8 @@ const IssueDetailsPage = async ({
                                 variant={priorityConfig.variant}
                                 className={cn("px-3 py-1 text-sm", priorityConfig.className)}
                             >
-                                <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                                {priorityConfig.label} Priority
+                                <AlertCircle className="h-3.5 w-3.5 mr-1.5 text-foreground" />
+                                <span className="text-foreground">{priorityConfig.label} Priority</span>
                             </Badge>
                             <Badge variant="outline" className="px-3 py-1 text-sm">
                                 <Tag className="h-3.5 w-3.5 mr-1.5" />
@@ -255,7 +339,7 @@ const IssueDetailsPage = async ({
                             },
                             {
                                 label: "Location",
-                                value: issue.propertyName,
+                                value: issue.propertyLocation || issue.propertyName,
                                 icon: "map-pin",
                                 fallback: "Not specified",
                                 className: "bg-yellow-100 text-yellow-600",

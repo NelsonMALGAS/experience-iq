@@ -1,9 +1,50 @@
 import AuthForm from "@/components/AuthForm"
 import { roles } from "@/constants";
-// import { auth } from "@/db/server";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Role } from "@/types";
-// import { cookies } from "next/headers";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+    title: "Sign In – ExperienceIQ",
+    description:
+        "Secure login and account access for ExperienceIQ staff and administrators. Manage guest issues, track service recovery, and access real-time hospitality operations dashboards.",
+    keywords: [
+        ...baseKeywords,
+        "login",
+        "sign up",
+        "authentication",
+        "secure login",
+        "staff login",
+        "admin login",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Sign In – ExperienceIQ",
+        description:
+            "Secure login and account access for ExperienceIQ staff and administrators. Manage guest issues, track service recovery, and access real-time hospitality dashboards.",
+        url: `${baseUrl}/admin`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Sign In",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Executive Overview – ExperienceIQ",
+        description:
+            "Secure login and account access for ExperienceIQ staff and administrators.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 type LoginPageProps = {
     searchParams: Promise<{
@@ -15,18 +56,7 @@ const LoginPage = async ({ searchParams }: LoginPageProps) => {
 
     const role: Role = (await searchParams).role;
 
-    // const cookieStore = await cookies();
-    // const session = cookieStore?.get("_SESSION_")?.value;
 
-
-    // if (!session) redirect(`/login?role=${role}`);
-
-    // const decoded = await auth?.verifySessionCookie(session, true);
-
-    // if (!decoded) redirect(`/login?role=${role}`)
-    // const uid = decoded.uid;
-
-    // if (uid) redirect(`/${role}`)
 
     if (!roles.includes(role)) redirect("/")
 

@@ -20,7 +20,6 @@ export interface NavLink {
 export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   guest: [
     { label: "Dashboard", href: "/guest", icon: LayoutDashboard },
-    { label: "My Issues", href: "/guest/issues", icon: AlertCircle },
     { label: "Report Issue", href: "/guest/add-issue", icon: PlusCircle },
   ],
   staff: [
