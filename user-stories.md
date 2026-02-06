@@ -80,12 +80,70 @@ This document defines the **Minimum Viable Product (MVP)** user stories for the 
 
 ## 🔐 Security & Governance User Stories
 
-* [ ] As an **admin**, I want role-based access control, so that users only see data relevant to their role.
+* [x] As an **admin**, I want role-based access control, so that users only see data relevant to their role.
 * [x] As an **admin**, I want secure authentication for staff and admins, so that operational data is protected.
-* [ ] As an **admin**, I want data isolation per property, so that information does not leak across properties.
+* [x] As an **admin**, I want data isolation per property, so that information does not leak across properties.
 * [x] As an **admin**, I want all issue actions to be audit-logged, so that the system is compliance-ready.
 
+
+
+## ✅ Verified User User Stories (Admin & Staff)
+
+> Admin and Staff users must be **verified by the system** before gaining access to sensitive data, operational controls, or management features.
+> Verification is a mandatory gate **after authentication** and **before privilege escalation**.
+
 ---
+
+### 🔐 Verification & Access Control
+
+* [x] As a **staff member**, I want my account to require verification before I can access operational data, so that sensitive guest and property information is protected.
+* [x] As an **admin**, I want staff accounts to be verified before they gain staff-level privileges, so that only trusted personnel can manage guest issues.
+* [x] As an **admin**, I want my own account to require verification before accessing administrative controls, so that critical system functions are protected.
+
+---
+
+### 🚫 Restricted Access (Unverified Users)
+
+* [x] As an **unverified staff member**, I want to see a restricted dashboard state, so that I understand my access is limited until verification is complete.
+* [x] As an **unverified admin**, I want to be prevented from viewing sensitive analytics and user data, so that system security is maintained.
+* [x] As an **unverified staff or admin**, I must not be able to trigger data-fetching actions for sensitive information, so that no data is leaked unintentionally.
+
+---
+
+### 📊 Data Visibility & Fetching Rules
+
+* [x] As a **verified staff member**, I want to access issue details, assignments, and performance metrics, so that I can perform my duties effectively.
+* [x] As a **verified admin**, I want to access analytics, user management, and property-level data, so that I can oversee operations.
+* [x] As the **system**, I must block all sensitive data queries for unverified staff and admins, so that verification is enforced server-side.
+
+---
+
+### 🧭 UX & Transparency
+
+* [x] As a **staff or admin user**, I want to see a clear “Pending Verification” message when my account is not yet verified, so that I understand why access is restricted.
+* [x] As a **staff or admin user**, I want restricted features to appear disabled or locked rather than missing, so that the experience feels intentional and trustworthy.
+
+---
+
+### 🛡️ Governance & Security
+
+* [x] As an **admin**, I want verification status to be enforced on the server, so that client-side manipulation cannot bypass restrictions.
+* [x] As an **admin**, I want all verification state changes to be audit-logged, so that access decisions are traceable and compliance-ready.
+
+---
+
+## 🔄 MVP Scope Clarification
+
+The MVP **includes**:
+
+* [x] Authentication for guests, staff, and admins
+* [x] Mandatory verification for staff and admins
+* [x] Server-side enforcement of verification rules
+* [x] Restricted dashboard states for unverified users
+* [x] Prevention of sensitive data fetching until verification
+
+---
+
 
 ## 🏁 MVP Scope Summary
 
