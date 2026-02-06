@@ -2,9 +2,8 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { IssueCollection, Role, StaffMember } from "@/types";
+import { Role, StaffMember } from "@/types";
 import { AlertCircle, BarChart3, Building2, CheckCircle2, Clock, TrendingUp, Users, ShieldAlert } from "lucide-react";
-import { fetchCollection, getStaffUsers } from "../actions";
 import { staffColorPalette } from "@/constants";
 import { aggregatePropertyStats, calculateDashboardStats } from "@/utils/dashboardUtiils";
 import { IssueCard } from "@/components/issues/IssueCard";
@@ -13,6 +12,9 @@ import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { RefreshButton } from "@/components/layout/RefreshButton";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { fetchAllIssues, getStaffUsers } from "../optimised-actions";
+import * as Sentry from "@sentry/nextjs"
+
 
 export const metadata: Metadata = {
     title: "Executive Overview – ExperienceIQ",
@@ -102,7 +104,7 @@ const AdminDashboard = async () => {
                             </CardContent>
                         </Card>
 
-                        {/* Locked Stats Grid - Visual placeholders */}
+                        {/* Locked Stats Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 opacity-50 pointer-events-none">
                             <StatCard
                                 title="Total Issues"
@@ -131,53 +133,47 @@ const AdminDashboard = async () => {
                                 variant="warning"
                             />
                         </div>
-
-                        {/* Locked Properties Section */}
-                        <Card className="opacity-50 pointer-events-none">
-                            <CardHeader>
-                                <CardTitle className="font-display flex items-center gap-2">
-                                    <Building2 className="h-5 w-5 text-secondary" />
-                                    Properties Overview
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12 text-muted-foreground">
-                                    Property data restricted until verification
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                 </DashboardLayout>
             </div>
         );
     }
 
-    // ✅ USER IS VERIFIED - Proceed with data fetching
-    const issuesCol = await fetchCollection<IssueCollection>("issues") || [];
+    // ✅ USER IS VERIFIED - Fetch data using optimized actions
+    // Issues are now returned flat - no need for flatMap!
+    const span = Sentry.startInactiveSpan({
+        name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
+        attributes: {
+            "db.system": "firestore",
+            "db.operation": "query",
+            "db.collection": "users",
+        },
+    })
+    const allIssues = await fetchAllIssues();
     const staffUsers = await getStaffUsers();
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
+        department: user.department,
     }));
 
-    const allIssues = issuesCol.flatMap(doc => doc.issues);
-
-    // Calculate real statistics
+    // Calculate statistics
     const stats = calculateDashboardStats(allIssues);
     const properties = aggregatePropertyStats(allIssues);
 
-    // Get critical and unassigned issues
+    // Filter critical and unassigned issues
     const criticalIssues = allIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status !== 'resolved');
     const recentIssues = allIssues
         .filter(i => i.status !== 'resolved')
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 10);
+
+    span.end()
 
     return (
         <div className="mt-24">
@@ -281,7 +277,7 @@ const AdminDashboard = async () => {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Issues - Full Width Grid */}
+                    {/* Recent Issues */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-display flex items-center justify-between">
@@ -322,9 +318,8 @@ const AdminDashboard = async () => {
                         </CardContent>
                     </Card>
 
-                    {/* Critical & Unassigned Issues - Side by Side */}
+                    {/* Critical & Unassigned Issues */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Critical Issues */}
                         <Card className="border-status-open/30">
                             <CardHeader className="pb-4">
                                 <CardTitle className="font-display flex items-center gap-2 text-status-open">
@@ -367,7 +362,6 @@ const AdminDashboard = async () => {
                             </CardContent>
                         </Card>
 
-                        {/* Unassigned Issues */}
                         <Card className="border-muted-foreground lg:col-span-2">
                             <CardHeader className="pb-4">
                                 <CardTitle className="font-display flex items-center gap-2 text-foreground">

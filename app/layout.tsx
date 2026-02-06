@@ -11,6 +11,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { IssueProvider } from "@/contexts/IssuesContext";
+import PWAServiceWorkerRegister from "@/components/PWAServiceWorkerRegister"
 
 
 const poppins = Poppins({
@@ -155,6 +156,7 @@ export default function RootLayout({
             </NotificationProvider>
           </IssueProvider>
         </ThemeProvider>
+        <PWAServiceWorkerRegister />
       </body>
     </html>
   );

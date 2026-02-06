@@ -1,10 +1,8 @@
 import { StatCard } from "@/components/dashboard/StatCard";
 import IssuesList from "@/components/issues/IssuesList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { IssueCollection, Role, StaffMember } from "@/types";
+import { Role, StaffMember } from "@/types";
 import { AlertCircle, CheckCircle2, Loader2, TrendingUp, Users, ShieldAlert } from "lucide-react";
-
-import { fetchCollection, getStaffUsers } from "../actions";
 import { staffColorPalette } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateStaffStats } from "@/utils/staffDashboardUtils";
@@ -13,6 +11,9 @@ import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { RefreshButton } from "@/components/layout/RefreshButton";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { fetchStaffIssues, getStaffUsers } from "../optimised-actions";
+import * as Sentry from "@sentry/nextjs"
+
 
 export const metadata: Metadata = {
     title: "Staff Dashboard – ExperienceIQ",
@@ -56,24 +57,21 @@ export const metadata: Metadata = {
     },
 }
 
-
 const StaffDashboard = async () => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
     const role: Role = "staff";
 
-    // 🔐 VERIFICATION CHECK - Step 1: Verify user and get verification status
+    // 🔐 VERIFICATION CHECK
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData } = verificationResult;
 
-
-    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    // 🚫 HARD RULE: If not verified, show restricted dashboard
     if (!canAccessData) {
         return (
             <div className="mt-24">
                 <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
                     <div className="space-y-8 animate-fade-in">
-                        {/* Header with Refresh Button */}
                         <div className="flex items-center justify-between">
                             <div>
                                 <h1 className="text-3xl font-display font-bold text-foreground">
@@ -86,7 +84,6 @@ const StaffDashboard = async () => {
                             <RefreshButton />
                         </div>
 
-                        {/* Verification Pending State */}
                         <Card className="border-warning bg-warning/5">
                             <CardContent className="flex flex-col items-center justify-center py-16">
                                 <ShieldAlert className="h-16 w-16 text-warning mb-4" />
@@ -103,7 +100,6 @@ const StaffDashboard = async () => {
                             </CardContent>
                         </Card>
 
-                        {/* Locked Stats Grid - Visual placeholders */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 opacity-50 pointer-events-none">
                             <StatCard
                                 title="My Assigned"
@@ -139,31 +135,39 @@ const StaffDashboard = async () => {
         );
     }
 
-    // ✅ USER IS VERIFIED - Proceed with data fetching
-    const issuesCol = await fetchCollection<IssueCollection>("issues") || [];
+    // ✅ USER IS VERIFIED - Fetch data using optimized actions
+    // Issues are pre-filtered and flattened - no flatMap needed!
+
+    const span = Sentry.startInactiveSpan({
+        name: "fetchStaffIssues-getStaffUsers(staff)-2-production",
+        attributes: {
+            "db.system": "firestore",
+            "db.operation": "query",
+            "db.collection": "users",
+        },
+    })
+    const allIssues = await fetchStaffIssues(uid);
     const staffUsers = await getStaffUsers();
+    span.end()
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
+        department: user.department,
     }));
 
-    const allIssues = issuesCol.flatMap(doc => doc.issues);
-
+    // Separate assigned and unassigned (already pre-filtered in fetchStaffIssues)
     const assignedIssues = allIssues.filter(i => i.assignedTo === uid);
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open');
 
-    // Calculate real-time statistics
+    // Calculate statistics
     const stats = calculateStaffStats(assignedIssues, unassignedIssues);
 
-    // Combine issues for display - assigned first, then unassigned
+    // Combine for display
     const displayIssues = [...assignedIssues, ...unassignedIssues];
-
-    // Get active issues (not resolved)
     const activeIssues = displayIssues.filter(i => i.status !== 'resolved');
 
     return (

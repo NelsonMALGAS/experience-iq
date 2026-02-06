@@ -36,6 +36,8 @@ import Unverified from "@/components/Unverified"
 import { Metadata } from "next"
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata"
 
+
+
 export async function generateMetadata(
     { params }: IssueDetailsPageProps,
 ): Promise<Metadata> {
