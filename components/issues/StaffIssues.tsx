@@ -14,9 +14,10 @@ type StaffIssuesProps = {
     uid: AppUser["uid"]
     issues: Issue[],
     staff: StaffMember[]
+    isVerified: boolean
 }
 
-export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesProps) {
+export default function StaffIssues({ role, uid, issues, staff, isVerified }: StaffIssuesProps) {
     const [selectedIssue] = useState<Issue | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -27,7 +28,7 @@ export default function StaffIssues({ role, uid, issues, staff }: StaffIssuesPro
     const filteredAssigned = filteredIssues.filter(i => i.assignedTo === uid);
 
     return (
-        <DashboardLayout role={role} uid={uid}>
+        <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
             <div className="space-y-6 animate-fade-in">
                 <div className="flex flex-col gap-4">
                     <div>

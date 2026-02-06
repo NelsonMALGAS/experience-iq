@@ -3,6 +3,7 @@
 import { UserX, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import BackButton from '../BackButton';
 
 export default function GuestDashboardHeader() {
     const router = useRouter();
@@ -23,10 +24,13 @@ export default function GuestDashboardHeader() {
                 </p>
             </div>
 
-            <Button onClick={handleRefresh} variant="outline" className="gap-2 w-full sm:w-auto">
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-            </Button>
+            <div className='flex items-center justify-center gap-2'>
+                <Button onClick={handleRefresh} variant="outline" className="gap-2 w-full sm:w-auto">
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh
+                </Button>
+                <BackButton label='Add Issue' />
+            </div>
         </div>
     );
 }

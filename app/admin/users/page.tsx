@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Unverified from "@/components/Unverified";
 import { roleConfig } from "@/constants";
 import { mockUsers } from "@/constants/mockData";
 import { auth } from "@/db/server";
 import { cn } from "@/lib/utils";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { MoreHorizontal, Plus, Search, Shield, UserIcon, UsersIcon } from "lucide-react";
 import { cookies } from "next/headers";
@@ -25,12 +27,19 @@ const UsersPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
+    const userRole = role || "admin"
 
     if (!uid) redirect(`/login?role=${role}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={userRole} uid={uid} />
+    }
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "admin"} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified}>
                 <div className="space-y-6 animate-fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>

@@ -1,7 +1,9 @@
 import { getStaffUsers } from "@/app/actions";
 import AdminCreateRosterPage from "@/components/CreateStaffRoster";
+import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
 import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role, StaffMember } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,11 +20,17 @@ const RosterPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
-
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
     const userRole = role || "admin"
 
     if (!uid) redirect(`/login?role=${role}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={userRole} uid={uid} />
+    }
+
 
     const staffUsers = await getStaffUsers();
 
@@ -35,6 +43,7 @@ const RosterPage = async () => {
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.customClaims?.department || "other",
     }));
+
 
 
     return (

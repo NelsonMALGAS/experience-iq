@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
 import { UploadButton } from "@/utils/uploadthing";
+import { STAFF_DEPARTMENTS } from "@/constants";
 
 
 const AddIssuePage = () => {
@@ -168,17 +169,7 @@ const AddIssuePage = () => {
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {[
-                                    "room",
-                                    "food",
-                                    "maintenance",
-                                    "noise",
-                                    "cleanliness",
-                                    "amenities",
-                                    "billing",
-                                    "staff",
-                                    "other",
-                                ].map((cat) => (
+                                {STAFF_DEPARTMENTS.map((cat) => (
                                     <SelectItem key={cat} value={cat}>
                                         {cat.charAt(0).toUpperCase() + cat.slice(1)}
                                     </SelectItem>

@@ -10,6 +10,8 @@ import { RosterData, Shift, Role } from '@/types';
 import { refreshShifts } from '@/app/actions/staffRosterActions';
 import Link from 'next/link';
 import { calculateDuration, formatDate, formatTime } from '@/lib/rosterHelpers';
+import { requireVerifiedUser } from '@/lib/verificationGuards';
+import Unverified from '@/components/Unverified';
 
 interface StaffShift extends Shift {
     month: string;
@@ -28,9 +30,15 @@ async function StaffRoster() {
 
     if (!decoded) redirect(`/login?role=${role}`);
 
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
-    if (!uid) redirect(`/login?role=${role}`);
+    if (!uid) redirect(`/login?role=${role || "staff"}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+    }
 
     if (!auth || !db) throw new Error("Firebase admin not initialized")
 

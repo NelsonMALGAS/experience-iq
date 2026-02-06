@@ -31,6 +31,8 @@ import { ErrorState, NotFoundState } from "@/components/issueDetails/ErrorStates
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { auth } from "@/db/server"
+import { requireVerifiedUser } from "@/lib/verificationGuards"
+import Unverified from "@/components/Unverified"
 
 
 const IssueDetailsPage = async ({
@@ -49,9 +51,14 @@ const IssueDetailsPage = async ({
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "admin"}`)
+
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+    }
 
     // Fetch data outside of JSX
     let issuesCol: IssueCollection[] | null = null;

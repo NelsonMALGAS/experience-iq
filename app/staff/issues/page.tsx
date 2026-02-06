@@ -1,7 +1,9 @@
 import { fetchCollection, getStaffUsers } from "@/app/actions";
 import StaffIssues from "@/components/issues/StaffIssues"
+import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
 import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { IssueCollection, Role, StaffMember } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,9 +20,15 @@ const StaffIssuesPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+    }
 
     const issuesCol = await fetchCollection<IssueCollection>("issues") || []
 
@@ -38,7 +46,7 @@ const StaffIssuesPage = async () => {
     }));
     return (
         <div className="mt-24">
-            <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} />
+            <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} isVerified={isVerified} />
         </div>
     )
 }

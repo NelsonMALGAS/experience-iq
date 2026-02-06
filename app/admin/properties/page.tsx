@@ -12,6 +12,8 @@ import { fetchProperties } from "@/app/actions";
 import { AddPropertyDialog } from "@/components/Addpropertydialog";
 import { cookies } from "next/headers";
 import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
+import Unverified from "@/components/Unverified";
 
 
 const PropertiesPage = async () => {
@@ -24,9 +26,15 @@ const PropertiesPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid, isVerified, canAccessData } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
+
+    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
+    if (!canAccessData) {
+        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+    }
 
     // Fetch properties from Firestore
     let properties: Property[] = [];
@@ -41,7 +49,7 @@ const PropertiesPage = async () => {
 
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "admin"} uid={uid}>
+            <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified}>
                 <div className="space-y-6 animate-fade-in">
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
