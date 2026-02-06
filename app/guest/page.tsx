@@ -9,6 +9,49 @@ import GuestDashboardHeader from '@/components/guest/GuestDashboardHeader';
 import IssuesList from '@/components/guest/GuestIssuesList';
 import GuestDashboardFooter from '@/components/guest/GuestDashboardFooter';
 import { serializeFirestoreDates } from '@/lib/serialize';
+import { Metadata } from 'next';
+import { baseKeywords, baseUrl, sharedMetadata } from '@/constants/sharedMetadata';
+
+export const metadata: Metadata = {
+    title: "Dashboard – ExperienceIQ",
+    description:
+        "Guest Dashboard for submitting and tracking service issues in real time. Report maintenance, housekeeping, or amenity requests instantly and monitor resolution progress.",
+    keywords: [
+        ...baseKeywords,
+        "guest portal",
+        "issue reporting",
+        "service requests",
+        "track issues",
+        "hotel guest app",
+        "guest services",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Guest Dashboard – ExperienceIQ",
+        description:
+            "Submit and track service issues in real time. Report maintenance, housekeeping, or amenity requests instantly.",
+        url: `${baseUrl}/guest`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Guest Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Guest Dashboard – ExperienceIQ",
+        description:
+            "Submit and track service issues in real time. Report maintenance, housekeeping, or amenity requests instantly.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 async function GuestDashboard() {
     const cookieStore = await cookies();

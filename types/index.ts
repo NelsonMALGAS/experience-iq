@@ -8,6 +8,10 @@ export type PwaModalProps = {
   show: boolean;
 };
 
+export type IssueDetailsPageProps = {
+  params: Promise<{ id: string }>;
+};
+
 export type Role = "admin" | "staff" | "guest";
 
 export interface Room {

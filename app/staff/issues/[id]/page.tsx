@@ -1,5 +1,5 @@
 import { fetchCollection } from "@/app/actions"
-import { IssueCollection, Role } from "@/types"
+import { IssueCollection, IssueDetailsPageProps, Role } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,14 +33,89 @@ import { cookies } from "next/headers"
 import { auth } from "@/db/server"
 import { requireVerifiedUser } from "@/lib/verificationGuards"
 import Unverified from "@/components/Unverified"
+import type { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata"
 
 
+
+export async function generateMetadata(
+    { params }: IssueDetailsPageProps,
+): Promise<Metadata> {
+    const { id } = await params;
+
+    try {
+        // Lightweight fetch (no auth, no cookies)
+        const issuesCol = await fetchCollection<IssueCollection>("issues");
+        const allIssues = issuesCol.flatMap((doc) => doc.issues);
+        const issue = allIssues.find((i) => i.id === id);
+
+        // Fallback if issue not found
+        if (!issue) {
+            return {
+                ...sharedMetadata,
+                title: "Issue Not Found – ExperienceIQ",
+                description: "The requested issue could not be found.",
+                keywords: [...baseKeywords, "issue not found"],
+            };
+        }
+
+        const title = `${issue.title} – ExperienceIQ`;
+        const description =
+            issue.description ||
+            "View detailed issue information. Track status, priority, and resolution progress.";
+
+        return {
+            ...sharedMetadata,
+            title,
+            description,
+            keywords: [
+                ...baseKeywords,
+                "issue details",
+                "issue tracking",
+                "resolution notes",
+                issue.category?.toLowerCase() ?? "service issue",
+            ],
+
+            openGraph: {
+                title,
+                description,
+                url: `${baseUrl}/staff/issues/${id}`,
+                siteName: "ExperienceIQ",
+                images: [
+                    {
+                        url: "og-image.png",
+                        width: 1200,
+                        height: 630,
+                        alt: "Issue Details and Resolution",
+                    },
+                ],
+                locale: "en_US",
+                type: "website",
+            },
+
+            twitter: {
+                card: "summary_large_image",
+                title,
+                description,
+                images: ["/og-image.png", "/twitter-card.png"],
+                creator: "@ExperienceIQ",
+            },
+        };
+    } catch {
+        // Absolute-safe fallback
+        return {
+            ...sharedMetadata,
+            title: "Issue Details – ExperienceIQ",
+            description:
+                "View detailed information about a guest issue and track resolution progress.",
+            keywords: [...baseKeywords, "issue details"],
+        };
+    }
+}
 
 const IssueDetailsPage = async ({
     params,
-}: {
-    params: Promise<{ id: string }>
-}) => {
+}: IssueDetailsPageProps) => {
     const { id } = await params
 
     const cookieStore = await cookies();

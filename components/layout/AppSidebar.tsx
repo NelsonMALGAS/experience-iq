@@ -31,7 +31,6 @@ export function AppSidebar({ sidebarOpen, role, isVerified }: AppSidebarProps) {
     // Guests always see all links; staff/admin only see links if verified
     const shouldShowNavigation = role === 'guest' || isVerified;
 
-    console.log('AppSidebar - Role:', role, 'IsVerified:', isVerified, 'ShouldShow:', shouldShowNavigation);
 
     return (
         <>

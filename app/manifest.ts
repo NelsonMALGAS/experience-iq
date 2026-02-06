@@ -11,30 +11,20 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#FFD700",
+    orientation: "portrait-primary",
+
     icons: [
-      {
-        src: "/favicon-96x96.png",
-        sizes: "96x96",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/pwa-icon-192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/pwa-icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
       {
         src: "/favicon-16x16.png",
         sizes: "16x16",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/favicon-96x96.png",
+        sizes: "96x96",
+        type: "image/png",
+        purpose: "maskable",
       },
       {
         src: "/icon-144x144.png",
@@ -49,16 +39,39 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
       {
-        src: "/icon0.png",
-        sizes: "512x512",
+        src: "/pwa-icon-192.png",
+        sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/icon1.png",
-        sizes: "192x192",
+        src: "/pwa-icon-512.png",
+        sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
+      },
+    ],
+
+    // Screenshots for Richer Install UI
+    screenshots: [
+      {
+        src: "/screenshots/desktop-wide.png",
+        sizes: "1920x1080",
+        type: "image/png",
+        form_factor: "wide",
+        label: "ExperienceIQ Dashboard - Desktop View",
+      },
+      {
+        src: "/screenshots/mobile-1.png",
+        sizes: "1080x1920",
+        type: "image/png",
+        label: "ExperienceIQ Dashboard - Mobile View",
+      },
+      {
+        src: "/screenshots/mobile-2.png",
+        sizes: "1080x1920",
+        type: "image/png",
+        label: "Issue Management - Mobile View",
       },
     ],
   };

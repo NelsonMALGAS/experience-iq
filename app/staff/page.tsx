@@ -11,6 +11,50 @@ import { calculateStaffStats } from "@/utils/staffDashboardUtils";
 import { cookies } from "next/headers";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { RefreshButton } from "@/components/layout/RefreshButton";
+import { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+
+export const metadata: Metadata = {
+    title: "Staff Dashboard – ExperienceIQ",
+    description:
+        "Staff dashboard to view assigned issues, track resolution progress, and manage workload efficiently. Monitor SLA compliance and performance metrics in real time.",
+    keywords: [
+        ...baseKeywords,
+        "staff dashboard",
+        "assigned issues",
+        "issue management",
+        "workload management",
+        "SLA compliance",
+        "staff performance",
+        "hotel staff app",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Staff Dashboard – ExperienceIQ",
+        description:
+            "View assigned issues, track resolution progress, and manage workload efficiently. Monitor SLA compliance in real time.",
+        url: `${baseUrl}/staff`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Staff Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Staff Dashboard – ExperienceIQ",
+        description:
+            "View assigned issues and track resolution progress. Monitor SLA compliance in real time.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 
 const StaffDashboard = async () => {

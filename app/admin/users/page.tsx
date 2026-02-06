@@ -7,14 +7,55 @@ import { Input } from "@/components/ui/input";
 import Unverified from "@/components/Unverified";
 import { roleConfig } from "@/constants";
 import { mockUsers } from "@/constants/mockData";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { cn } from "@/lib/utils";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { MoreHorizontal, Plus, Search, Shield, UserIcon, UsersIcon } from "lucide-react";
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const metadata: Metadata = {
+    title: "Users – ExperienceIQ",
+    description:
+        "Manage staff and admin users across all properties. Add, edit, verify users, assign roles, set permissions, and monitor user activity and performance.",
+    keywords: [
+        ...baseKeywords,
+        "user management",
+        "staff management",
+        "user roles",
+        "permissions",
+        "user administration",
+        "team management",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "User Management – ExperienceIQ",
+        description:
+            "Manage staff and admin users. Assign roles, set permissions, and monitor user activity.",
+        url: `${baseUrl}/admin/users`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "User Management Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "User Management – ExperienceIQ",
+        description: "Manage staff and admin users. Assign roles and set permissions.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 const UsersPage = async () => {
 

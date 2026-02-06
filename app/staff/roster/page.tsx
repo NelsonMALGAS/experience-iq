@@ -12,6 +12,48 @@ import Link from 'next/link';
 import { calculateDuration, formatDate, formatTime } from '@/lib/rosterHelpers';
 import { requireVerifiedUser } from '@/lib/verificationGuards';
 import Unverified from '@/components/Unverified';
+import { Metadata } from 'next';
+import { baseKeywords, baseUrl, sharedMetadata } from '@/constants/sharedMetadata';
+
+export const metadata: Metadata = {
+    title: "Roster – ExperienceIQ",
+    description:
+        "View your work schedule, shifts, and availability. Check assigned properties, time slots, and coordinate with team members for optimal coverage.",
+    keywords: [
+        ...baseKeywords,
+        "staff roster",
+        "work schedule",
+        "shift management",
+        "staff scheduling",
+        "availability",
+        "team coordination",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Staff Roster – ExperienceIQ",
+        description:
+            "View work schedule, shifts, and availability. Check assigned properties and coordinate with team members.",
+        url: `${baseUrl}/staff/roster`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Staff Roster and Schedule",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Staff Roster – ExperienceIQ",
+        description: "View work schedule and coordinate with team members.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 interface StaffShift extends Shift {
     month: string;

@@ -11,7 +11,50 @@ import { IssueCard } from "@/components/issues/IssueCard";
 import { cookies } from "next/headers";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { RefreshButton } from "@/components/layout/RefreshButton";
+import { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 
+export const metadata: Metadata = {
+    title: "Executive Overview – ExperienceIQ",
+    description:
+        "Admin dashboard to monitor guest experience across all properties. View analytics, SLA compliance, critical issues, staff performance, and property-wide metrics in real time.",
+    keywords: [
+        ...baseKeywords,
+        "admin dashboard",
+        "executive overview",
+        "analytics",
+        "property management",
+        "performance metrics",
+        "hotel analytics",
+        "multi-property management",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Executive Overview – ExperienceIQ",
+        description:
+            "Monitor guest experience across all properties. View analytics, SLA compliance, and performance metrics in real time.",
+        url: `${baseUrl}/admin`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Admin Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Executive Overview – ExperienceIQ",
+        description:
+            "Monitor guest experience across all properties. View analytics and SLA compliance.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+}
 
 const AdminDashboard = async () => {
     const cookieStore = await cookies();
