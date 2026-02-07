@@ -10,6 +10,7 @@ import {
   calculateSLACompliance,
   staffColorPalette,
 } from "@/lib/optimise-helpers";
+import { calculateDashboardStats } from "@/utils/dashboardUtiils";
 
 /**
  * Fetch issues for staff dashboard - optimized to return flat array
@@ -85,6 +86,40 @@ export async function fetchAllIssues() {
     });
     console.error("Error fetching all issues:", error);
     return [];
+  }
+}
+
+/**
+ * Fetch a single issue by issueId
+ * Stops early once the issue is found
+ */
+export async function fetchIssueById(issueId: string) {
+  try {
+    if (!db) throw new Error("Firestore not initialized");
+
+    const snapshot = await db.collection("issues").get();
+
+    for (const doc of snapshot.docs) {
+      const data = transformFirebaseDates(doc.data()) as IssueCollection;
+
+      if (!Array.isArray(data.issues)) continue;
+
+      const foundIssue = data.issues.find((issue) => issue.id === issueId);
+
+      if (foundIssue) {
+        return {
+          ...foundIssue,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { operation: "fetchIssueById" },
+    });
+    console.error("Error fetching issue by id:", error);
+    return null;
   }
 }
 
@@ -244,6 +279,7 @@ export async function getStaffUsers(): Promise<StaffMember[]> {
         isVerified: data.isVerified ?? false,
         color: staffColorPalette[index % staffColorPalette.length],
         department: data.department || "other",
+        role: data.role || "guest",
       };
     });
 
@@ -267,7 +303,7 @@ export async function getVerifiedStaffUsers(): Promise<StaffMember[]> {
     // Query with compound filter
     const snapshot = await db
       .collection("users")
-      .where("role", "in", ["staff", "admin"])
+      .where("role", "in", ["staff", "admin", "guest"])
       .where("isVerified", "==", true)
       .get();
 
@@ -281,6 +317,7 @@ export async function getVerifiedStaffUsers(): Promise<StaffMember[]> {
         isVerified: true,
         color: staffColorPalette[index % staffColorPalette.length],
         department: data.department || "other",
+        role: data.role || "guest",
       };
     });
 
@@ -341,7 +378,7 @@ export async function getStaffPerformance(staffId: string) {
     const resolvedIssues = assignedIssues.filter(
       (i) => i.status === "resolved",
     );
-    const avgResolutionTime = calculateAvgResolutionTime(resolvedIssues);
+    const { avgResolutionTime } = calculateDashboardStats(staffIssues);
 
     const performance = {
       totalAssigned: assignedIssues.length,
@@ -397,3 +434,14 @@ export async function fetchCollection<T = unknown>(
     return [];
   }
 }
+
+/**
+ *  const span = Sentry.startInactiveSpan({
+         name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
+         attributes: {
+             "db.system": "firestore",
+             "db.operation": "query",
+             "db.collection": "users",
+         },
+     })
+ */

@@ -85,6 +85,7 @@ const StaffIssuesPage = async () => {
         isVerified: user.emailVerified ?? false,
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.customClaims?.department || "other",
+        role: user.customClaims?.role || "guest"
     }));
     return (
         <div className="mt-24">

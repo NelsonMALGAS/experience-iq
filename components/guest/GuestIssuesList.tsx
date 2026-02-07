@@ -15,9 +15,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Clock, AlertCircle, CheckCircle2, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Timestamp } from "firebase/firestore";
+import { toDate } from '@/utils/issueDetailsUtils';
 
-type DateInput = string | Date | Timestamp | { seconds: number; nanoseconds: number };
+
 
 interface IssuesListProps {
     issues: Issue[];
@@ -75,44 +75,6 @@ export default function IssuesList({ issues }: IssuesListProps) {
         }
     };
 
-    const formatDate = (value: DateInput) => {
-        try {
-            let date: Date;
-
-            // Firestore Timestamp (client SDK)
-            if (value instanceof Timestamp) {
-                date = value.toDate();
-            }
-            // Firestore Timestamp-like object (server/admin SDK)
-            else if (
-                typeof value === "object" &&
-                value !== null &&
-                "seconds" in value
-            ) {
-                date = new Date(value.seconds * 1000);
-            }
-            // JS Date
-            else if (value instanceof Date) {
-                date = value;
-            }
-            // String (ISO or date string)
-            else {
-                date = new Date(value);
-            }
-
-            if (isNaN(date.getTime())) return String(value);
-
-            return date.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-        } catch {
-            return String(value);
-        }
-    };
 
     // Toggle issue expansion
     const toggleIssue = (issueId: string) => {
@@ -194,6 +156,8 @@ export default function IssuesList({ issues }: IssuesListProps) {
                         const isExpanded = expandedIssue === issue.id;
                         const statusConfig = getStatusConfig(issue.status);
                         const StatusIcon = statusConfig.icon;
+                        const createdAt = toDate(issue.createdAt)
+                        const updatedAt = toDate(issue.updatedAt)
 
                         return (
                             <Card
@@ -277,7 +241,12 @@ export default function IssuesList({ issues }: IssuesListProps) {
                                                     <Clock className="w-3 h-3" />
                                                     Created
                                                 </p>
-                                                <p className="text-sm font-medium">{formatDate(issue.createdAt)}</p>
+                                                <p className="text-sm font-medium">{createdAt?.toLocaleDateString("en-US", {
+                                                    day: "2-digit",
+                                                    month: "long",
+                                                    year: "2-digit"
+                                                })}
+                                                </p>
                                             </div>
 
                                             {/* Updated Date */}
@@ -287,7 +256,12 @@ export default function IssuesList({ issues }: IssuesListProps) {
                                                         <Clock className="w-3 h-3" />
                                                         Last Updated
                                                     </p>
-                                                    <p className="text-sm font-medium">{formatDate(issue.updatedAt)}</p>
+                                                    <p className="text-sm font-medium">{updatedAt?.toLocaleDateString("en-US", {
+                                                        day: "2-digit",
+                                                        month: "long",
+                                                        year: "2-digit"
+                                                    })}
+                                                    </p>
                                                 </div>
                                             )}
                                         </div>

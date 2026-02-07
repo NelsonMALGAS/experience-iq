@@ -1,3 +1,4 @@
+import { getVerifiedStaffUsers } from "@/app/optimised-actions";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Unverified from "@/components/Unverified";
 import { roleConfig } from "@/constants";
-import { mockUsers } from "@/constants/mockData";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { cn } from "@/lib/utils";
@@ -78,6 +78,9 @@ const UsersPage = async () => {
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={userRole} uid={uid} />
     }
+
+    const users = await getVerifiedStaffUsers()
+
     return (
         <div className="mt-24">
             <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified}>
@@ -110,7 +113,7 @@ const UsersPage = async () => {
                                     <UsersIcon className="h-6 w-6" />
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-display font-bold">{mockUsers.length}</p>
+                                    <p className="text-3xl font-display font-bold">{users.length}</p>
                                     <p className="text-sm text-primary-foreground/70">Total Users</p>
                                 </div>
                             </CardContent>
@@ -123,7 +126,7 @@ const UsersPage = async () => {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-display font-bold text-foreground">
-                                        {mockUsers.filter(u => u.role === 'staff').length}
+                                        {users.filter(u => u.role === 'staff').length}
                                     </p>
                                     <p className="text-sm text-muted-foreground">Staff Members</p>
                                 </div>
@@ -137,7 +140,7 @@ const UsersPage = async () => {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-display font-bold text-foreground">
-                                        {mockUsers.filter(u => u.role === 'admin').length}
+                                        {users.filter(u => u.role === 'admin').length}
                                     </p>
                                     <p className="text-sm text-muted-foreground">Administrators</p>
                                 </div>
@@ -152,20 +155,20 @@ const UsersPage = async () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {mockUsers.map((user, index) => (
+                                {users.map((user, index) => (
                                     <div
-                                        key={user.uid}
+                                        key={user.id}
                                         className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border hover:shadow-md transition-all animate-slide-up"
                                         style={{ animationDelay: `${index * 50}ms` }}
                                     >
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
                                                 <AvatarFallback className="bg-gradient-gold text-primary font-semibold">
-                                                    {user.displayName?.split(' ').map(n => n[0]).join('')}
+                                                    {user.name?.split(' ').map(n => n[0]).join('')}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <h4 className="font-semibold text-foreground">{user.displayName || "Guest"}</h4>
+                                                <h4 className="font-semibold text-foreground">{user.name || "Guest"}</h4>
                                                 <p className="text-sm text-muted-foreground">{user.email}</p>
                                             </div>
                                         </div>

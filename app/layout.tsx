@@ -14,6 +14,7 @@ import { IssueProvider } from "@/contexts/IssuesContext";
 import PWAServiceWorkerRegister from "@/components/PWAServiceWorkerRegister"
 
 
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
