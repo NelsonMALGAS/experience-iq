@@ -238,3 +238,11 @@ export interface UpdatePropertyData {
   openIssues?: number;
   avgResolutionTime?: number;
 }
+
+export interface UpdateIssuePayload {
+  assignedTo?: string;
+  assignedToName?: string;
+  status?: Issue["status"];
+  propertyId?: string;
+  priority?: Issue["priority"];
+}

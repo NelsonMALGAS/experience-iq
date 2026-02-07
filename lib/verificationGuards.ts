@@ -1,5 +1,6 @@
 import { auth, db } from "@/db/server";
 import { Role } from "@/types";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type VerificationResult = {
@@ -94,4 +95,28 @@ export function guardDataAccess(
   verificationResult: VerificationResult,
 ): boolean {
   return verificationResult.canAccessData;
+}
+
+/**
+ * Verify admin authentication
+ */
+export async function verifyAdmin() {
+  const cookieStore = await cookies();
+  const session = cookieStore?.get("_SESSION_")?.value;
+
+  if (!session) {
+    throw new Error("Unauthorized: No session found");
+  }
+
+  const decoded = await auth?.verifySessionCookie(session, true);
+  if (!decoded) {
+    throw new Error("Unauthorized: Invalid session");
+  }
+
+  // Optional: Check if user has admin role in custom claims
+  // if (decoded.role !== 'admin') {
+  //   throw new Error("Forbidden: Admin access required");
+  // }
+
+  return { uid: decoded.uid, role: decoded.role };
 }
