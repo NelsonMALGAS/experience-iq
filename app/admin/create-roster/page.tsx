@@ -1,4 +1,4 @@
-import { getStaffUsers } from "@/app/actions";
+import { getStaffUsers } from "@/app/optimised-actions";
 import AdminCreateRosterPage from "@/components/CreateStaffRoster";
 import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
@@ -77,12 +77,13 @@ const RosterPage = async () => {
 
     // Convert each UserRecord into a plain object
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
+        department: user.department,
+        role: user.role
     }));
 
 

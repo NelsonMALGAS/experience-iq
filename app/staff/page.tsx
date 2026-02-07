@@ -12,7 +12,7 @@ import { RefreshButton } from "@/components/layout/RefreshButton";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { fetchStaffIssues, getStaffUsers } from "../optimised-actions";
-import * as Sentry from "@sentry/nextjs"
+
 
 
 export const metadata: Metadata = {
@@ -138,17 +138,10 @@ const StaffDashboard = async () => {
     // ✅ USER IS VERIFIED - Fetch data using optimized actions
     // Issues are pre-filtered and flattened - no flatMap needed!
 
-    const span = Sentry.startInactiveSpan({
-        name: "fetchStaffIssues-getStaffUsers(staff)-2-production",
-        attributes: {
-            "db.system": "firestore",
-            "db.operation": "query",
-            "db.collection": "users",
-        },
-    })
+
     const allIssues = await fetchStaffIssues(uid);
     const staffUsers = await getStaffUsers();
-    span.end()
+
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
         id: user.id,
@@ -157,6 +150,7 @@ const StaffDashboard = async () => {
         isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.department,
+        role: user.role
     }));
 
     // Separate assigned and unassigned (already pre-filtered in fetchStaffIssues)
@@ -224,7 +218,7 @@ const StaffDashboard = async () => {
                         <Card className="lg:col-span-1 bg-gradient-primary border-none text-primary-foreground">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
                                         <TrendingUp className="h-6 w-6" />
                                     </div>
                                     <div>

@@ -148,6 +148,7 @@ export interface StaffMember {
   department: IssueCategory | null;
   color: string;
   isVerified: boolean;
+  role: Role;
 }
 
 export interface Shift {

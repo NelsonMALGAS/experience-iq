@@ -1,5 +1,4 @@
-import { fetchCollection } from "@/app/actions"
-import { IssueCollection, IssueDetailsPageProps, Role } from "@/types"
+import { IssueDetailsPageProps, Role } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,7 +26,7 @@ import { formatFullDate, formatRelativeTime, generateTimeline, getPriorityConfig
 import { ImageGallery } from "@/components/issueDetails/Imagegallery"
 import { Timeline } from "@/components/issueDetails/Timeline"
 import { MetadataCard } from "@/components/issueDetails/MetadataCard"
-import { ErrorState, NotFoundState } from "@/components/issueDetails/ErrorStates"
+import { NotFoundState } from "@/components/issueDetails/ErrorStates"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { auth } from "@/db/server"
@@ -35,6 +34,7 @@ import { requireVerifiedUser } from "@/lib/verificationGuards"
 import Unverified from "@/components/Unverified"
 import { Metadata } from "next"
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata"
+import { fetchIssueById } from "@/app/optimised-actions"
 
 
 
@@ -44,10 +44,8 @@ export async function generateMetadata(
     const { id } = await params;
 
     try {
-        // Lightweight fetch (no auth, no cookies)
-        const issuesCol = await fetchCollection<IssueCollection>("issues");
-        const allIssues = issuesCol.flatMap((doc) => doc.issues);
-        const issue = allIssues.find((i) => i.id === id);
+
+        const issue = await fetchIssueById(id)
 
         // Fallback if issue not found
         if (!issue) {
@@ -144,29 +142,8 @@ const IssueDetailsPage = async ({
         return <Unverified isVerified={isVerified} role={role} uid={uid} />
     }
 
-    // Fetch data outside of JSX
-    let issuesCol: IssueCollection[] | null = null;
-    let error: Error | null = null;
 
-    try {
-        issuesCol = await fetchCollection<IssueCollection>("issues")
-    } catch (e) {
-        error = e instanceof Error ? e : new Error('Failed to fetch issues')
-    }
-
-    // Handle error state
-    if (error) {
-        return <ErrorState error={error} />
-    }
-
-    // Handle no data
-    if (!issuesCol) {
-        return <ErrorState error={new Error('No issues collection found')} />
-    }
-
-    // Find the issue
-    const allIssues = issuesCol.flatMap(doc => doc.issues)
-    const issue = allIssues.find((i) => i.id === id)
+    const issue = await fetchIssueById(id)
 
     // Handle not found
     if (!issue) {

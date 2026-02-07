@@ -9,6 +9,7 @@ import {
   CalendarClock,
   type LucideIcon,
   Clock,
+  Activity,
 } from "lucide-react";
 
 export interface NavLink {
@@ -26,6 +27,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
     { label: "Dashboard", href: "/staff", icon: LayoutDashboard },
     { label: "Assigned Issues", href: "/staff/issues", icon: ClipboardList },
     { label: "Roster", href: "/staff/roster", icon: CalendarClock },
+    { label: "My Performance", href: "/staff/my-performance", icon: Activity },
   ],
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },

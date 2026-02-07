@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { priorityConfig, statusConfig } from "@/constants";
+import { formatRelativeTime } from "@/utils/issueDetailsUtils";
 
 interface IssueCardProps {
     issue: Issue;
@@ -91,22 +92,12 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     const PriorityIcon = currentPriority.icon;
     const assignedStaff = staffMembers?.find(s => s.id === optimisticAssignee);
 
-    const timeAgo = (date: string | Date) => {
-        const now = new Date();
-        const created = new Date(date);
-        const diffMs = now.getTime() - created.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
 
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        return `${diffDays}d ago`;
-    };
 
     const handleImageError = (index: number) => {
         setImageError(prev => new Set([...prev, index]));
     };
+
 
     return (
         <Card
@@ -149,7 +140,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                 </>
                             )}
                             <span className="hidden xs:inline">•</span>
-                            <span className="shrink-0">{timeAgo(issue.createdAt)}</span>
+                            <span className="shrink-0">{formatRelativeTime(issue.createdAt)}</span>
                             {hasImages && (
                                 <>
                                     <span className="hidden sm:inline">•</span>

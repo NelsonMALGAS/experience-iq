@@ -1,6 +1,6 @@
 "use client"
 
-import { IssueCategory, Shift, StaffMember } from "@/types";
+import { IssueCategory, Role, Shift, StaffMember } from "@/types";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { CheckCircle2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -28,8 +28,8 @@ export const StaffListSection = ({
     getShiftsForStaff: (id: string) => Shift[];
     isAddStaffDialogOpen: boolean;
     setIsAddStaffDialogOpen: (open: boolean) => void;
-    newStaffData: { name: string; email: string; department: IssueCategory };
-    setNewStaffData: (data: { name: string; email: string; department: IssueCategory }) => void;
+    newStaffData: { name: string; email: string; department: IssueCategory, role: Role };
+    setNewStaffData: (data: { name: string; email: string; department: IssueCategory, role: Role }) => void;
     addStaffMember: () => void;
 }) => {
     return (

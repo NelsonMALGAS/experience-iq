@@ -41,6 +41,7 @@ type NewStaffType = {
     name: string
     email: string
     department: IssueCategory
+    role: Role
 }
 
 const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCreateProps) => {
@@ -66,6 +67,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
         name: '',
         email: '',
         department: 'other',
+        role: "staff"
     });
 
     useEffect(() => {
@@ -222,7 +224,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
             return;
         }
 
-        if (newStaffData.name && newStaffData.email && newStaffData.department) {
+        if (newStaffData.name && newStaffData.email && newStaffData.department && newStaffData.role) {
             const newStaff: StaffMember = {
                 id: Date.now().toString(),
                 name: newStaffData.name,
@@ -230,9 +232,10 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                 department: newStaffData.department,
                 color: staffColorPalette[staffMembers.length % staffColorPalette.length],
                 isVerified: false,
+                role: newStaffData.role
             };
             setStaffMembers([...staffMembers, newStaff]);
-            setNewStaffData({ name: '', email: '', department: 'other' });
+            setNewStaffData({ name: '', email: '', department: 'other', role: "staff" });
             setIsAddStaffDialogOpen(false);
 
             toast.success('Success', {

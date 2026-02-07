@@ -8,7 +8,6 @@ import { MapPin, MoreHorizontal, Search, Building2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { fetchProperties } from "@/app/actions";
 import { AddPropertyDialog } from "@/components/Addpropertydialog";
 import { cookies } from "next/headers";
 import { auth } from "@/db/server";
@@ -16,6 +15,7 @@ import { requireVerifiedUser } from "@/lib/verificationGuards";
 import Unverified from "@/components/Unverified";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
 export const metadata: Metadata = {
     title: "Properties – ExperienceIQ",
@@ -67,6 +67,7 @@ const PropertiesPage = async () => {
     const decoded = await auth?.verifySessionCookie(session, true);
 
     if (!decoded) redirect(`/login?role=${role}`)
+
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData } = verificationResult;
 
@@ -77,12 +78,13 @@ const PropertiesPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} />
     }
 
-    // Fetch properties from Firestore
+    // ✅ USER IS VERIFIED - Fetch properties with live statistics
+    // Statistics are derived from issues collection at read time
     let properties: Property[] = [];
     let error = null;
 
     try {
-        properties = await fetchProperties();
+        properties = await fetchPropertiesWithStats();
     } catch (e) {
         error = e instanceof Error ? e.message : "Failed to fetch properties";
         console.error("Error fetching properties:", e);
@@ -90,14 +92,14 @@ const PropertiesPage = async () => {
 
     return (
         <div className="mt-24">
-            <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified}>
+            <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
                 <div className="space-y-6 animate-fade-in">
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-display font-bold text-foreground">Properties</h1>
                             <p className="text-muted-foreground mt-1">
-                                Manage and monitor all properties
+                                Manage and monitor all properties with live statistics
                             </p>
                         </div>
 
@@ -109,6 +111,16 @@ const PropertiesPage = async () => {
                             <AddPropertyDialog />
                         </div>
                     </div>
+
+                    {/* Info Badge - Statistics are live */}
+                    {properties.length > 0 && (
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 w-fit">
+                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            <p className="text-xs text-primary font-medium">
+                                Live statistics derived from {properties.reduce((sum, p) => sum + p.totalIssues, 0)} issues
+                            </p>
+                        </div>
+                    )}
 
                     {/* Error State */}
                     {error && (
@@ -135,7 +147,7 @@ const PropertiesPage = async () => {
                                         style={{ animationDelay: `${index * 100}ms` }}
                                     >
                                         {/* Header */}
-                                        <div className="relative h-32 bg-linear-to-br from-primary/10 via-primary/5 to-transparent p-0 mt-0">
+                                        <div className="relative h-32 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
                                             {/* Gradient overlay */}
                                             <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent" />
 
@@ -167,10 +179,9 @@ const PropertiesPage = async () => {
                                             </Button>
                                         </div>
 
-
                                         {/* Content */}
                                         <CardContent className="p-6 space-y-4">
-                                            {/* Stats */}
+                                            {/* Stats - Now showing LIVE data */}
                                             <div className="grid grid-cols-3 gap-3">
                                                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                                                     <p className="text-2xl font-bold text-foreground">
@@ -179,8 +190,14 @@ const PropertiesPage = async () => {
                                                     <p className="text-xs text-muted-foreground">Total</p>
                                                 </div>
 
-                                                <div className="rounded-lg bg-destructive/10 p-3 text-center">
-                                                    <p className="text-2xl font-bold text-destructive">
+                                                <div className={`rounded-lg p-3 text-center ${property.openIssues > 0
+                                                        ? 'bg-destructive/10'
+                                                        : 'bg-success/10'
+                                                    }`}>
+                                                    <p className={`text-2xl font-bold ${property.openIssues > 0
+                                                            ? 'text-destructive'
+                                                            : 'text-success'
+                                                        }`}>
                                                         {property.openIssues}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">Open</p>
@@ -188,9 +205,9 @@ const PropertiesPage = async () => {
 
                                                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                                                     <p className="text-2xl font-bold text-foreground">
-                                                        {property.avgResolutionTime}m
+                                                        {property.avgResolutionTime}h
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground">Avg Time</p>
+                                                    <p className="text-xs text-muted-foreground">Avg</p>
                                                 </div>
                                             </div>
 
@@ -202,7 +219,20 @@ const PropertiesPage = async () => {
                                                         {resolutionRate}%
                                                     </span>
                                                 </div>
-                                                <Progress value={resolutionRate} className="h-2" />
+                                                <Progress
+                                                    value={resolutionRate}
+                                                    className="h-2"
+                                                />
+                                            </div>
+
+                                            {/* Additional Stats */}
+                                            <div className="pt-2 border-t border-border">
+                                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                                    <span>Resolved Issues</span>
+                                                    <span className="font-medium text-success">
+                                                        {property.resolvedIssues}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>

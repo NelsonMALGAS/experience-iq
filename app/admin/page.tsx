@@ -13,7 +13,7 @@ import { RefreshButton } from "@/components/layout/RefreshButton";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { fetchAllIssues, getStaffUsers } from "../optimised-actions";
-import * as Sentry from "@sentry/nextjs"
+
 
 
 export const metadata: Metadata = {
@@ -141,14 +141,7 @@ const AdminDashboard = async () => {
 
     // ✅ USER IS VERIFIED - Fetch data using optimized actions
     // Issues are now returned flat - no need for flatMap!
-    const span = Sentry.startInactiveSpan({
-        name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
-        attributes: {
-            "db.system": "firestore",
-            "db.operation": "query",
-            "db.collection": "users",
-        },
-    })
+
     const allIssues = await fetchAllIssues();
     const staffUsers = await getStaffUsers();
 
@@ -159,6 +152,7 @@ const AdminDashboard = async () => {
         isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.department,
+        role: user.role
     }));
 
     // Calculate statistics
@@ -172,8 +166,6 @@ const AdminDashboard = async () => {
         .filter(i => i.status !== 'resolved')
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 10);
-
-    span.end()
 
     return (
         <div className="mt-24">

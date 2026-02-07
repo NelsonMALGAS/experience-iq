@@ -4,13 +4,13 @@ import { auth, db } from '@/db/server';
 import { AlertCircle, FileQuestion, Shield, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Issue, IssueCollection, Role } from '@/types';
+import { Role } from '@/types';
 import GuestDashboardHeader from '@/components/guest/GuestDashboardHeader';
 import IssuesList from '@/components/guest/GuestIssuesList';
 import GuestDashboardFooter from '@/components/guest/GuestDashboardFooter';
-import { serializeFirestoreDates } from '@/lib/serialize';
 import { Metadata } from 'next';
 import { baseKeywords, baseUrl, sharedMetadata } from '@/constants/sharedMetadata';
+import { fetchGuestIssues } from '../optimised-actions';
 
 export const metadata: Metadata = {
     title: "Dashboard – ExperienceIQ",
@@ -79,29 +79,7 @@ async function GuestDashboard() {
         redirect(`/login?role=${role}`);
     }
 
-    let userIssues: Issue[] = [];
-    let hasError = false;
-
-    // Fetch all issues for this guest user
-    try {
-        const issuesSnapshot = await db
-            .collection('issues')
-            .where('guestId', '==', uid)
-            .orderBy('updatedAt', 'desc')
-            .get();
-
-        const issuesCol = issuesSnapshot.docs.map((doc) =>
-            serializeFirestoreDates({
-                id: doc.id,
-                ...doc.data(),
-            })
-        ) as IssueCollection[];
-
-        userIssues = issuesCol.flatMap(doc => doc.issues);
-    } catch (error) {
-        console.error('Error fetching issues:', error);
-        hasError = true;
-    }
+    const userIssues = await fetchGuestIssues(uid)
 
     // Calculate stats
     const openIssues = userIssues.filter(i => i.status === 'open').length;
@@ -150,20 +128,10 @@ async function GuestDashboard() {
                     </Card>
                 )}
 
-                {/* Error Alert */}
-                {hasError && (
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Unable to load issues</AlertTitle>
-                        <AlertDescription>
-                            We couldn&apos;t load your issues at the moment. Please try refreshing the page. If
-                            the problem persists, your session may have expired.
-                        </AlertDescription>
-                    </Alert>
-                )}
+
 
                 {/* Stats Cards - Only show if there are issues */}
-                {!hasError && userIssues.length > 0 && (
+                {userIssues.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card className="border-slate-200 dark:border-slate-800">
                             <CardHeader className="pb-2">
@@ -220,48 +188,47 @@ async function GuestDashboard() {
                 )}
 
                 {/* Main Content */}
-                {!hasError && (
-                    <>
-                        {userIssues.length === 0 ? (
-                            // Empty State
-                            <Card className="border-dashed">
-                                <CardContent className="flex flex-col items-center justify-center py-16 sm:py-20">
-                                    <div className="p-4 rounded-full bg-muted/50 mb-4">
-                                        <FileQuestion className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground" />
-                                    </div>
-                                    <h3 className="text-xl sm:text-2xl font-semibold mb-2">No Issues Yet</h3>
-                                    <p className="text-muted-foreground text-center max-w-md mb-6 text-sm sm:text-base">
-                                        You haven&apos;t submitted any issues in this session. Create your first issue
-                                        to get started.
-                                    </p>
-                                    <div className="flex flex-wrap gap-2 justify-center text-xs text-muted-foreground">
-                                        <span className="px-3 py-1.5 bg-muted rounded-full">Quick Response</span>
-                                        <span className="px-3 py-1.5 bg-muted rounded-full">24/7 Support</span>
-                                        <span className="px-3 py-1.5 bg-muted rounded-full">Track Status</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            // Issues List (Client Component)
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                                            <TrendingUp className="h-5 w-5 text-primary" />
-                                            Your Issues
-                                        </CardTitle>
-                                        <span className="text-sm text-muted-foreground">
-                                            {userIssues.length} total
-                                        </span>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="pt-0">
-                                    <IssuesList issues={userIssues} />
-                                </CardContent>
-                            </Card>
-                        )}
-                    </>
-                )}
+
+                <>
+                    {userIssues.length === 0 ? (
+                        // Empty State
+                        <Card className="border-dashed">
+                            <CardContent className="flex flex-col items-center justify-center py-16 sm:py-20">
+                                <div className="p-4 rounded-full bg-muted/50 mb-4">
+                                    <FileQuestion className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground" />
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-semibold mb-2">No Issues Yet</h3>
+                                <p className="text-muted-foreground text-center max-w-md mb-6 text-sm sm:text-base">
+                                    You haven&apos;t submitted any issues in this session. Create your first issue
+                                    to get started.
+                                </p>
+                                <div className="flex flex-wrap gap-2 justify-center text-xs text-muted-foreground">
+                                    <span className="px-3 py-1.5 bg-muted rounded-full">Quick Response</span>
+                                    <span className="px-3 py-1.5 bg-muted rounded-full">24/7 Support</span>
+                                    <span className="px-3 py-1.5 bg-muted rounded-full">Track Status</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        // Issues List (Client Component)
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                                        <TrendingUp className="h-5 w-5 text-primary" />
+                                        Your Issues
+                                    </CardTitle>
+                                    <span className="text-sm text-muted-foreground">
+                                        {userIssues.length} total
+                                    </span>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                                <IssuesList issues={userIssues} />
+                            </CardContent>
+                        </Card>
+                    )}
+                </>
 
                 {/* Footer Note */}
                 <GuestDashboardFooter />
