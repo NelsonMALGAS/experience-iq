@@ -1,11 +1,12 @@
-import { fetchCollection, getStaffUsers } from "@/app/actions";
+
+import { fetchAllIssues, getStaffUsers } from "@/app/optimised-actions";
 import StaffIssues from "@/components/issues/StaffIssues"
 import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
-import { IssueCollection, Role, StaffMember } from "@/types";
+import { Role, StaffMember } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -72,20 +73,20 @@ const StaffIssuesPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} />
     }
 
-    const issuesCol = await fetchCollection<IssueCollection>("issues") || []
 
-    const allIssues = issuesCol.flatMap(doc => doc.issues);
+
+    const allIssues = await fetchAllIssues()
 
     const staffUsers = await getStaffUsers();
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.uid,
-        name: user.displayName ?? user.email ?? "Unknown",
+        id: user.id,
+        name: user.name ?? user.email ?? "Unknown",
         email: user.email ?? "unknown@example.com",
-        isVerified: user.emailVerified ?? false,
+        isVerified: user.isVerified ?? false,
         color: staffColorPalette[index % staffColorPalette.length],
-        department: user.customClaims?.department || "other",
-        role: user.customClaims?.role || "guest"
+        department: user.department || "other",
+        role: user.role || "guest"
     }));
     return (
         <div className="mt-24">

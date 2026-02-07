@@ -1,3 +1,4 @@
+
 export const revalidate = 300;
 
 import type { Metadata, Viewport } from "next";
@@ -5,27 +6,25 @@ import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/Header";
-import { Toaster } from "sonner";
-import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin"
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { IssueProvider } from "@/contexts/IssuesContext";
-import PWAServiceWorkerRegister from "@/components/PWAServiceWorkerRegister"
-
-
+import ClientProviders from "@/components/ClientProviders";
 
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  preload: true,
 });
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair-display",
-  subsets: ["latin"]
-})
-
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -46,16 +45,16 @@ export const metadata: Metadata = {
     "roster",
     "scheduling",
     "staff-management",
-    "hospitality",
     "nextjs",
     "firebase",
-    "typescript"
+    "typescript",
   ],
-  authors: [{ name: "Nelson Zongezile Malgas", url: "https://github.com/NelsonMALGAS" }],
+  authors: [
+    { name: "Nelson Zongezile Malgas", url: "https://github.com/NelsonMALGAS" },
+  ],
   creator: "Nelson Malgas",
   publisher: "ExperienceIQ",
 
-  // Open Graph (Facebook, LinkedIn, etc.)
   openGraph: {
     title: "ExperienceIQ – Hospitality Service Management",
     description:
@@ -74,7 +73,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 
-  // Twitter Card
   twitter: {
     card: "summary_large_image",
     title: "ExperienceIQ – Hospitality Service Management",
@@ -85,7 +83,6 @@ export const metadata: Metadata = {
     creator: "@NelsonMalgas",
   },
 
-  // Robots for SEO
   robots: {
     index: true,
     follow: true,
@@ -105,15 +102,11 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
     title: "ExperienceIQ",
   },
-
-
 };
 
 export const viewport: Viewport = {
@@ -122,10 +115,8 @@ export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#000000" },
-
   ],
 };
-
 
 export default function RootLayout({
   children,
@@ -144,20 +135,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
 
-          <IssueProvider>
-            <NotificationProvider>
-              <Header />
-              <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen overflow-x-hidden">
-                <NextSSRPlugin
-                  routerConfig={extractRouterConfig(ourFileRouter)}
-                />
-                {children}
-              </main>
-              <Toaster richColors position="top-center" />
-            </NotificationProvider>
-          </IssueProvider>
+          <Header />
+          <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen overflow-x-hidden">
+            <NextSSRPlugin
+              routerConfig={extractRouterConfig(ourFileRouter)}
+            />
+            <ClientProviders>
+              {children}
+            </ClientProviders>
+          </main>
         </ThemeProvider>
-        <PWAServiceWorkerRegister />
+
       </body>
     </html>
   );

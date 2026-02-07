@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RosterData, Shift, Role } from '@/types';
-import { refreshShifts } from '@/app/actions/staffRosterActions';
 import Link from 'next/link';
 import { calculateDuration, formatDate, formatTime } from '@/lib/rosterHelpers';
 import { requireVerifiedUser } from '@/lib/verificationGuards';
 import Unverified from '@/components/Unverified';
 import { Metadata } from 'next';
 import { baseKeywords, baseUrl, sharedMetadata } from '@/constants/sharedMetadata';
+import { refreshShifts } from '@/app/optimised-actions';
 
 export const metadata: Metadata = {
     title: "Roster – ExperienceIQ",
