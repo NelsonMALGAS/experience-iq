@@ -15,9 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2, Trash } from "lucide-react";
 import { toast } from "sonner";
-import { createProperty } from "@/app/actions";
 import { generateRandomCode } from "@/utils/staffDashboardUtils";
 import { Room } from "@/types";
+import { createProperty } from "@/app/optimised-actions";
 
 type FormDataTypes = {
     name: string,

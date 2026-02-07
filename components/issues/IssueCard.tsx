@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { User, Lock, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
-import { updateIssue } from "@/app/actions";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { priorityConfig, statusConfig } from "@/constants";
 import { formatRelativeTime } from "@/utils/issueDetailsUtils";
+import { updateIssue } from "@/app/optimised-actions";
 
 interface IssueCardProps {
     issue: Issue;
