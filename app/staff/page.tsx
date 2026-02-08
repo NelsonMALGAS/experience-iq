@@ -215,7 +215,7 @@ const StaffDashboard = async () => {
                     {/* Performance and Quick Actions */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Performance Card */}
-                        <Card className="lg:col-span-1 bg-gradient-primary border-none text-primary-foreground">
+                        <Card className="lg:col-span-1 bg-card border-none text-foreground">
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-12 h-12 rounded-xl bg-card flex items-center justify-center">
@@ -226,16 +226,18 @@ const StaffDashboard = async () => {
                                         <p className="text-3xl font-display font-bold">{stats.slaCompliance}%</p>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
+
+
+                                <div className="space-y-2 bg-card">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-primary-foreground/70">Average Resolution</span>
-                                        <span className="font-semibold text-primary-foreground">
+                                        <span className="font-semibold text-foreground/20">
                                             {stats.avgResolutionTime}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-primary-foreground/70">Total Resolved</span>
-                                        <span className="font-semibold text-primary-foreground">
+                                        <span className="text-foreground/70">Total Resolved</span>
+                                        <span className="font-semibold text-foreground/20">
                                             {assignedIssues.filter(i => i.status === 'resolved').length}
                                         </span>
                                     </div>

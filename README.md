@@ -211,8 +211,4 @@ SLAs help the business to:
 
 ---
 
-NB: SOME PARTS OF THE APP STILL USING DUMMY DATA
 
-
-
-TEST TEST

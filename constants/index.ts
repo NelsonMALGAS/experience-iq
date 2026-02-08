@@ -182,3 +182,8 @@ export const priorityConfig = {
     icon: Clock,
   },
 };
+
+export const years = Array.from(
+  { length: 11 },
+  (_, i) => new Date().getFullYear() + i,
+);

@@ -11,7 +11,7 @@ import { IssueCategory, Role } from "@/types";
 import { toast } from "sonner";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { signInAnonymously, signInWithPopup } from "firebase/auth";
-import { auth, googleAuth } from "@/db/client";
+import { getAuthInstance, getGoogleAuthProvider } from "@/db/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -115,10 +115,14 @@ const AuthForm = ({ role }: AuthFormType) => {
         return errors;
     };
 
+    // ✅ FIXED: Google Sign-In now redirects to onboarding for staff/admin
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         try {
-            const result = await signInWithPopup(auth, googleAuth);
+            const auth = await getAuthInstance();
+            const googleAuthProvider = await getGoogleAuthProvider();
+
+            const result = await signInWithPopup(auth, googleAuthProvider);
             const user = result?.user;
 
             await createSession(user, userRole, formData.department);
@@ -136,7 +140,12 @@ const AuthForm = ({ role }: AuthFormType) => {
                 description: "🎉 Success",
             });
 
-            router.push(`/onboarding/${userRole}/?role=${userRole}`);
+            // ✅ FIXED: Redirect to onboarding for staff/admin
+            if (userRole === "staff" || userRole === "admin") {
+                router.push(`/onboarding/${userRole}`);
+            } else {
+                router.push(`/onboarding/${userRole}/?role=${userRole}`);
+            }
         } catch (error) {
             console.error("Sign-in error:", error);
             toast.error("Failed to login", {
@@ -155,6 +164,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         setFormErrors(validate(updatedData));
     };
 
+    // ✅ FIXED: Email/Password login and signup now redirect to onboarding
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const errors = validate(formData);
@@ -175,13 +185,34 @@ const AuthForm = ({ role }: AuthFormType) => {
             return;
         }
 
-        if (mode === "signup") {
-            await handleRegister(email, password, userRole, department);
-        } else {
-            await handleLogin(email, password, userRole, department);
-        }
+        try {
+            if (mode === "signup") {
+                await handleRegister(email, password, userRole, department);
+            } else {
+                await handleLogin(email, password, userRole, department);
+            }
 
-        setIsLoading(false);
+            // ✅ FIXED: Redirect to onboarding after successful auth
+            toast.success(mode === "signup" ? "Account created successfully" : "Logged in successfully", {
+                position: "top-center",
+                description: "🎉 Success",
+            });
+
+            // ✅ Redirect to onboarding for staff/admin
+            if (userRole === "staff" || userRole === "admin") {
+                router.push(`/onboarding/${userRole}`);
+            } else {
+                router.push(`/onboarding/${userRole}`);
+            }
+        } catch (error) {
+            console.error("Auth error:", error);
+            toast.error(mode === "signup" ? "Failed to create account" : "Failed to login", {
+                position: "top-center",
+                description: "🚨 Error",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleQRLogin = async (e: React.FormEvent) => {
@@ -196,6 +227,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                 return;
             }
 
+            const auth = await getAuthInstance();
             const result = await signInAnonymously(auth);
             await createSession(result.user, "guest", "other");
 
@@ -210,6 +242,7 @@ const AuthForm = ({ role }: AuthFormType) => {
             });
 
             toast.success(`Welcome! Room ${validation.room.roomNumber}`);
+            // ✅ Guest goes directly to add-issue (no onboarding needed)
             router.push("/guest/add-issue");
         } catch (error) {
             if (error instanceof Error) {
