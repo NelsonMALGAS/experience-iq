@@ -25,10 +25,11 @@ import { StaffListSection } from './StaffListSection';
 import NotAdmin from './NotAdmin';
 import SuccessAlert from './SuccessAlert';
 import CalendarGrid from './CalendarGrid';
-import { months, shiftTemplates, staffColorPalette } from '@/constants';
+import { months, shiftTemplates, staffColorPalette, years } from '@/constants';
 import { toast } from 'sonner';
 import { addShiftToRoster, createRoster, removeShiftFromRoster } from '@/app/actions/rosterActions';
 import Link from 'next/link';
+import { fetchRosterByMonthYear } from '@/app/actions/roster';
 
 type AdminCreateProps = {
     role: Role
@@ -62,6 +63,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
     const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [rosterId, setRosterId] = useState<string | undefined>(existingRosterId);
     const [newStaffData, setNewStaffData] = useState<NewStaffType>({
         name: '',
@@ -70,11 +72,46 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
         role: "staff"
     });
 
+    // ✅ NEW: Load roster when month/year changes
     useEffect(() => {
-        setRosterId(undefined);
-        setShifts([]);
-    }, [selectedMonth, selectedYear]);
+        const loadRoster = async () => {
+            setIsLoading(true);
 
+            try {
+                const result = await fetchRosterByMonthYear(months[selectedMonth], selectedYear);
+
+                if (result.success && result.data) {
+                    // Roster exists - load it
+                    setRosterId(result.data.id);
+                    setShifts(result.data.shifts || []);
+
+                    toast.success('Roster Loaded', {
+                        description: `Loaded ${result.data.shifts?.length || 0} shifts for ${months[selectedMonth]} ${selectedYear}`,
+                    });
+                } else {
+                    // No roster exists for this month/year - reset
+                    setRosterId(undefined);
+                    setShifts([]);
+
+                    // Only show info toast, not error
+                    toast.info(`No roster found for ${months[selectedMonth]} ${selectedYear}`);
+                }
+            } catch (error) {
+                console.error("Error loading roster:", error);
+                toast.error('Error', {
+                    description: 'Failed to load roster. You can still create a new one.',
+                });
+
+                // Reset on error
+                setRosterId(undefined);
+                setShifts([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadRoster();
+    }, [selectedMonth, selectedYear]);
 
     if (!uid) return <NotAdmin role={role} />;
 
@@ -337,10 +374,24 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
         });
     };
 
-    // Quick add shift from template
+    // Quick add shift from template - ✅ UPDATED with guard
     const quickAddShift = (day: number, template: typeof shiftTemplates[0]) => {
         if (!selectedStaff) return;
+
         const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        // ✅ GUARD: Prevent adding shift if staff already has one on this date
+        const existingShift = shifts.find(
+            shift => shift.staffId === selectedStaff && shift.date === dateStr
+        );
+
+        if (existingShift) {
+            toast.error('Already Assigned', {
+                description: `${staffMembers.find(s => s.id === selectedStaff)?.name} already has a shift on this day.`
+            });
+            return;
+        }
+
         addShift(selectedStaff, dateStr, template.start, template.end);
     };
 
@@ -352,14 +403,36 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
             )}
 
             <div className="max-w-480 mx-auto space-y-4 sm:space-y-6">
+                {/* ✅ NEW: Loading state alert */}
+                {isLoading && (
+                    <Alert>
+                        <Clock className="h-4 w-4 animate-spin" />
+                        <AlertTitle>Loading Roster</AlertTitle>
+                        <AlertDescription>
+                            Fetching roster data for {months[selectedMonth]} {selectedYear}...
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Info Alert for new roster */}
-                {!rosterId && (
+                {!rosterId && !isLoading && (
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>New Roster</AlertTitle>
                         <AlertDescription>
-                            Click &quot;Save Roster&quot; to create this roster before adding shifts.
-                            Once saved, you can add shifts by clicking on dates.
+                            No roster exists for {months[selectedMonth]} {selectedYear}.
+                            Click &quot;Create Roster&quot; to start scheduling shifts.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* ✅ NEW: Roster loaded alert */}
+                {rosterId && !isLoading && (
+                    <Alert className="border-primary/50 bg-primary/5">
+                        <Shield className="h-4 w-4 text-primary" />
+                        <AlertTitle className="text-primary">Roster Loaded</AlertTitle>
+                        <AlertDescription>
+                            Editing roster for {months[selectedMonth]} {selectedYear} • {shifts.length} shift{shifts.length !== 1 ? 's' : ''} scheduled
                         </AlertDescription>
                     </Alert>
                 )}
@@ -411,7 +484,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                     <Button
                                         variant="outline"
                                         onClick={copyPreviousMonth}
-                                        disabled={isSaving}
+                                        disabled={isSaving || isLoading}
                                         className="flex-1 sm:flex-none gap-2"
                                     >
                                         <Copy className="w-4 h-4" />
@@ -421,7 +494,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                     <Button
                                         variant="outline"
                                         onClick={exportRoster}
-                                        disabled={isSaving}
+                                        disabled={isSaving || isLoading}
                                         className="flex-1 sm:flex-none gap-2"
                                     >
                                         <Download className="w-4 h-4" />
@@ -430,7 +503,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
 
                                     <Button
                                         onClick={saveRoster}
-                                        disabled={isSaving}
+                                        disabled={isSaving || isLoading}
                                         className="flex-1 sm:flex-none gap-2"
                                     >
                                         <Save className="w-4 h-4" />
@@ -455,6 +528,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                         <Select
                                             value={selectedMonth.toString()}
                                             onValueChange={(val) => setSelectedMonth(Number(val))}
+                                            disabled={isLoading} // ✅ Disable while loading
                                         >
                                             <SelectTrigger id="month" className="h-9 sm:h-10">
                                                 <SelectValue />
@@ -476,12 +550,13 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                         <Select
                                             value={selectedYear.toString()}
                                             onValueChange={(val) => setSelectedYear(Number(val))}
+                                            disabled={isLoading} // ✅ Disable while loading
                                         >
                                             <SelectTrigger id="year" className="h-9 sm:h-10">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {[2024, 2025, 2026, 2027, 2028].map((year) => (
+                                                {years.map((year) => (
                                                     <SelectItem key={year} value={year.toString()}>
                                                         {year}
                                                     </SelectItem>
@@ -528,7 +603,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                     <div className="lg:hidden">
                         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" className="w-full gap-2 h-auto py-3">
+                                <Button variant="outline" className="w-full gap-2 h-auto py-3" disabled={isLoading}>
                                     <Menu className="w-4 h-4" />
                                     <span className="flex-1 text-left">Staff & Templates</span>
                                     {selectedStaff && (
@@ -602,7 +677,16 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                     {/* Main Calendar/List View */}
                     <Card>
                         <CardContent className="p-3 sm:p-4 md:p-6">
-                            {viewMode === 'calendar' ? (
+                            {/* ✅ Show loading skeleton while fetching */}
+                            {isLoading ? (
+                                <div className="space-y-3 animate-pulse">
+                                    <div className="grid grid-cols-7 gap-2">
+                                        {Array.from({ length: 35 }).map((_, i) => (
+                                            <div key={i} className="aspect-square bg-muted rounded-lg" />
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : viewMode === 'calendar' ? (
                                 <div className="space-y-3 sm:space-y-4">
                                     {/* Calendar Header */}
                                     <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-2 text-center font-semibold text-[10px] xs:text-xs sm:text-sm text-muted-foreground mb-2">

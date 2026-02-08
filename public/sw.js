@@ -1,4 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v2";
+const CACHE_NAME = "experience-iq-pages-v3";
 
 // Pages to cache - updated to match NAV_LINKS structure
 const pagesToCache = [
