@@ -1,5 +1,6 @@
 import { getStaffUsers } from "@/app/optimised-actions";
 import AdminCreateRosterPage from "@/components/CreateStaffRoster";
+import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
 import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
@@ -9,6 +10,7 @@ import { Role, StaffMember } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
     title: "Create Roster – ExperienceIQ",
@@ -89,9 +91,11 @@ const RosterPage = async () => {
 
 
     return (
-        <div className="mt-24">
-            <AdminCreateRosterPage role={userRole} staff={plainStaffUsers} uid={uid} />
-        </div>
+        <Suspense fallback={<DashboardLayoutSkeleton />}>
+            <div className="mt-24">
+                <AdminCreateRosterPage role={userRole} staff={plainStaffUsers} uid={uid} />
+            </div>
+        </Suspense>
     )
 }
 
