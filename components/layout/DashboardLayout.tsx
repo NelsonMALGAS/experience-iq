@@ -104,7 +104,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <NotificationCenter />
+                            <NotificationCenter role={role} />
                             <Button
                                 variant="ghost"
                                 size="icon"

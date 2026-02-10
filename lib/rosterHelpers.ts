@@ -1,3 +1,5 @@
+export const READ_ISSUE_IDS_KEY = "read_issue_ids";
+
 // Format date helper
 export const formatDate = (dateString: string) => {
   try {
@@ -51,3 +53,25 @@ export const calculateDuration = (startTime: string, endTime: string) => {
     return "-";
   }
 };
+
+export function getLocalReadIssueIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  const raw = localStorage.getItem(READ_ISSUE_IDS_KEY);
+  return new Set(raw ? JSON.parse(raw) : []);
+}
+
+export function addLocalReadIssueId(id: string) {
+  const ids = getLocalReadIssueIds();
+  ids.add(id);
+  localStorage.setItem(READ_ISSUE_IDS_KEY, JSON.stringify([...ids]));
+}
+
+export function addAllLocalReadIssueIds(ids: string[]): void {
+  const existing = getLocalReadIssueIds();
+  ids.forEach((id) => existing.add(id));
+  localStorage.setItem(READ_ISSUE_IDS_KEY, JSON.stringify([...existing]));
+}
+
+export function clearLocalReadIssueIds(): void {
+  localStorage.removeItem("read_issue_ids");
+}

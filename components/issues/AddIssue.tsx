@@ -101,6 +101,7 @@ const AddIssuePage = () => {
                 resolvedAt: null,
                 isAnonymous: true,
                 images: imageUrls.length ? imageUrls : [],
+                read: issue.read ?? false
             };
 
             await setDoc(

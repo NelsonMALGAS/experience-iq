@@ -91,6 +91,7 @@ export const mockIssues: Issue[] = [
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     isAnonymous: false,
+    read: false,
   },
   {
     id: "issue-2",
@@ -110,6 +111,7 @@ export const mockIssues: Issue[] = [
     createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
     updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
     isAnonymous: false,
+    read: false,
   },
   {
     id: "issue-3",
@@ -130,6 +132,7 @@ export const mockIssues: Issue[] = [
     updatedAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
     resolvedAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
     isAnonymous: false,
+    read: false,
   },
   {
     id: "issue-4",
@@ -147,6 +150,7 @@ export const mockIssues: Issue[] = [
     createdAt: new Date(Date.now() - 30 * 60 * 1000),
     updatedAt: new Date(Date.now() - 30 * 60 * 1000),
     isAnonymous: true,
+    read: false,
   },
   {
     id: "issue-5",
@@ -165,6 +169,7 @@ export const mockIssues: Issue[] = [
     createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
     updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
     isAnonymous: false,
+    read: false,
   },
 ];
 
