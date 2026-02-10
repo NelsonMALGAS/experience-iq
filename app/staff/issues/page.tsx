@@ -1,6 +1,7 @@
 
 import { fetchAllIssues, getStaffUsers } from "@/app/optimised-actions";
 import StaffIssues from "@/components/issues/StaffIssues"
+import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
 import Unverified from "@/components/Unverified";
 import { staffColorPalette } from "@/constants";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
@@ -10,6 +11,7 @@ import { Role, StaffMember } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
     title: "Assigned Issues – ExperienceIQ",
@@ -74,10 +76,7 @@ const StaffIssuesPage = async () => {
     }
 
 
-
-    const allIssues = await fetchAllIssues()
-
-    const staffUsers = await getStaffUsers();
+    const [allIssues, staffUsers] = await Promise.all([fetchAllIssues(), getStaffUsers()])
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
         id: user.id,
@@ -89,9 +88,11 @@ const StaffIssuesPage = async () => {
         role: user.role || "guest"
     }));
     return (
-        <div className="mt-24">
-            <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} isVerified={isVerified} />
-        </div>
+        <Suspense fallback={<DashboardLayoutSkeleton />}>
+            <div className="mt-24">
+                <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} isVerified={isVerified} />
+            </div>
+        </Suspense>
     )
 }
 

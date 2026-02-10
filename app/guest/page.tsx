@@ -1,9 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth, db } from '@/db/server';
-import { AlertCircle, FileQuestion, Shield, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, FileQuestion, TrendingUp, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Role } from '@/types';
 import GuestDashboardHeader from '@/components/guest/GuestDashboardHeader';
 import IssuesList from '@/components/guest/GuestIssuesList';
@@ -11,6 +11,7 @@ import GuestDashboardFooter from '@/components/guest/GuestDashboardFooter';
 import { Metadata } from 'next';
 import { baseKeywords, baseUrl, sharedMetadata } from '@/constants/sharedMetadata';
 import { fetchGuestIssues } from '../optimised-actions';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
     title: "Dashboard – ExperienceIQ",
@@ -85,155 +86,249 @@ async function GuestDashboard() {
     const openIssues = userIssues.filter(i => i.status === 'open').length;
     const inProgressIssues = userIssues.filter(i => i.status === 'in_progress').length;
     const resolvedIssues = userIssues.filter(i => i.status === 'resolved').length;
+    const totalIssues = userIssues.length;
 
     return (
-        <div className="mt-20 min-h-screen bg-background">
-            <div className="container max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-                {/* Header */}
-                <GuestDashboardHeader />
+        <Suspense fallback={<span>Loading Guest Dashboard...</span>}>
+            <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-background to-background dark:from-slate-950/20 dark:via-background dark:to-background">
+                {/* Main Container */}
+                <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-8">
 
-                {/* Anonymous User Alert */}
-                <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
-                    <Shield className="h-4 w-4 text-amber-600 dark:text-amber-500" />
-                    <AlertTitle className="text-amber-900 dark:text-amber-200 font-semibold">
-                        Anonymous Guest Session
-                    </AlertTitle>
-                    <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm">
-                        You&apos;re signed in anonymously. Issues are only visible for your current session.
-                        <br />
-                        <span className="font-medium">Important:</span> If your session expires or browser data is cleared, you may
-                        lose access to these issues. For permanent access, please create a regular account.
-                    </AlertDescription>
-                </Alert>
+                    {/* ===== HERO SECTION ===== */}
+                    <section className="space-y-6">
+                        {/* Page Header */}
+                        <GuestDashboardHeader />
+                    </section>
 
-                {/* Session Info Card */}
-                {uid && (
-                    <Card className="border-blue-200 dark:border-blue-900 bg-linear-to-br from-blue-50/50 to-slate-50/50 dark:from-blue-950/20 dark:to-slate-950/20">
-                        <CardContent className="pt-6 pb-6">
-                            <div className="flex items-start gap-4">
-                                <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                                    <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <p className="text-sm font-semibold text-foreground">Current Session ID</p>
-                                    <p className="text-xs text-muted-foreground font-mono break-all bg-muted/50 p-2 rounded">
-                                        {uid}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        This ID identifies your current anonymous session. Your issues are linked to this ID.
-                                    </p>
-                                </div>
+                    {/* ===== DASHBOARD OVERVIEW SECTION ===== */}
+                    {totalIssues > 0 && (
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <div className="h-1 w-12 bg-gradient-to-r from-primary to-primary/40 rounded-full" />
+                                <h2 className="text-lg font-semibold text-foreground">Overview</h2>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
 
+                            {/* Stats Grid - Responsive & Enhanced */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                {/* Total Issues */}
+                                <Card className="group relative overflow-hidden border-slate-200/60 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-900/20 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <CardHeader className="pb-3 pt-5">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                Total
+                                            </CardTitle>
+                                            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800/50">
+                                                <FileQuestion className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pb-5">
+                                        <div className="text-3xl font-bold text-foreground">{totalIssues}</div>
+                                        <p className="text-xs text-muted-foreground mt-1.5">Submissions</p>
+                                    </CardContent>
+                                </Card>
 
+                                {/* Open Issues */}
+                                <Card className="group relative overflow-hidden border-red-200/60 dark:border-red-900/40 bg-gradient-to-br from-red-50/30 to-transparent dark:from-red-950/10 dark:to-transparent hover:border-red-300 dark:hover:border-red-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <CardHeader className="pb-3 pt-5">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wide">
+                                                Open
+                                            </CardTitle>
+                                            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/50">
+                                                <AlertCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pb-5">
+                                        <div className="text-3xl font-bold text-red-700 dark:text-red-400">{openIssues}</div>
+                                        <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1.5">Awaiting review</p>
+                                    </CardContent>
+                                </Card>
 
-                {/* Stats Cards - Only show if there are issues */}
-                {userIssues.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card className="border-slate-200 dark:border-slate-800">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <FileQuestion className="h-4 w-4" />
-                                    Total Issues
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{userIssues.length}</div>
-                                <p className="text-xs text-muted-foreground mt-1">All submissions</p>
-                            </CardContent>
-                        </Card>
+                                {/* In Progress Issues */}
+                                <Card className="group relative overflow-hidden border-blue-200/60 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-950/10 dark:to-transparent hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <CardHeader className="pb-3 pt-5">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-xs font-medium text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+                                                In Progress
+                                            </CardTitle>
+                                            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                                                <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pb-5">
+                                        <div className="text-3xl font-bold text-blue-700 dark:text-blue-400">{inProgressIssues}</div>
+                                        <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1.5">Being resolved</p>
+                                    </CardContent>
+                                </Card>
 
-                        <Card className="border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-red-700 dark:text-red-400 flex items-center gap-2">
-                                    <AlertCircle className="h-4 w-4" />
-                                    Open
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-red-700 dark:text-red-400">{openIssues}</div>
-                                <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-1">Awaiting response</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                                    <Clock className="h-4 w-4" />
-                                    In Progress
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{inProgressIssues}</div>
-                                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Being resolved</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    Resolved
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-green-700 dark:text-green-400">{resolvedIssues}</div>
-                                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Completed</p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {/* Main Content */}
-
-                <>
-                    {userIssues.length === 0 ? (
-                        // Empty State
-                        <Card className="border-dashed">
-                            <CardContent className="flex flex-col items-center justify-center py-16 sm:py-20">
-                                <div className="p-4 rounded-full bg-muted/50 mb-4">
-                                    <FileQuestion className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-xl sm:text-2xl font-semibold mb-2">No Issues Yet</h3>
-                                <p className="text-muted-foreground text-center max-w-md mb-6 text-sm sm:text-base">
-                                    You haven&apos;t submitted any issues in this session. Create your first issue
-                                    to get started.
-                                </p>
-                                <div className="flex flex-wrap gap-2 justify-center text-xs text-muted-foreground">
-                                    <span className="px-3 py-1.5 bg-muted rounded-full">Quick Response</span>
-                                    <span className="px-3 py-1.5 bg-muted rounded-full">24/7 Support</span>
-                                    <span className="px-3 py-1.5 bg-muted rounded-full">Track Status</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        // Issues List (Client Component)
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-primary" />
-                                        Your Issues
-                                    </CardTitle>
-                                    <span className="text-sm text-muted-foreground">
-                                        {userIssues.length} total
-                                    </span>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                                <IssuesList issues={userIssues} />
-                            </CardContent>
-                        </Card>
+                                {/* Resolved Issues */}
+                                <Card className="group relative overflow-hidden border-green-200/60 dark:border-green-900/40 bg-gradient-to-br from-green-50/30 to-transparent dark:from-green-950/10 dark:to-transparent hover:border-green-300 dark:hover:border-green-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <CardHeader className="pb-3 pt-5">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">
+                                                Resolved
+                                            </CardTitle>
+                                            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50">
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pb-5">
+                                        <div className="text-3xl font-bold text-green-700 dark:text-green-400">{resolvedIssues}</div>
+                                        <p className="text-xs text-green-600/80 dark:text-green-400/80 mt-1.5">Completed</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </section>
                     )}
-                </>
 
-                {/* Footer Note */}
-                <GuestDashboardFooter />
+                    {/* ===== SESSION INFORMATION (Collapsed Design) ===== */}
+                    {uid && (
+                        <section>
+                            <details className="group">
+                                <summary className="cursor-pointer list-none">
+                                    <Card className="border-blue-200/60 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/40 to-slate-50/20 dark:from-blue-950/20 dark:to-slate-950/10 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-200">
+                                        <CardContent className="py-4 px-5">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                                                        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-foreground">Session Information</p>
+                                                        <p className="text-xs text-muted-foreground">Tap to view session ID</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-muted-foreground group-open:rotate-180 transition-transform">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </summary>
+                                <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <Card className="border-blue-200/60 dark:border-blue-900/40">
+                                        <CardContent className="pt-5 pb-5">
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <p className="text-xs font-medium text-muted-foreground mb-2">Your Session ID</p>
+                                                    <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+                                                        <p className="text-xs font-mono text-foreground/80 break-all leading-relaxed">
+                                                            {uid}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                                    This unique identifier links your issues to your current session.
+                                                    Keep this session active to maintain access.
+                                                </p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </details>
+                        </section>
+                    )}
+
+                    {/* ===== MAIN CONTENT SECTION ===== */}
+                    <section className="space-y-4">
+                        {totalIssues === 0 ? (
+                            /* ===== EMPTY STATE - Welcoming & Encouraging ===== */
+                            <Card className="border-dashed border-2 border-muted-foreground/20 bg-gradient-to-b from-muted/30 to-background">
+                                <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-6">
+                                    <div className="relative mb-6">
+                                        {/* Decorative background circle */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full blur-2xl scale-150" />
+                                        {/* Icon container */}
+                                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 shadow-sm">
+                                            <Sparkles className="w-12 h-12 sm:w-14 sm:h-14 text-primary/70" />
+                                        </div>
+                                    </div>
+
+                                    <div className="text-center space-y-3 max-w-md">
+                                        <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
+                                            You&apos;re All Set
+                                        </h3>
+                                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                                            No issues reported yet. When you need assistance,
+                                            we&apos;ll be here to help you right away.
+                                        </p>
+                                    </div>
+
+                                    {/* Feature badges */}
+                                    <div className="mt-8 flex flex-wrap gap-2 justify-center max-w-lg">
+                                        <Badge variant="secondary" className="px-4 py-2 text-xs font-medium bg-muted/80 hover:bg-muted border-border/40">
+                                            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-green-600 dark:text-green-500" />
+                                            Fast Response
+                                        </Badge>
+                                        <Badge variant="secondary" className="px-4 py-2 text-xs font-medium bg-muted/80 hover:bg-muted border-border/40">
+                                            <Clock className="w-3.5 h-3.5 mr-1.5 text-blue-600 dark:text-blue-500" />
+                                            24/7 Support
+                                        </Badge>
+                                        <Badge variant="secondary" className="px-4 py-2 text-xs font-medium bg-muted/80 hover:bg-muted border-border/40">
+                                            <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-purple-600 dark:text-purple-500" />
+                                            Live Tracking
+                                        </Badge>
+                                    </div>
+
+                                    <p className="mt-8 text-xs text-muted-foreground/70">
+                                        Click &quot;Add Issue&quot; above to submit your first request
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            /* ===== ISSUES LIST - Clean & Organized ===== */
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 w-12 bg-gradient-to-r from-primary to-primary/40 rounded-full" />
+                                    <h2 className="text-lg font-semibold text-foreground">Your Requests</h2>
+                                </div>
+
+                                <Card className="border-border/60 shadow-sm">
+                                    <CardHeader className="border-b bg-muted/30 pb-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-primary/10">
+                                                    <TrendingUp className="h-5 w-5 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Issue History
+                                                    </CardTitle>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                                        Tracking all your submissions
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Badge variant="outline" className="w-fit px-3 py-1 text-xs font-semibold border-primary/30 text-primary">
+                                                {totalIssues} {totalIssues === 1 ? 'Issue' : 'Issues'}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pt-6 pb-6">
+                                        <IssuesList issues={userIssues} />
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* ===== FOOTER SECTION ===== */}
+                    <section className="pt-4">
+                        <GuestDashboardFooter />
+                    </section>
+                </div>
             </div>
-        </div>
+        </Suspense>
     );
 }
 

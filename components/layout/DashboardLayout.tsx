@@ -25,7 +25,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
     const { currentUser, loading, handleSignOut } = useCurrentUser();
     const { fetchUserInfo, currentUser: user } = useUserStore();
     const isAuthenticated = !loading && !!uid;
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const router = useRouter();
 
     // Track verification status from server and Firestore

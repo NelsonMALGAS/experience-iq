@@ -1,6 +1,5 @@
-const CACHE_NAME = "experience-iq-pages-v3";
+const CACHE_NAME = "experience-iq-pages-v3.1.1";
 
-// Pages to cache - updated to match NAV_LINKS structure
 const pagesToCache = [
   "/",
   "/guest",
@@ -14,7 +13,7 @@ const pagesToCache = [
   "/admin/create-roster",
 ];
 
-// Install: cache pages and essential assets
+// Install: cache pages and essential assets including offline page
 self.addEventListener("install", (event) => {
   console.log("[ServiceWorker] Install");
   event.waitUntil(
@@ -79,8 +78,13 @@ self.addEventListener("fetch", (event) => {
             const cache = await caches.open(CACHE_NAME);
             cache.put(event.request, networkResponse.clone());
             return networkResponse;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (error) {
-            console.error(`Error: ${error}`);
+            console.log(
+              "[ServiceWorker] Network failed, checking cache:",
+              url.pathname,
+            );
+
             // Network failed, try cache
             const cachedResponse = await caches.match(event.request);
             if (cachedResponse) {
@@ -90,11 +94,55 @@ self.addEventListener("fetch", (event) => {
               );
               return cachedResponse;
             }
-            // No cache, return offline page or error
-            return new Response("Offline - Page not cached", {
-              status: 503,
-              statusText: "Service Unavailable",
-            });
+
+            // No cache available, return offline page
+            console.log("[ServiceWorker] No cache, serving offline page");
+            const offlineResponse = await caches.match("/offline.html");
+            if (offlineResponse) {
+              return offlineResponse;
+            }
+
+            // If offline page isn't cached (shouldn't happen), return basic error
+            return new Response(
+              `<!DOCTYPE html>
+              <html>
+                <head>
+                  <title>Offline</title>
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <style>
+                    body {
+                      font-family: system-ui, sans-serif;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 100vh;
+                      margin: 0;
+                      background: #f5f5f5;
+                      text-align: center;
+                      padding: 20px;
+                    }
+                    h1 { color: #333; }
+                    p { color: #666; }
+                  </style>
+                </head>
+                <body>
+                  <div>
+                    <h1>You're Offline</h1>
+                    <p>Please check your internet connection and try again.</p>
+                    <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+                      Retry
+                    </button>
+                  </div>
+                </body>
+              </html>`,
+              {
+                status: 503,
+                statusText: "Service Unavailable",
+                headers: new Headers({
+                  "Content-Type": "text/html",
+                }),
+              },
+            );
           }
         }
 
@@ -116,11 +164,21 @@ self.addEventListener("fetch", (event) => {
         return networkResponse;
       } catch (error) {
         console.error("[ServiceWorker] Fetch failed:", error);
+
         // Return cached version if available
         const cachedResponse = await caches.match(event.request);
         if (cachedResponse) {
           return cachedResponse;
         }
+
+        // For HTML requests, return offline page
+        if (event.request.headers.get("accept")?.includes("text/html")) {
+          const offlineResponse = await caches.match(OFFLINE_URL);
+          if (offlineResponse) {
+            return offlineResponse;
+          }
+        }
+
         // Last resort error response
         return new Response("Network error", {
           status: 408,

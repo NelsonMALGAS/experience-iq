@@ -17,6 +17,7 @@ const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
   preload: true,
+  fallback: ['system-ui', 'arial'],
 });
 
 const playfairDisplay = Playfair_Display({
@@ -24,6 +25,7 @@ const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   preload: true,
+  fallback: ['Georgia', 'serif'],
 });
 
 export const metadata: Metadata = {
@@ -136,7 +138,7 @@ export default function RootLayout({
         >
 
           <Header />
-          <main className="container mx-auto p-0 md:p-8 flex-1 w-full h-screen overflow-x-hidden">
+          <main className="container mx-auto px-4 md:px-8 min-h-[calc(100vh-4rem)]">
             <NextSSRPlugin
               routerConfig={extractRouterConfig(ourFileRouter)}
             />
