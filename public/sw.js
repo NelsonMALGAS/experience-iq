@@ -1,5 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v3.1";
-const OFFLINE_URL = "/offline.html";
+const CACHE_NAME = "experience-iq-pages-v3.1.1";
 
 const pagesToCache = [
   "/",
@@ -12,7 +11,6 @@ const pagesToCache = [
   "/admin/properties",
   "/admin/users",
   "/admin/create-roster",
-  OFFLINE_URL,
 ];
 
 // Install: cache pages and essential assets including offline page
@@ -99,7 +97,7 @@ self.addEventListener("fetch", (event) => {
 
             // No cache available, return offline page
             console.log("[ServiceWorker] No cache, serving offline page");
-            const offlineResponse = await caches.match(OFFLINE_URL);
+            const offlineResponse = await caches.match("/offline.html");
             if (offlineResponse) {
               return offlineResponse;
             }
