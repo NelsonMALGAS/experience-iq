@@ -10,6 +10,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin"
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
 import ClientProviders from "@/components/ClientProviders";
+import { Analytics } from "@vercel/analytics/next"
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -144,10 +145,10 @@ export default function RootLayout({
             />
             <ClientProviders>
               {children}
+              <Analytics />
             </ClientProviders>
           </main>
         </ThemeProvider>
-
       </body>
     </html>
   );
