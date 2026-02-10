@@ -76,10 +76,7 @@ const StaffIssuesPage = async () => {
     }
 
 
-
-    const allIssues = await fetchAllIssues()
-
-    const staffUsers = await getStaffUsers();
+    const [allIssues, staffUsers] = await Promise.all([fetchAllIssues(), getStaffUsers()])
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
         id: user.id,
