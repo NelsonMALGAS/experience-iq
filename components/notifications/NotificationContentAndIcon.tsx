@@ -3,7 +3,6 @@ import { formatDistanceToNow } from "date-fns"
 import { useRouter } from 'next/navigation';
 import { Trash2, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { Notification, useNotifications } from '@/contexts/NotificationContext';
-import { addLocalReadIssueId } from '@/lib/rosterHelpers';
 
 export function NotificationIcon({ type }: { type: Notification['type'] }) {
     const icons = {
@@ -15,15 +14,22 @@ export function NotificationIcon({ type }: { type: Notification['type'] }) {
     return icons[type];
 }
 
-export function NotificationItem({ notification, onClose }: { notification: Notification; onClose: () => void }) {
+export function NotificationItem({
+    notification,
+    onClose,
+    uid
+}: {
+    notification: Notification;
+    onClose: () => void;
+    uid: string;
+}) {
     const { clearNotification, markAsRead } = useNotifications();
     const router = useRouter();
 
     const handleClick = () => {
-        // Add to localStorage (per-user acknowledgement)
+        // Mark as read in Firebase (only if not already read)
         if (!notification.read) {
-            markAsRead(notification.id)
-            addLocalReadIssueId(notification.id);
+            markAsRead(notification.id, uid);
         }
 
         // Navigate if link exists

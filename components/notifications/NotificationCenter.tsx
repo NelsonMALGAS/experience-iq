@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import { useNotifications, Notification } from '@/contexts/NotificationContext';
@@ -16,17 +15,16 @@ import {
     onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/db/client";
-import { Issue, Role } from '@/types';
+import { AppUser, Issue, Role } from '@/types';
 import { toDate } from '@/utils/issueDetailsUtils';
-import { addAllLocalReadIssueIds, getLocalReadIssueIds } from '@/lib/rosterHelpers';
 import { NotificationItem } from './NotificationContentAndIcon';
 
 type NotificationCenterType = {
     role: Role
+    uid: AppUser["uid"]
 }
 
-
-export function NotificationCenter({ role }: NotificationCenterType) {
+export function NotificationCenter({ role, uid }: NotificationCenterType) {
     const {
         notifications,
         unreadCount,
@@ -35,14 +33,8 @@ export function NotificationCenter({ role }: NotificationCenterType) {
         clearAll,
     } = useNotifications();
     const [open, setOpen] = useState(false);
-    const [localReadIds, setLocalReadIds] = useState<Set<string>>(new Set());
 
     const handleClose = () => setOpen(false);
-
-    // Load localStorage on mount
-    useEffect(() => {
-        setLocalReadIds(getLocalReadIssueIds());
-    }, []);
 
     // Subscribe to Firestore issues
     useEffect(() => {
@@ -60,7 +52,9 @@ export function NotificationCenter({ role }: NotificationCenterType) {
                     issues.forEach((issue) => {
                         const status = issue.status ?? "open";
                         const assigned = !!issue.assignedTo;
-                        const isRead = issue.read === true && localReadIds.has(issue.id);
+
+                        // ✅ Firebase-based read logic: check if uid is in readBy array
+                        const isRead = issue.readBy?.includes(uid) === true;
 
                         let title = "New Issue Created";
                         let type: Notification["type"] = "info";
@@ -79,7 +73,7 @@ export function NotificationCenter({ role }: NotificationCenterType) {
                             title,
                             message: issue.title || issue.description || "No details available",
                             type,
-                            read: isRead, // Computed using AND logic
+                            read: isRead,
                             createdAt: toDate(issue.createdAt) ?? new Date(),
                             link: role === "staff"
                                 ? `/staff/issues/${issue.id}`
@@ -96,15 +90,10 @@ export function NotificationCenter({ role }: NotificationCenterType) {
         );
 
         return unsubscribe;
-    }, [setNotifications, role, localReadIds]);
-
+    }, [setNotifications, role, uid]);
 
     const handleMarkAllAsRead = () => {
-        markAllAsRead()
-        const allIds = notifications.map(n => n.id);
-        addAllLocalReadIssueIds(allIds);
-        // Force re-render by updating localReadIds
-        setLocalReadIds(getLocalReadIssueIds());
+        markAllAsRead(uid);
     };
 
     return (
@@ -150,6 +139,7 @@ export function NotificationCenter({ role }: NotificationCenterType) {
                                     key={notification.id}
                                     notification={notification}
                                     onClose={handleClose}
+                                    uid={uid}
                                 />
                             ))}
                         </div>

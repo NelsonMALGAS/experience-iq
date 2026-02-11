@@ -11,7 +11,6 @@ import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "@/db/client";
 import { Issue } from "@/types";
 import { toast } from "sonner";
-import { addLocalReadIssueId } from "@/lib/rosterHelpers";
 
 export interface Notification {
     colId: string
@@ -28,8 +27,8 @@ interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
     setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-    markAsRead: (id: string) => void;
-    markAllAsRead: () => void;
+    markAsRead: (id: string, uid: string) => void;
+    markAllAsRead: (uid: string) => void;
     clearNotification: (id: string) => void;
     clearAll: () => void;
 }
@@ -43,15 +42,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     const unreadCount = notifications.filter((n) => !n.read).length;
 
-
     const markAsRead = useCallback(
-        async (id: string) => {
+        async (id: string, uid: string) => {
             const notif = notifications.find((n) => n.id === id);
             if (!notif || !notif.colId) return;
 
-            addLocalReadIssueId(id);
+            // Check if already read by this user
+            if (notif.read) return;
 
-            // Optimistic UI
+            // Optimistic UI update
             setNotifications((prev) =>
                 prev.map((n) => (n.id === id ? { ...n, read: true } : n))
             );
@@ -60,19 +59,44 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 const parentRef = doc(db, "issues", notif.colId);
                 const parentSnap = await getDoc(parentRef);
 
-                if (!parentSnap.exists()) return;
+                if (!parentSnap.exists()) {
+                    throw new Error("Document not found");
+                }
+
                 const parentData = parentSnap.data();
                 const issues: Issue[] = parentData.issues ?? [];
 
-                const updatedIssues = issues.map((issue) =>
-                    issue.id === id ? { ...issue, read: true } : issue
+                // Update only the specific issue
+                const updatedIssues = issues.map((issue) => {
+                    if (issue.id === id) {
+                        // Check if uid already in readBy
+                        const readBy = issue.readBy || [];
+                        if (readBy.includes(uid)) {
+                            return issue; // No change needed
+                        }
+                        return {
+                            ...issue,
+                            readBy: [...readBy, uid],
+                        };
+                    }
+                    return issue;
+                });
+
+                // Only write if something changed
+                const hasChanges = updatedIssues.some((issue, idx) =>
+                    issue !== issues[idx]
                 );
 
-                await updateDoc(parentRef, { issues: updatedIssues });
-                toast.success("🎉 Success", { description: `Issue ID:${notif.id} successfully marked as read` })
+                if (hasChanges) {
+                    await updateDoc(parentRef, { issues: updatedIssues });
+                }
+
+                toast.success("🎉 Success", { description: "Marked as read" });
             } catch (e) {
-                toast.error("🚨 Error", { description: `Failed to mark issues ID:${notif.id} as read, ${e}` });
-                // rollback UI
+                console.error("Failed to mark as read:", e);
+                toast.error("Failed to mark as read");
+
+                // Rollback UI
                 setNotifications((prev) =>
                     prev.map((n) => (n.id === id ? { ...n, read: false } : n))
                 );
@@ -81,51 +105,74 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         [notifications]
     );
 
+    const markAllAsRead = useCallback(
+        async (uid: string) => {
+            const unread = notifications.filter((n) => !n.read);
+            if (unread.length === 0) return;
 
-    const markAllAsRead = useCallback(async () => {
-        const unread = notifications.filter((n) => !n.read);
-        if (unread.length === 0) return;
+            // Optimistic UI
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
-        // Optimistic UI
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+            try {
+                // Group by parent document
+                const parentMap = new Map<string, Notification[]>();
+                unread.forEach((n) => {
+                    if (!n.colId) return;
+                    if (!parentMap.has(n.colId)) parentMap.set(n.colId, []);
+                    parentMap.get(n.colId)!.push(n);
+                });
 
-        try {
-            // Group by parent document
-            const parentMap = new Map<string, Notification[]>();
-            unread.forEach((n) => {
-                if (!n.colId) return;
-                if (!parentMap.has(n.colId)) parentMap.set(n.colId, []);
-                parentMap.get(n.colId)!.push(n);
-            });
+                // Process each document
+                for (const [colId, notificationsToUpdate] of parentMap) {
+                    const parentRef = doc(db, "issues", colId);
+                    const parentSnap = await getDoc(parentRef);
 
-            for (const [colId, notificationsToUpdate] of parentMap) {
-                const parentRef = doc(db, "issues", colId);
-                const parentSnap = await getDoc(parentRef);
-                if (!parentSnap.exists()) continue;
+                    if (!parentSnap.exists()) continue;
 
-                const parentData = parentSnap.data();
-                const issues: Issue[] = parentData.issues ?? [];
+                    const parentData = parentSnap.data();
+                    const issues: Issue[] = parentData.issues ?? [];
 
-                const updatedIssues = issues.map((issue) =>
-                    notificationsToUpdate.find((n) => n.id === issue.id)
-                        ? { ...issue, read: true }
-                        : issue
+                    // Update readBy for relevant issues
+                    const updatedIssues = issues.map((issue) => {
+                        const shouldUpdate = notificationsToUpdate.find((n) => n.id === issue.id);
+                        if (shouldUpdate) {
+                            const readBy = issue.readBy || [];
+                            if (!readBy.includes(uid)) {
+                                return {
+                                    ...issue,
+                                    readBy: [...readBy, uid],
+                                };
+                            }
+                        }
+                        return issue;
+                    });
+
+                    // Only write if something changed
+                    const hasChanges = updatedIssues.some((issue, idx) =>
+                        issue !== issues[idx]
+                    );
+
+                    if (hasChanges) {
+                        await updateDoc(parentRef, { issues: updatedIssues });
+                    }
+                }
+
+                toast.success("All marked as read");
+            } catch (e) {
+                console.error("Failed to mark all as read:", e);
+                toast.error("Failed to mark all as read");
+
+                // Rollback
+                setNotifications((prev) =>
+                    prev.map((n) => {
+                        const wasUnread = unread.find((u) => u.id === n.id);
+                        return wasUnread ? { ...n, read: false } : n;
+                    })
                 );
-
-                await updateDoc(parentRef, { issues: updatedIssues });
-                toast.success("🎉 Success", { description: "Issues successfully marked as read" })
             }
-        } catch (e) {
-            toast.error("🚨 Error", { description: `Failed to mark all as read, ${e}` });
-            // rollback
-            setNotifications((prev) =>
-                prev.map((n) =>
-                    unread.find((u) => u.id === n.id) ? { ...n, read: false } : n
-                )
-            );
-        }
-    }, [notifications]);
-
+        },
+        [notifications]
+    );
 
     const clearNotification = useCallback((id: string) => {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -133,7 +180,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     const clearAll = useCallback(() => {
         setNotifications([]);
-
     }, []);
 
     return (
