@@ -117,6 +117,8 @@ export interface Issue {
   resolvedAt?: Date | null;
   isAnonymous: boolean;
   images?: string[];
+  read?: boolean | null;
+  readBy?: string[];
 }
 
 export interface NavItem {

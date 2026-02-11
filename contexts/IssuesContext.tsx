@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, Dispatch, SetStateAction } from 'react';
 import { Issue, IssueStatus, IssuePriority } from '@/types';
-import { mockIssues } from '@/constants/mockData';
 import { toast } from 'sonner';
 
 
@@ -19,7 +18,7 @@ interface IssueContextType {
 const IssueContext = createContext<IssueContextType | undefined>(undefined);
 
 export function IssueProvider({ children }: { children: ReactNode }) {
-    const [issues, setIssues] = useState<Issue[]>(mockIssues);
+    const [issues, setIssues] = useState<Issue[]>([]);
 
 
     const updateIssueStatus = useCallback((issueId: string, status: IssueStatus) => {

@@ -18,7 +18,7 @@ type StaffIssuesProps = {
 }
 
 export default function StaffIssues({ role, uid, issues, staff, isVerified }: StaffIssuesProps) {
-    const [selectedIssue] = useState<Issue | null>(null);
+    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
     const { filters, setFilters, filteredIssues } = useIssueFilters(issues);
@@ -26,6 +26,12 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
     const openIssues = filteredIssues.filter(i => i.status === 'open');
     const inProgressIssues = filteredIssues.filter(i => i.status === 'in_progress');
     const filteredAssigned = filteredIssues.filter(i => i.assignedTo === uid);
+
+    // Handler to open dialog with selected issue
+    const handleIssueClick = (issue: Issue) => {
+        setSelectedIssue(issue);
+        setDialogOpen(true);
+    };
 
     return (
         <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
@@ -67,6 +73,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
                                         staffMembers={staff}
                                         currentUserId={uid}
                                         userRole={role}
+                                        onQuickView={handleIssueClick}
                                     />
                                 </div>
                             ))}
@@ -91,6 +98,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
                                         staffMembers={staff}
                                         currentUserId={uid}
                                         userRole={role}
+                                        onQuickView={handleIssueClick}
                                     />
                                 </div>
                             ))}
@@ -115,6 +123,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
                                         staffMembers={staff}
                                         currentUserId={uid}
                                         userRole={role}
+                                        onQuickView={handleIssueClick}
                                     />
                                 </div>
                             ))}
@@ -133,6 +142,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 role={role}
+                staffMembers={staff}
             />
         </DashboardLayout>
     );

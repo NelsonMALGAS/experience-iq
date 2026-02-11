@@ -1,12 +1,23 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    ReactNode,
+    useCallback,
+} from "react";
+import { updateDoc, doc, getDoc } from "firebase/firestore";
+import { db } from "@/db/client";
+import { Issue } from "@/types";
+import { toast } from "sonner";
 
 export interface Notification {
+    colId: string
     id: string;
     title: string;
     message: string;
-    type: 'info' | 'success' | 'warning' | 'error';
+    type: "info" | "success" | "warning" | "error";
     read: boolean;
     createdAt: Date;
     link?: string;
@@ -15,70 +26,156 @@ export interface Notification {
 interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
-    addNotification: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => void;
-    markAsRead: (id: string) => void;
-    markAllAsRead: () => void;
+    setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+    markAsRead: (id: string, uid: string) => void;
+    markAllAsRead: (uid: string) => void;
     clearNotification: (id: string) => void;
     clearAll: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
-const initialNotifications: Notification[] = [
-    {
-        id: 'notif-1',
-        title: 'New Issue Assigned',
-        message: 'You have been assigned to "Air conditioning not working"',
-        type: 'info',
-        read: false,
-        createdAt: new Date(Date.now() - 30 * 60 * 1000),
-        link: '/staff/issues',
-    },
-    {
-        id: 'notif-2',
-        title: 'Issue Resolved',
-        message: 'Your reported issue "Room not cleaned" has been resolved',
-        type: 'success',
-        read: false,
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    },
-    {
-        id: 'notif-3',
-        title: 'SLA Warning',
-        message: 'Issue "Pool area lighting" is approaching SLA deadline',
-        type: 'warning',
-        read: true,
-        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    },
-];
+const NotificationContext = createContext<NotificationContextType | undefined>(
+    undefined
+);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
-    const addNotification = useCallback((notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => {
-        const newNotification: Notification = {
-            ...notification,
-            id: `notif-${Date.now()}`,
-            read: false,
-            createdAt: new Date(),
-        };
-        setNotifications(prev => [newNotification, ...prev]);
-    }, []);
+    const markAsRead = useCallback(
+        async (id: string, uid: string) => {
+            const notif = notifications.find((n) => n.id === id);
+            if (!notif || !notif.colId) return;
 
-    const markAsRead = useCallback((id: string) => {
-        setNotifications(prev => prev.map(n =>
-            n.id === id ? { ...n, read: true } : n
-        ));
-    }, []);
+            // Check if already read by this user
+            if (notif.read) return;
 
-    const markAllAsRead = useCallback(() => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    }, []);
+            // Optimistic UI update
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+            );
+
+            try {
+                const parentRef = doc(db, "issues", notif.colId);
+                const parentSnap = await getDoc(parentRef);
+
+                if (!parentSnap.exists()) {
+                    throw new Error("Document not found");
+                }
+
+                const parentData = parentSnap.data();
+                const issues: Issue[] = parentData.issues ?? [];
+
+                // Update only the specific issue
+                const updatedIssues = issues.map((issue) => {
+                    if (issue.id === id) {
+                        // Check if uid already in readBy
+                        const readBy = issue.readBy || [];
+                        if (readBy.includes(uid)) {
+                            return issue; // No change needed
+                        }
+                        return {
+                            ...issue,
+                            readBy: [...readBy, uid],
+                        };
+                    }
+                    return issue;
+                });
+
+                // Only write if something changed
+                const hasChanges = updatedIssues.some((issue, idx) =>
+                    issue !== issues[idx]
+                );
+
+                if (hasChanges) {
+                    await updateDoc(parentRef, { issues: updatedIssues });
+                }
+
+                toast.success("🎉 Success", { description: "Marked as read" });
+            } catch (e) {
+                console.error("Failed to mark as read:", e);
+                toast.error("Failed to mark as read");
+
+                // Rollback UI
+                setNotifications((prev) =>
+                    prev.map((n) => (n.id === id ? { ...n, read: false } : n))
+                );
+            }
+        },
+        [notifications]
+    );
+
+    const markAllAsRead = useCallback(
+        async (uid: string) => {
+            const unread = notifications.filter((n) => !n.read);
+            if (unread.length === 0) return;
+
+            // Optimistic UI
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
+            try {
+                // Group by parent document
+                const parentMap = new Map<string, Notification[]>();
+                unread.forEach((n) => {
+                    if (!n.colId) return;
+                    if (!parentMap.has(n.colId)) parentMap.set(n.colId, []);
+                    parentMap.get(n.colId)!.push(n);
+                });
+
+                // Process each document
+                for (const [colId, notificationsToUpdate] of parentMap) {
+                    const parentRef = doc(db, "issues", colId);
+                    const parentSnap = await getDoc(parentRef);
+
+                    if (!parentSnap.exists()) continue;
+
+                    const parentData = parentSnap.data();
+                    const issues: Issue[] = parentData.issues ?? [];
+
+                    // Update readBy for relevant issues
+                    const updatedIssues = issues.map((issue) => {
+                        const shouldUpdate = notificationsToUpdate.find((n) => n.id === issue.id);
+                        if (shouldUpdate) {
+                            const readBy = issue.readBy || [];
+                            if (!readBy.includes(uid)) {
+                                return {
+                                    ...issue,
+                                    readBy: [...readBy, uid],
+                                };
+                            }
+                        }
+                        return issue;
+                    });
+
+                    // Only write if something changed
+                    const hasChanges = updatedIssues.some((issue, idx) =>
+                        issue !== issues[idx]
+                    );
+
+                    if (hasChanges) {
+                        await updateDoc(parentRef, { issues: updatedIssues });
+                    }
+                }
+
+                toast.success("All marked as read");
+            } catch (e) {
+                console.error("Failed to mark all as read:", e);
+                toast.error("Failed to mark all as read");
+
+                // Rollback
+                setNotifications((prev) =>
+                    prev.map((n) => {
+                        const wasUnread = unread.find((u) => u.id === n.id);
+                        return wasUnread ? { ...n, read: false } : n;
+                    })
+                );
+            }
+        },
+        [notifications]
+    );
 
     const clearNotification = useCallback((id: string) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, []);
 
     const clearAll = useCallback(() => {
@@ -86,24 +183,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <NotificationContext.Provider value={{
-            notifications,
-            unreadCount,
-            addNotification,
-            markAsRead,
-            markAllAsRead,
-            clearNotification,
-            clearAll,
-        }}>
+        <NotificationContext.Provider
+            value={{
+                notifications,
+                unreadCount,
+                setNotifications,
+                markAsRead,
+                markAllAsRead,
+                clearNotification,
+                clearAll,
+            }}
+        >
             {children}
         </NotificationContext.Provider>
     );
 }
 
 export function useNotifications() {
-    const context = useContext(NotificationContext);
-    if (context === undefined) {
-        throw new Error('useNotifications must be used within a NotificationProvider');
-    }
-    return context;
+    const ctx = useContext(NotificationContext);
+    if (!ctx) throw new Error("useNotifications must be used within NotificationProvider");
+    return ctx;
 }

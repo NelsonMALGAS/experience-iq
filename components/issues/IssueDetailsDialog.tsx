@@ -1,4 +1,4 @@
-import { Issue, IssueStatus, IssuePriority, Role } from '@/types';
+import { Issue, IssueStatus, IssuePriority, Role, StaffMember } from '@/types';
 import {
     Dialog,
     DialogContent,
@@ -19,23 +19,26 @@ import { MapPin, User, Building2, Calendar, Clock, UserCircle } from 'lucide-rea
 import { format } from 'date-fns';
 import { ISSUE_CATEGORIES } from '@/constants';
 import { useIssues } from '@/contexts/IssuesContext';
-import { mockUsers } from '@/constants/mockData';
+import { toDate } from '@/utils/issueDetailsUtils';
 
 interface IssueDetailsDialogProps {
     issue: Issue | null;
     open: boolean;
     role: Role
     onOpenChange: (open: boolean) => void;
+    staffMembers: StaffMember[]
 }
 
-export function IssueDetailsDialog({ issue, open, role, onOpenChange }: IssueDetailsDialogProps) {
+export function IssueDetailsDialog({ issue, open, role, onOpenChange, staffMembers }: IssueDetailsDialogProps) {
     const { updateIssueStatus, updateIssuePriority, assignIssue } = useIssues();
     const category = ISSUE_CATEGORIES.find(c => c.value === issue?.category);
-    const staffMembers = mockUsers.filter(u => u.role === 'staff');
+
 
     if (!issue) return null;
 
-    const canManage = role === 'staff' || role === 'admin';
+    const date = toDate(issue.createdAt)
+
+    const canManage = role === 'admin';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,7 +109,7 @@ export function IssueDetailsDialog({ issue, open, role, onOpenChange }: IssueDet
                             <Calendar className="h-5 w-5 text-muted-foreground" />
                             <div>
                                 <p className="text-xs text-muted-foreground">Created</p>
-                                <p className="font-medium">{format(issue.createdAt, 'MMM d, yyyy h:mm a')}</p>
+                                <p className="font-medium">{format(date!, 'MMM d, yyyy h:mm a')}</p>
                             </div>
                         </div>
 
@@ -180,9 +183,9 @@ export function IssueDetailsDialog({ issue, open, role, onOpenChange }: IssueDet
                                     <Select
                                         value={issue.assignedTo || ''}
                                         onValueChange={(value) => {
-                                            const staff = staffMembers.find(s => s.uid === value);
+                                            const staff = staffMembers.find(s => s.id === value);
                                             if (staff && staff.email) {
-                                                assignIssue(issue.id, staff.uid, staff.email);
+                                                assignIssue(issue.id, staff.id, staff.email);
                                             }
                                         }}
                                     >
@@ -191,8 +194,8 @@ export function IssueDetailsDialog({ issue, open, role, onOpenChange }: IssueDet
                                         </SelectTrigger>
                                         <SelectContent>
                                             {staffMembers.map(staff => (
-                                                <SelectItem key={staff.uid} value={staff.uid}>
-                                                    {staff.displayName || staff.email}
+                                                <SelectItem key={staff.id} value={staff.id}>
+                                                    {staff.name || staff.email}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

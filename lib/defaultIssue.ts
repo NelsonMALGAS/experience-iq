@@ -10,7 +10,7 @@ export const createDefaultIssue = (guestSession: {
   const now = new Date();
 
   return {
-    id: crypto.randomUUID(), // or Firestore auto-ID later
+    id: crypto.randomUUID(),
     title: "",
     description: "",
     category: "room",
@@ -32,5 +32,6 @@ export const createDefaultIssue = (guestSession: {
     resolvedAt: undefined,
 
     isAnonymous: true,
+    read: false,
   };
 };

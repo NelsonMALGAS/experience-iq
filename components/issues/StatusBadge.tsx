@@ -1,8 +1,8 @@
 "use client"
 
-import { getTimeAgo } from '@/lib/transformTimeStamp';
 import { cn } from '@/lib/utils';
 import { IssueStatus, IssuePriority } from '@/types';
+import { formatRelativeTime } from '@/utils/issueDetailsUtils';
 import { Clock, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface StatusBadgeProps {
@@ -97,7 +97,7 @@ export function TimeAgoBadge({ date, className }: TimeAgoBadgeProps) {
     return (
         <span className={cn("inline-flex items-center gap-1 text-xs text-muted-foreground", className)}>
             <Clock className="h-3 w-3" />
-            {getTimeAgo(date)}
+            {formatRelativeTime(date)}
         </span>
     );
 }

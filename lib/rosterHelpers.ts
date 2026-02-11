@@ -1,3 +1,5 @@
+export const READ_ISSUE_IDS_KEY = "read_issue_ids";
+
 // Format date helper
 export const formatDate = (dateString: string) => {
   try {
