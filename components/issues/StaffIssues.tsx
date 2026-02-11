@@ -133,6 +133,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 role={role}
+                staffMembers={staff}
             />
         </DashboardLayout>
     );
