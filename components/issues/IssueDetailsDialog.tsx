@@ -19,6 +19,7 @@ import { MapPin, User, Building2, Calendar, Clock, UserCircle } from 'lucide-rea
 import { format } from 'date-fns';
 import { ISSUE_CATEGORIES } from '@/constants';
 import { useIssues } from '@/contexts/IssuesContext';
+import { toDate } from '@/utils/issueDetailsUtils';
 
 interface IssueDetailsDialogProps {
     issue: Issue | null;
@@ -35,7 +36,9 @@ export function IssueDetailsDialog({ issue, open, role, onOpenChange, staffMembe
 
     if (!issue) return null;
 
-    const canManage = role === 'staff' || role === 'admin';
+    const date = toDate(issue.createdAt)
+
+    const canManage = role === 'admin';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,7 +109,7 @@ export function IssueDetailsDialog({ issue, open, role, onOpenChange, staffMembe
                             <Calendar className="h-5 w-5 text-muted-foreground" />
                             <div>
                                 <p className="text-xs text-muted-foreground">Created</p>
-                                <p className="font-medium">{format(issue.createdAt, 'MMM d, yyyy h:mm a')}</p>
+                                <p className="font-medium">{format(date!, 'MMM d, yyyy h:mm a')}</p>
                             </div>
                         </div>
 

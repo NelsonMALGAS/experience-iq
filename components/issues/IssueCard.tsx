@@ -4,7 +4,7 @@ import { Issue, Role, StaffMember } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Lock, Image as ImageIcon, ArrowRight } from "lucide-react";
+import { User, Lock, Image as ImageIcon, ArrowRight, Eye } from "lucide-react";
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -20,10 +20,11 @@ interface IssueCardProps {
     staffMembers: StaffMember[];
     currentUserId?: string;
     userRole?: Role;
+    onQuickView?: (issue: Issue) => void;
 }
 
 
-export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staff' }: IssueCardProps) {
+export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staff', onQuickView }: IssueCardProps) {
     const [isPending, startTransition] = useTransition();
     const [optimisticStatus, setOptimisticStatus] = useState(issue.status);
     const [optimisticAssignee, setOptimisticAssignee] = useState(issue.assignedTo);
@@ -319,16 +320,33 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                         </div>
                     </div>
 
-                    {/* View Details Button - Full Width on Mobile */}
-                    <Link href={`/${userRole}/issues/${issue.id}`} className="w-full">
-                        <Button
-                            variant="default"
-                            className="w-full h-9 text-xs sm:text-sm group"
-                        >
-                            <span>View Details</span>
-                            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </Link>
+                    <div
+                        className={`w-full grid gap-2 ${onQuickView ? "grid-cols-2" : "grid-cols-1"
+                            }`}
+                    >
+                        {/* View Details */}
+                        <Link href={`/${userRole}/issues/${issue.id}`} className="w-full">
+                            <Button
+                                variant="default"
+                                className="w-full h-9 text-xs sm:text-sm group"
+                            >
+                                <span>View Details</span>
+                                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+
+                        {/* Quick View */}
+                        {onQuickView && (
+                            <Button
+                                variant="ghost"
+                                onClick={() => onQuickView(issue)}
+                                className="w-full h-9 text-xs sm:text-sm gap-2"
+                            >
+                                <Eye className="h-4 w-4" />
+                                Quick View
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </CardContent>
         </Card>
