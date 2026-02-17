@@ -140,6 +140,7 @@ export async function fetchIssueById(issueId: string) {
  * Fetch issues for a specific guest - optimized and flattened
  */
 export async function fetchGuestIssues(guestId: string) {
+  console.log("fetchGuestIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -183,6 +184,7 @@ export async function fetchGuestIssues(guestId: string) {
  * Fetch critical issues (high priority, unresolved) - optimized
  */
 export async function fetchCriticalIssues() {
+  console.log("fetchCriticalIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -225,6 +227,7 @@ export async function fetchCriticalIssues() {
  * Fetch unassigned issues - optimized
  */
 export async function fetchUnassignedIssues() {
+  console.log("fetchUnassignedIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -273,6 +276,7 @@ export async function fetchUnassignedIssues() {
  * Fetch staff users with only necessary fields
  */
 export async function getStaffUsers(): Promise<StaffMember[]> {
+  console.log("getStaffUsers  called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -310,6 +314,7 @@ export async function getStaffUsers(): Promise<StaffMember[]> {
  * Fetch verified staff users only
  */
 export async function getVerifiedStaffUsers(): Promise<StaffMember[]> {
+  console.log("getVerifiedStaffUsers");
   try {
     if (!db) throw new Error("Firestore not initialized");
 

@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
     const sessionCookie = request.cookies.get("_SESSION_")?.value;
 
     if (!sessionCookie) {
-      console.log("[check-registration] No session cookie found");
       return NextResponse.json(
         { authenticated: false },
         {
@@ -43,7 +42,6 @@ export async function GET(request: NextRequest) {
     );
 
     const uid = decoded.uid;
-    console.log("[check-registration] Checking user:", uid);
 
     // Collections to check for user registration
     const collections: string[] = ["users"];
@@ -53,7 +51,7 @@ export async function GET(request: NextRequest) {
       const docSnap = await docRef.get();
 
       if (!docSnap.exists) {
-        console.log(
+        console.error(
           `[check-registration] User ${uid} not found in ${collection}`,
         );
         continue;
@@ -67,19 +65,9 @@ export async function GET(request: NextRequest) {
           }
         | undefined;
 
-      console.log("[check-registration] User data:", {
-        uid,
-        role: data?.role,
-        isRegistered: data?.isRegistered,
-        email: data?.email,
-      });
-
       // ✅ CRITICAL: Check isRegistered field explicitly
       // If isRegistered is explicitly false, user is NOT registered
       if (data?.isRegistered === false) {
-        console.log(
-          "[check-registration] User authenticated but NOT registered (isRegistered: false)",
-        );
         return NextResponse.json(
           {
             authenticated: true,
@@ -98,12 +86,6 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // ✅ If isRegistered is true (or undefined for backwards compatibility)
-      console.log(
-        "[check-registration] User registered (isRegistered:",
-        data?.isRegistered,
-        ")",
-      );
       return NextResponse.json(
         {
           authenticated: true,
@@ -122,10 +104,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Authenticated but user document doesn't exist at all
-    console.log(
-      "[check-registration] User authenticated but no document found",
-    );
     return NextResponse.json(
       {
         authenticated: true,
