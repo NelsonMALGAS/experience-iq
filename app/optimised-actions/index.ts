@@ -21,12 +21,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { verifyAdmin } from "@/lib/verificationGuards";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 /**
  * Fetch issues for staff dashboard - optimized to return flat array
  * Only fetches necessary fields and flattens issues in a single operation
  */
-export async function fetchStaffIssues(staffId: string) {
+export const fetchStaffIssues = async (staffId: string) => {
+  console.log("fetchStaffIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -63,13 +65,13 @@ export async function fetchStaffIssues(staffId: string) {
     console.error("Error fetching staff issues:", error);
     return [];
   }
-}
+};
 
 /**
  * Fetch all issues for admin dashboard - returns flat array
  * Optimized to flatten issues during fetch
  */
-export async function fetchAllIssues() {
+export const fetchAllIssues = cache(async () => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -97,13 +99,14 @@ export async function fetchAllIssues() {
     console.error("Error fetching all issues:", error);
     return [];
   }
-}
+});
 
 /**
  * Fetch a single issue by issueId
  * Stops early once the issue is found
  */
 export async function fetchIssueById(issueId: string) {
+  console.log("fetchIssueById called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -677,14 +680,3 @@ export async function bulkUpdateIssueStatus(
 export async function refreshShifts() {
   redirect("/staff/roster");
 }
-
-/**
- *  const span = Sentry.startInactiveSpan({
-         name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
-         attributes: {
-             "db.system": "firestore",
-             "db.operation": "query",
-             "db.collection": "users",
-         },
-     })
- */
