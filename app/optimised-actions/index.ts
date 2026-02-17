@@ -27,8 +27,7 @@ import { cache } from "react";
  * Fetch issues for staff dashboard - optimized to return flat array
  * Only fetches necessary fields and flattens issues in a single operation
  */
-export const fetchStaffIssues = async (staffId: string) => {
-  console.log("fetchStaffIssues called");
+export const fetchStaffIssues = cache(async (staffId: string) => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -65,7 +64,7 @@ export const fetchStaffIssues = async (staffId: string) => {
     console.error("Error fetching staff issues:", error);
     return [];
   }
-};
+});
 
 /**
  * Fetch all issues for admin dashboard - returns flat array
@@ -105,8 +104,7 @@ export const fetchAllIssues = cache(async () => {
  * Fetch a single issue by issueId
  * Stops early once the issue is found
  */
-export async function fetchIssueById(issueId: string) {
-  console.log("fetchIssueById called");
+export const fetchIssueById = cache(async (issueId: string) => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -134,7 +132,7 @@ export async function fetchIssueById(issueId: string) {
     console.error("Error fetching issue by id:", error);
     return null;
   }
-}
+});
 
 /**
  * Fetch issues for a specific guest - optimized and flattened
@@ -276,7 +274,6 @@ export async function fetchUnassignedIssues() {
  * Fetch staff users with only necessary fields
  */
 export async function getStaffUsers(): Promise<StaffMember[]> {
-  console.log("getStaffUsers  called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
