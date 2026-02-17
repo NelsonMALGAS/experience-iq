@@ -120,7 +120,7 @@ const AdminDashboard = async () => {
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
             <DashboardLayout role={role} uid={uid} isVerified={true}>
-                <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
+                <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT: Header renders immediately with no await */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>

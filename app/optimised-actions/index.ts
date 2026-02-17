@@ -21,12 +21,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { verifyAdmin } from "@/lib/verificationGuards";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 /**
  * Fetch issues for staff dashboard - optimized to return flat array
  * Only fetches necessary fields and flattens issues in a single operation
  */
-export async function fetchStaffIssues(staffId: string) {
+export const fetchStaffIssues = cache(async (staffId: string) => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -63,13 +64,13 @@ export async function fetchStaffIssues(staffId: string) {
     console.error("Error fetching staff issues:", error);
     return [];
   }
-}
+});
 
 /**
  * Fetch all issues for admin dashboard - returns flat array
  * Optimized to flatten issues during fetch
  */
-export async function fetchAllIssues() {
+export const fetchAllIssues = cache(async () => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -97,13 +98,13 @@ export async function fetchAllIssues() {
     console.error("Error fetching all issues:", error);
     return [];
   }
-}
+});
 
 /**
  * Fetch a single issue by issueId
  * Stops early once the issue is found
  */
-export async function fetchIssueById(issueId: string) {
+export const fetchIssueById = cache(async (issueId: string) => {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -131,12 +132,13 @@ export async function fetchIssueById(issueId: string) {
     console.error("Error fetching issue by id:", error);
     return null;
   }
-}
+});
 
 /**
  * Fetch issues for a specific guest - optimized and flattened
  */
 export async function fetchGuestIssues(guestId: string) {
+  console.log("fetchGuestIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -180,6 +182,7 @@ export async function fetchGuestIssues(guestId: string) {
  * Fetch critical issues (high priority, unresolved) - optimized
  */
 export async function fetchCriticalIssues() {
+  console.log("fetchCriticalIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -222,6 +225,7 @@ export async function fetchCriticalIssues() {
  * Fetch unassigned issues - optimized
  */
 export async function fetchUnassignedIssues() {
+  console.log("fetchUnassignedIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -307,6 +311,7 @@ export async function getStaffUsers(): Promise<StaffMember[]> {
  * Fetch verified staff users only
  */
 export async function getVerifiedStaffUsers(): Promise<StaffMember[]> {
+  console.log("getVerifiedStaffUsers");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -677,14 +682,3 @@ export async function bulkUpdateIssueStatus(
 export async function refreshShifts() {
   redirect("/staff/roster");
 }
-
-/**
- *  const span = Sentry.startInactiveSpan({
-         name: "fetchStaffIssues-getStaffUsers(admin)-2-production",
-         attributes: {
-             "db.system": "firestore",
-             "db.operation": "query",
-             "db.collection": "users",
-         },
-     })
- */
