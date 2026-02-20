@@ -178,7 +178,7 @@ export default function GlobalError({
     // Navigate based on action
     switch (destination) {
       case "login":
-        window.location.href = "/login";
+        window.location.href = "/";
         break;
       case "home":
         window.location.href = "/";
