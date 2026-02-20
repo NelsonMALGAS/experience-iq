@@ -2,7 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { db } from "@/db/server";
-import { Property } from "@/types";
+import { Issue, Property } from "@/types";
 import { fetchAllIssues } from ".";
 
 /**
@@ -43,17 +43,11 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
   try {
     if (!db) throw new Error("Firestore not initialized");
 
-    // ============================================
-    // STEP 1: Fetch both collections in parallel
-    // ============================================
     const [propertiesSnapshot, allIssues] = await Promise.all([
       db.collection("properties").orderBy("createdAt", "desc").get(),
       fetchAllIssues(), // ✅ Reuse existing optimized function - already returns flat array
     ]);
 
-    // ============================================
-    // STEP 2: Parse properties (static metadata only)
-    // ============================================
     const properties: Property[] = propertiesSnapshot.docs.map((doc) => {
       const data = doc.data();
 
@@ -72,9 +66,6 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
       } as Property;
     });
 
-    // ============================================
-    // STEP 3: Aggregate statistics by propertyId
-    // ============================================
     const statsMap = new Map<string, PropertyStats>();
 
     // Initialize stats for all properties (even those with no issues)
@@ -88,7 +79,7 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
     });
 
     // Aggregate from issues (already flat array from fetchAllIssues)
-    allIssues.forEach((issue) => {
+    allIssues.forEach((issue: Issue) => {
       const propertyId = issue.propertyId;
 
       // Skip issues for properties that don't exist
@@ -121,9 +112,6 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
       }
     });
 
-    // ============================================
-    // STEP 4: Enrich properties with computed stats
-    // ============================================
     const propertiesWithStats: PropertyWithStats[] = properties.map(
       (property) => {
         const stats = statsMap.get(property.id)!;
