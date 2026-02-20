@@ -22,6 +22,7 @@ export interface Room {
 }
 export interface Property {
   id: string;
+  ownerId: string;
   name: string;
   location: string;
   totalIssues: number;
@@ -227,6 +228,7 @@ export interface CreatePropertyData {
   location: string;
   code: string;
   rooms: Room[];
+  ownerId: string;
 }
 
 /**

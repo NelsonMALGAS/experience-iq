@@ -465,6 +465,10 @@ export async function createProperty(data: CreatePropertyData) {
       return { success: false, message: "Location is required" };
     }
 
+    if (!data.ownerId?.trim()) {
+      return { success: false, message: "Unauthorized" };
+    }
+
     if (!data.code?.trim()) {
       return { success: false, message: "Code is required" };
     }
@@ -480,6 +484,7 @@ export async function createProperty(data: CreatePropertyData) {
     await propertyRef.set({
       name: data.name.trim(),
       location: data.location.trim(),
+      ownerId: data.ownerId.trim(),
       totalIssues: 0,
       openIssues: 0,
       avgResolutionTime: 0,

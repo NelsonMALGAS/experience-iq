@@ -59,6 +59,7 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
 
       return {
         id: doc.id,
+        ownerId: data.ownerId,
         name: data.name || "Unnamed Property",
         location: data.location || "Unknown Location",
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
@@ -173,16 +174,6 @@ export async function fetchProperties(): Promise<PropertyWithStats[]> {
  * Useful for property detail pages
  */
 export async function fetchPropertyStats(propertyId: string) {
-  const span = Sentry.startInactiveSpan({
-    op: "db.query",
-    name: "Fetch Property Stats",
-    attributes: {
-      "db.system": "firestore",
-      "db.operation": "aggregate",
-      propertyId,
-    },
-  });
-
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -237,16 +228,12 @@ export async function fetchPropertyStats(propertyId: string) {
         totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0,
     };
 
-    span.setStatus({ code: 1, message: "ok" });
     return stats;
   } catch (error) {
-    span.setStatus({ code: 2, message: "error" });
     Sentry.captureException(error, {
       tags: { operation: "fetchPropertyStats", propertyId },
     });
     console.error("Error fetching property stats:", error);
     throw error;
-  } finally {
-    span.end();
   }
 }
