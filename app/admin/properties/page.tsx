@@ -18,6 +18,7 @@ import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadat
 import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import { Suspense } from "react";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
+import CopyPropertyCode from "@/components/CopyPropertyCode";
 
 export const metadata: Metadata = {
     title: "Properties – ExperienceIQ",
@@ -155,11 +156,7 @@ const PropertiesPage = async () => {
                                                 <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent" />
 
                                                 {/* Property code badge */}
-                                                <div className="absolute top-3 left-3">
-                                                    <span className="px-2 py-1 text-xs font-mono tracking-widest rounded-md bg-background/80 border border-border text-muted-foreground uppercase">
-                                                        {property.code?.toUpperCase()}
-                                                    </span>
-                                                </div>
+                                                <CopyPropertyCode code={property.code} />
 
                                                 {/* Property info */}
                                                 <div className="absolute bottom-4 left-4 space-y-1">
