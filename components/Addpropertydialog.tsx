@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -23,18 +23,35 @@ type FormDataTypes = {
     name: string,
     location: string,
     rooms: Room[]
+    ownerId: string
 }
 
-export function AddPropertyDialog() {
+type AddPropertyDialogProps = {
+    uid: string
+}
+
+export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [formData, setFormData] = useState<FormDataTypes>({
         name: "",
         location: "",
-        rooms: []
+        rooms: [],
+        ownerId: uid
     });
+    const lastRoomRef = useRef<HTMLInputElement | null>(null);
 
     const addRoom = () => {
+        // If there are rooms, check the last one
+        if (formData.rooms.length > 0) {
+            const lastRoom = formData.rooms[formData.rooms.length - 1];
+
+            if (!lastRoom.roomNumber.trim()) {
+                toast.error("Please fill in the previous room first.");
+                return;
+            }
+        }
+
         setFormData((prev) => ({
             ...prev,
             rooms: [
@@ -47,6 +64,11 @@ export function AddPropertyDialog() {
                 },
             ],
         }));
+
+        // Focus after state updates
+        setTimeout(() => {
+            lastRoomRef.current?.focus();
+        }, 0);
     };
 
     const updateRoom = (index: number, field: keyof Room, value: string) => {
@@ -74,7 +96,7 @@ export function AddPropertyDialog() {
 
             if (result.success) {
                 toast.success(result.message);
-                setFormData({ name: "", location: "", rooms: [] });
+                setFormData({ name: "", location: "", rooms: [], ownerId: uid });
                 setOpen(false);
             } else {
                 toast.error(result.message);
@@ -165,6 +187,7 @@ export function AddPropertyDialog() {
                                     {formData.rooms.map((room, index) => (
                                         <div key={index} className="flex items-center gap-2">
                                             <Input
+                                                ref={index === formData.rooms.length - 1 ? lastRoomRef : null}
                                                 placeholder="Room Number"
                                                 value={room.roomNumber}
                                                 onChange={(e) => updateRoom(index, "roomNumber", e.target.value)}

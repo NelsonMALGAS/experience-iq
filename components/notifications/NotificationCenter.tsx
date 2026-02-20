@@ -67,18 +67,20 @@ export function NotificationCenter({ role, uid }: NotificationCenterType) {
                             type = "success";
                         }
 
-                        nextNotifications.push({
-                            colId: docSnap.id,
-                            id: issue.id,
-                            title,
-                            message: issue.title || issue.description || "No details available",
-                            type,
-                            read: isRead,
-                            createdAt: toDate(issue.createdAt) ?? new Date(),
-                            link: role === "staff"
-                                ? `/staff/issues/${issue.id}`
-                                : `/admin/issues/${issue.id}`,
-                        });
+                        if (!issue.readBy?.includes(uid)) {
+                            nextNotifications.push({
+                                colId: docSnap.id,
+                                id: issue.id,
+                                title,
+                                message: issue.title || issue.description || "No details available",
+                                type,
+                                read: isRead,
+                                createdAt: toDate(issue.createdAt) ?? new Date(),
+                                link: role === "staff"
+                                    ? `/staff/issues/${issue.id}`
+                                    : `/admin/issues/${issue.id}`,
+                            });
+                        }
                     });
                 });
 

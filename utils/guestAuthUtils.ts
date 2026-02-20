@@ -60,6 +60,7 @@ export async function validateRoomCode(
             avgResolutionTime: propertyData.avgResolutionTime || 0,
             createdAt: propertyData.createdAt?.toDate?.() || new Date(),
             rooms: rooms,
+            ownerId: propertyData.ownerId,
           },
           room: {
             id: matchingRoom.id,
