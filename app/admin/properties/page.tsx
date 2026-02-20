@@ -87,7 +87,7 @@ const PropertiesPage = async () => {
     let error = null;
 
     try {
-        properties = await fetchPropertiesWithStats();
+        properties = await fetchPropertiesWithStats(uid);
     } catch (e) {
         error = e instanceof Error ? e.message : "Failed to fetch properties";
         console.error("Error fetching properties:", e);

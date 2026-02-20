@@ -26,25 +26,32 @@ export type PropertyWithStats = Property & {
 };
 
 /**
- * Fetch all properties enriched with live statistics derived from issues
+ * Fetch all properties for the logged-in admin, enriched with live statistics derived from related issues.
  *
  * ARCHITECTURE:
- * - Issues collection is the SINGLE SOURCE OF TRUTH
- * - Property statistics are DERIVED at read time
- * - Never trust stats stored on property documents
+ * - The `issues` collection is the SINGLE SOURCE OF TRUTH.
+ * - Property statistics (total/open/resolved issues, average resolution time) are DERIVED at read time.
+ * - Never rely on precomputed stats stored on property documents.
  *
  * PERFORMANCE:
- * - Reuses existing fetchAllIssues() - already optimized and flat
- * - Parallel fetching with Promise.all
- * - O(n) aggregation using Map
- * - No nested loops
+ * - Reuses the optimized `fetchAllIssues()` function, which returns a flat array of issues.
+ * - Parallel fetching with `Promise.all` for efficiency.
+ * - Aggregation is O(n) using a Map; avoids nested loops.
+ * - Batched Firestore queries handle the 10-item `in` query limit safely.
  */
-export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
+export async function fetchPropertiesWithStats(
+  uid: string,
+): Promise<PropertyWithStats[]> {
   try {
     if (!db) throw new Error("Firestore not initialized");
+    if (!uid) throw new Error("Unauthorized");
 
     const [propertiesSnapshot, allIssues] = await Promise.all([
-      db.collection("properties").orderBy("createdAt", "desc").get(),
+      db
+        .collection("properties")
+        .where("ownerId", "==", uid)
+        .orderBy("createdAt", "desc")
+        .get(),
       fetchAllIssues(), // ✅ Reuse existing optimized function - already returns flat array
     ]);
 
@@ -153,8 +160,10 @@ export async function fetchPropertiesWithStats(): Promise<PropertyWithStats[]> {
  *
  * @deprecated Use fetchPropertiesWithStats() instead
  */
-export async function fetchProperties(): Promise<PropertyWithStats[]> {
-  return fetchPropertiesWithStats();
+export async function fetchProperties(
+  uid: string,
+): Promise<PropertyWithStats[]> {
+  return fetchPropertiesWithStats(uid);
 }
 
 /**
