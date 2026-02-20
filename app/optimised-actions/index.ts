@@ -138,7 +138,6 @@ export const fetchIssueById = cache(async (issueId: string) => {
  * Fetch issues for a specific guest - optimized and flattened
  */
 export async function fetchGuestIssues(guestId: string) {
-  console.log("fetchGuestIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
