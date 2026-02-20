@@ -7,6 +7,7 @@ const pagesToCache = [
   "/staff",
   "/staff/issues",
   "/staff/roster",
+  "/staff/my-performance",
   "/admin",
   "/admin/properties",
   "/admin/users",
