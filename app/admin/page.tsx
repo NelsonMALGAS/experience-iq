@@ -69,7 +69,7 @@ const AdminDashboard = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, subscription } = verificationResult;
 
-    console.log(subscription, "SUBSCRIPTION")
+    console.log(subscription, uid, "SUBSCRIPTION")
 
     // 🚫 Unverified state (this is fast because no data fetching)
     if (!canAccessData) {

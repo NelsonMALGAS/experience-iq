@@ -9,6 +9,7 @@ export type VerificationResult = {
   role: Role;
   canAccessData: boolean;
   subscription?: UserSubscription | null;
+  adminId?: string | null;
 };
 
 /**
@@ -24,6 +25,7 @@ export async function requireVerifiedUser(
   role: Role,
 ): Promise<VerificationResult> {
   "use server";
+
   // 1. Check session exists
   if (!session) {
     redirect(`/login?role=${role}`);
@@ -31,58 +33,140 @@ export async function requireVerifiedUser(
 
   // 2. Verify session cookie
   const decoded = await auth?.verifySessionCookie(session, true);
-  if (!decoded) {
+  if (!decoded?.uid) {
     redirect(`/login?role=${role}`);
   }
 
   const uid = decoded.uid;
-  if (!uid) {
-    redirect(`/login?role=${role}`);
-  }
 
-  // 3. For guests: always verified
+  // 3. Guests: always verified, no subscription logic
   if (role === "guest") {
     return {
       uid,
       isVerified: true,
       role: "guest",
       canAccessData: true,
+      subscription: null,
+      adminId: null,
     };
   }
 
-  // 4. For staff/admin: check Firestore verification status
   try {
     const userDoc = await db?.collection("users").doc(uid).get();
 
     if (!userDoc?.exists) {
-      // User document doesn't exist - treat as unverified
       return {
         uid,
         isVerified: false,
         role,
         canAccessData: false,
+        subscription: null,
+        adminId: null,
       };
     }
 
     const userData = userDoc.data();
     const isVerified = userData?.isVerified ?? false;
-    const subscription = userData?.subscription ?? null;
 
-    return {
-      uid,
-      isVerified,
-      role,
-      canAccessData: isVerified,
-      subscription: subscription,
-    };
-  } catch (error) {
-    console.error("Error fetching user verification status:", error);
-    // On error, fail closed - treat as unverified
+    // 🔐 Always verify first (admins & staff)
+    if (!isVerified) {
+      return {
+        uid,
+        isVerified: false,
+        role,
+        canAccessData: false,
+        subscription: null,
+        adminId: null,
+      };
+    }
+
+    // ✅ ADMIN: return own subscription
+    if (role === "admin") {
+      const subscription = userData?.subscription ?? null;
+
+      return {
+        uid,
+        isVerified: true,
+        role: "admin",
+        canAccessData: true,
+        subscription,
+        adminId: null,
+      };
+    }
+
+    // ✅ STAFF: fetch admin subscription using adminId
+    if (role === "staff") {
+      const adminId = userData?.adminId ?? null;
+
+      if (!adminId) {
+        return {
+          uid,
+          isVerified: isVerified,
+          role: "staff",
+          canAccessData: false,
+          subscription: null,
+          adminId: null,
+        };
+      }
+
+      const adminDoc = await db?.collection("users").doc(adminId).get();
+
+      if (!adminDoc?.exists) {
+        return {
+          uid,
+          isVerified: true,
+          role: "staff",
+          canAccessData: false,
+          subscription: null,
+          adminId,
+        };
+      }
+
+      const adminData = adminDoc.data();
+      const adminVerified = adminData?.isVerified ?? false;
+
+      if (!adminVerified) {
+        return {
+          uid,
+          isVerified: true,
+          role: "staff",
+          canAccessData: false,
+          subscription: null,
+          adminId,
+        };
+      }
+
+      const subscription = adminData?.subscription ?? null;
+
+      return {
+        uid,
+        isVerified: true,
+        role: "staff",
+        canAccessData: true,
+        subscription,
+        adminId,
+      };
+    }
+
+    // Fail closed
     return {
       uid,
       isVerified: false,
       role,
       canAccessData: false,
+      subscription: null,
+      adminId: null,
+    };
+  } catch (error) {
+    console.error("Error fetching user verification status:", error);
+
+    return {
+      uid,
+      isVerified: false,
+      role,
+      canAccessData: false,
+      subscription: null,
+      adminId: null,
     };
   }
 }

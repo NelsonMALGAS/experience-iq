@@ -66,7 +66,10 @@ const StaffDashboard = async () => {
     const role: Role = "staff";
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
+
+    console.log(adminId, "ADMIN_ID")
+    console.log(subscription, "ADMIN_Suscription_FROM_STAFF")
 
     if (!canAccessData) {
         return (
