@@ -1,9 +1,53 @@
 import Pricing from "@/components/payment/Pricing"
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role, SubscriptionStatus } from "@/types";
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+    title: "Billing & Subscription – ExperienceIQ",
+    description:
+        "Manage your ExperienceIQ subscription, view billing details, upgrade your plan, and track payment history securely in one place.",
+    keywords: [
+        ...baseKeywords,
+        "billing",
+        "subscription management",
+        "payment",
+        "pricing plans",
+        "upgrade plan",
+        "invoice history",
+        "account billing",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Billing & Subscription – ExperienceIQ",
+        description:
+            "Manage your subscription, update billing details, and upgrade your plan securely.",
+        url: `${baseUrl}/payment`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Billing & Subscription Page",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Billing & Subscription – ExperienceIQ",
+        description:
+            "Manage your subscription and billing securely with ExperienceIQ.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+};
 
 const now = Date.now();
 

@@ -1,6 +1,5 @@
 import { fetchAllIssues, getStaffUsers } from "@/app/optimised-actions";
-import { staffColorPalette } from "@/constants";
-import { Role, StaffMember } from "@/types";
+import { Role } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2, Clock } from "lucide-react";
 import { IssueCard } from "../issues/IssueCard";
@@ -11,15 +10,6 @@ const RecentIssuesSection = async ({ uid, role }: { uid: string; role: Role }) =
         getStaffUsers()
     ]);
 
-    const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        isVerified: user.isVerified,
-        color: staffColorPalette[index % staffColorPalette.length],
-        department: user.department,
-        role: user.role
-    }));
 
     const recentIssues = allIssues
         .filter(i => i.status !== 'resolved')
@@ -46,7 +36,7 @@ const RecentIssuesSection = async ({ uid, role }: { uid: string; role: Role }) =
                             <div key={issue.id} style={{ animationDelay: `${index * 50}ms` }}>
                                 <IssueCard
                                     issue={issue}
-                                    staffMembers={plainStaffUsers}
+                                    staffMembers={staffUsers}
                                     currentUserId={uid}
                                     userRole={role}
                                 />
