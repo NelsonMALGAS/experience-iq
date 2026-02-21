@@ -72,7 +72,7 @@ const PropertiesPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -112,7 +112,7 @@ const PropertiesPage = async () => {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input placeholder="Search properties..." className="pl-9 bg-card" />
                                 </div>
-                                <AddPropertyDialog uid={uid} />
+                                <AddPropertyDialog uid={uid} properties={properties} subscription={subscription} />
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@ const PropertiesPage = async () => {
                                     <p className="text-muted-foreground text-center mb-6 max-w-md">
                                         Get started by adding your first property. Properties help you organize and track issues across different locations.
                                     </p>
-                                    <AddPropertyDialog uid={uid} />
+                                    <AddPropertyDialog uid={uid} properties={properties} subscription={subscription} />
                                 </CardContent>
                             </Card>
                         ) : null}

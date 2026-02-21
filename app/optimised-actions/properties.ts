@@ -2,8 +2,9 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { db } from "@/db/server";
-import { Issue, Property } from "@/types";
+import { Issue, Property, Room } from "@/types";
 import { fetchAllIssues } from ".";
+import { toDate } from "date-fns";
 
 /**
  * Property statistics derived from issues collection
@@ -64,8 +65,13 @@ export async function fetchPropertiesWithStats(
         name: data.name || "Unnamed Property",
         location: data.location || "Unknown Location",
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
-        rooms: data.rooms || [],
-        createdAt: data.createdAt?.toDate?.() || new Date(),
+        rooms: (data.rooms || []).map((room: Room) => ({
+          ...room,
+          createdAt: toDate(room.createdAt)
+            ? toDate(room.createdAt)
+            : room.createdAt || null,
+        })),
+        createdAt: toDate(data.createdAt),
         avgResolutionTime: data.avgResolutionTime,
         openIssues: data.openIssues,
         resolvedIssues: data.resolvedIssues,
@@ -105,8 +111,8 @@ export async function fetchPropertiesWithStats(
 
         // Calculate resolution time (if resolvedAt exists)
         if (issue.resolvedAt && issue.createdAt) {
-          const createdAt = new Date(issue.createdAt).getTime();
-          const resolvedAt = new Date(issue.resolvedAt).getTime();
+          const createdAt = toDate(issue.createdAt).getTime();
+          const resolvedAt = toDate(issue.resolvedAt).getTime();
           const resolutionTime = resolvedAt - createdAt;
 
           // Only add positive resolution times

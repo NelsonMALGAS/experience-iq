@@ -16,8 +16,11 @@ import { Label } from "@/components/ui/label";
 import { Plus, Loader2, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { generateRandomCode } from "@/utils/staffDashboardUtils";
-import { Room } from "@/types";
+import { Property, Room, UserSubscription } from "@/types";
 import { createProperty } from "@/app/optimised-actions";
+import { getPlanByPriceId } from "@/lib/plans";
+
+
 
 type FormDataTypes = {
     name: string,
@@ -28,9 +31,11 @@ type FormDataTypes = {
 
 type AddPropertyDialogProps = {
     uid: string
+    properties: Property[]
+    subscription?: UserSubscription | null
 }
 
-export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
+export function AddPropertyDialog({ uid, properties, subscription }: AddPropertyDialogProps) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [formData, setFormData] = useState<FormDataTypes>({
@@ -40,8 +45,10 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
         ownerId: uid
     });
     const lastRoomRef = useRef<HTMLInputElement | null>(null);
+    const plan = getPlanByPriceId(subscription?.priceId)
 
     const addRoom = () => {
+
         // If there are rooms, check the last one
         if (formData.rooms.length > 0) {
             const lastRoom = formData.rooms[formData.rooms.length - 1];
@@ -90,6 +97,22 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!plan) {
+            toast.error("Subscription required", {
+                description: "Please subscribe to a plan before creating a property.",
+                duration: 10000
+            });
+            return;
+        }
+
+        if (properties.length >= plan.limits.propertyLimit) {
+            toast.error("Property limit reached", {
+                description: `Your plan allows up to ${plan.limits.propertyLimit} ${plan.limits.propertyLimit === 1 ? "property" : "properties"
+                    }. Please upgrade your plan to add more.`,
+                duration: 10000
+            })
+            return
+        }
 
         startTransition(async () => {
             const result = await createProperty({ ...formData, code: generateRandomCode(6, 6, ""), });
