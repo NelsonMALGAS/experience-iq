@@ -16,6 +16,8 @@ import IssuesSkeleton from "@/components/skeletons/IssuesSkeleton";
 import PropertiesSection from "@/components/sections/PropertiesSection";
 import RecentIssuesSection from "@/components/sections/RecentIssuesSection";
 import CriticalIssuesSection from "@/components/sections/CriticalIssuesSection";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
+
 
 export const metadata: Metadata = {
     title: "Executive Overview – ExperienceIQ",
@@ -69,7 +71,6 @@ const AdminDashboard = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, subscription } = verificationResult;
 
-    console.log(subscription, uid, "SUBSCRIPTION")
 
     // 🚫 Unverified state (this is fast because no data fetching)
     if (!canAccessData) {
@@ -116,6 +117,11 @@ const AdminDashboard = async () => {
                 </DashboardLayout>
             </div>
         );
+    }
+
+    if (!subscription || !subscription.hasAccess) {
+
+        return <SubscriptionBanner type="admin" />
     }
 
     // 🚀 CRITICAL OPTIMIZATION: Return INSTANT shell, stream data sections
