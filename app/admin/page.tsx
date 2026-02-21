@@ -67,7 +67,9 @@ const AdminDashboard = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription } = verificationResult;
+
+    console.log(subscription, "SUBSCRIPTION")
 
     // 🚫 Unverified state (this is fast because no data fetching)
     if (!canAccessData) {

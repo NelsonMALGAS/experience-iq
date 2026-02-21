@@ -1,5 +1,5 @@
 import { auth, db } from "@/db/server";
-import { Role } from "@/types";
+import { Role, UserSubscription } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -8,6 +8,7 @@ export type VerificationResult = {
   isVerified: boolean;
   role: Role;
   canAccessData: boolean;
+  subscription?: UserSubscription | null;
 };
 
 /**
@@ -65,12 +66,14 @@ export async function requireVerifiedUser(
 
     const userData = userDoc.data();
     const isVerified = userData?.isVerified ?? false;
+    const subscription = userData?.subscription ?? null;
 
     return {
       uid,
       isVerified,
       role,
       canAccessData: isVerified,
+      subscription: subscription,
     };
   } catch (error) {
     console.error("Error fetching user verification status:", error);

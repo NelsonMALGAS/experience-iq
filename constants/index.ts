@@ -18,6 +18,137 @@ export interface NavLink {
   icon: LucideIcon;
 }
 
+export type BillingInterval = "monthly" | "yearly";
+
+export type PlanPricing = {
+  price: number; // in ZAR
+  priceId: string; // Stripe Price ID
+  paymentLink: string; // Stripe Payment Link URL
+};
+
+export type PricePlan = {
+  id: string;
+  title: string;
+  description: string;
+  info: string[];
+  pricing: {
+    monthly: PlanPricing;
+    yearly: PlanPricing;
+  };
+};
+
+export const PRICE_PLANS: PricePlan[] = [
+  {
+    id: "starter",
+    title: "Starter Plan",
+    description:
+      "Ideal for small hotels or boutique properties starting with digital guest experience management.",
+    info: [
+      "1 property included",
+      "Up to 10 staff accounts",
+      "Real-time guest issue reporting",
+      "Basic SLA tracking",
+      "Admin dashboard",
+      "Email support",
+    ],
+    pricing: {
+      monthly: {
+        price: 550,
+        priceId: "price_1T2zHjGanontDcTuyXAbHcNS",
+        paymentLink: "https://buy.stripe.com/test_cNi6oH1FG0dd5Im8rienS00",
+      },
+      yearly: {
+        price: 5610,
+        priceId: "price_1T30L3GanontDcTufCv8Gyrf",
+        paymentLink: "https://buy.stripe.com/test_6oU00j4RScZZ5Im8rienS04",
+      },
+    },
+  },
+  {
+    id: "growth",
+    title: "Growth Plan",
+    description:
+      "Perfect for medium-sized hotels and resorts managing multiple properties.",
+    info: [
+      "Up to 3 properties",
+      "Up to 50 staff accounts",
+      "Advanced SLA escalation rules",
+      "Staff performance analytics",
+      "Monthly roster management",
+      "Data export capabilities",
+      "Priority email support",
+    ],
+    pricing: {
+      monthly: {
+        price: 1650,
+        priceId: "price_1T2zJLGanontDcTu5yEKYpdt",
+        paymentLink: "https://buy.stripe.com/test_7sYcN5ess7FFfiW4b2enS01",
+      },
+      yearly: {
+        price: 16830,
+        priceId: "price_1T30PPGanontDcTuylpmWyG4",
+        paymentLink: "https://buy.stripe.com/test_00weVd2JKgcbeeScHyenS05",
+      },
+    },
+  },
+  {
+    id: "pro",
+    title: "Pro Plan",
+    description:
+      "Designed for growing hospitality groups managing multiple properties and larger teams.",
+    info: [
+      "Up to 8 properties",
+      "Up to 200 staff accounts",
+      "Multi-property analytics",
+      "Cross-property performance comparisons",
+      "Custom SLA rules",
+      "Automated escalation workflows",
+      "Role & permission control",
+      "Advanced reporting dashboards",
+    ],
+    pricing: {
+      monthly: {
+        price: 3300,
+        priceId: "price_1T2zL0GanontDcTuXlltEKCB",
+        paymentLink: "https://buy.stripe.com/test_eVqfZh0BC5xx8Uy7neenS02",
+      },
+      yearly: {
+        price: 33660,
+        priceId: "price_1T30ewGanontDcTuKlQlVAui",
+        paymentLink: "https://buy.stripe.com/test_eVq5kDbggf872wa4b2enS06",
+      },
+    },
+  },
+  {
+    id: "enterprise",
+    title: "Enterprise Plan",
+    description:
+      "Tailored for large hotel chains and hospitality groups needing unlimited scalability and advanced features.",
+    info: [
+      "Unlimited properties",
+      "Unlimited staff accounts",
+      "Dedicated account manager",
+      "White-label branding (optional)",
+      "API integrations",
+      "Custom SLA configurations",
+      "Advanced analytics & reporting",
+      "Multi-property performance tracking",
+    ],
+    pricing: {
+      monthly: {
+        price: 7000,
+        priceId: "price_1T2zMnGanontDcTuSOOTpS12",
+        paymentLink: "https://buy.stripe.com/test_4gMdR9esscZZ8UyePGenS03",
+      },
+      yearly: {
+        price: 71400,
+        priceId: "price_1T30hsGanontDcTudbpUa72u",
+        paymentLink: "https://buy.stripe.com/test_9B65kD8441hh3AeazqenS07",
+      },
+    },
+  },
+];
+
 export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   guest: [
     { label: "Dashboard", href: "/guest", icon: LayoutDashboard },
