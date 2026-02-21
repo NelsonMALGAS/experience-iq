@@ -30,6 +30,9 @@ export async function requireVerifiedUser(
   if (!session) {
     redirect(`/login?role=${role}`);
   }
+  if (!role) {
+    redirect("/");
+  }
 
   // 2. Verify session cookie
   const decoded = await auth?.verifySessionCookie(session, true);

@@ -1,38 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
 
-const Pricing = () => {
+type PricingProps = {
+    uid?: string;
+    needsPayment?: boolean;
+};
+
+const Pricing = ({ needsPayment }: PricingProps) => {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
-    const { currentUser } = useCurrentUser()
+    const { currentUser } = useCurrentUser();
 
     const formatPrice = (price: number) => {
         return price.toLocaleString("en-ZA");
     };
 
+    const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
+
+    const getPaymentLink = (baseLink: string) => {
+        if (!origin) return baseLink;
+
+        const email = currentUser?.email || "unknown@gmail.com";
+        const successUrl = `${origin}/payment/success`;
+        const cancelUrl = `${origin}/payment/canceled`;
+
+        const params = new URLSearchParams({
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+        });
+
+        if (email) {
+            params.append("prefilled_email", email);
+        }
+
+        return `${baseLink}?${params.toString()}`;
+    };
+
+    const yearlyDiscountLabel = useMemo(() => {
+        return "Save 15%";
+    }, []);
+
     return (
         <div className="min-h-screen bg-background py-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                {/* Header Section */}
+                {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
-                        Simple, Transparent Pricing
+                        {needsPayment
+                            ? "Reactivate Your Subscription"
+                            : "Simple, Transparent Pricing"}
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Choose a plan that fits your hospitality operation.
+                        {needsPayment
+                            ? "Choose a plan to continue accessing all features."
+                            : "Choose a plan that fits your hospitality operation."}
                     </p>
                 </div>
 
                 {/* Billing Toggle */}
                 <div className="flex flex-col items-center gap-4 mb-12">
-                    <div className="inline-flex items-center rounded-lg bg-muted p-1">
+                    <div className="inline-flex items-center rounded-lg bg-muted p-1 gap-1">
                         <Button
+                            type="button"
+                            variant="ghost"
                             onClick={() => setBilling("monthly")}
                             className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${billing === "monthly"
                                 ? "bg-background text-foreground shadow-sm"
@@ -41,7 +84,10 @@ const Pricing = () => {
                         >
                             Monthly
                         </Button>
+
                         <Button
+                            type="button"
+                            variant="ghost"
                             onClick={() => setBilling("yearly")}
                             className={`px-6 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${billing === "yearly"
                                 ? "bg-background text-foreground shadow-sm"
@@ -51,11 +97,12 @@ const Pricing = () => {
                             Yearly
                             {billing === "yearly" && (
                                 <Badge variant="secondary" className="text-xs">
-                                    Save 15%
+                                    {yearlyDiscountLabel}
                                 </Badge>
                             )}
                         </Button>
                     </div>
+
                     {billing === "yearly" && (
                         <p className="text-sm text-muted-foreground">
                             Billed annually at a 15% discount.
@@ -63,19 +110,21 @@ const Pricing = () => {
                     )}
                 </div>
 
-                {/* Pricing Cards Grid */}
+                {/* Pricing Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {PRICE_PLANS.map((plan) => {
                         const isPro = plan.id === "pro";
                         const currentPricing = plan.pricing[billing];
-                        const currentPreffiledLink = `${currentPricing.paymentLink}?prefilled_email=${currentUser?.email || "unknown@gmail.com"}`
+                        const paymentLink = getPaymentLink(
+                            currentPricing.paymentLink,
+                        );
 
                         return (
                             <Card
                                 key={plan.id}
                                 className={`relative flex flex-col rounded-2xl transition-all duration-200 hover:shadow-lg ${isPro
-                                    ? "ring-2 ring-primary scale-105 shadow-xl"
-                                    : "hover:scale-102"
+                                    ? "ring-2 ring-primary scale-[1.03] shadow-xl"
+                                    : "hover:scale-[1.02]"
                                     }`}
                             >
                                 {isPro && (
@@ -108,7 +157,7 @@ const Pricing = () => {
                                         </div>
                                     </div>
 
-                                    {/* Features List */}
+                                    {/* Features */}
                                     <ul className="space-y-3 mb-8 flex-1">
                                         {plan.info.map((feature, index) => (
                                             <li key={index} className="flex items-start gap-3">
@@ -122,15 +171,15 @@ const Pricing = () => {
                                         ))}
                                     </ul>
 
-                                    {/* Subscribe Button */}
+                                    {/* CTA */}
                                     <a
-                                        href={currentPreffiledLink}
+                                        href={paymentLink}
                                         className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full ${isPro
                                             ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                             : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                                             }`}
                                     >
-                                        Subscribe
+                                        {needsPayment ? "Reactivate" : "Subscribe"}
                                     </a>
                                 </CardContent>
                             </Card>
@@ -138,15 +187,18 @@ const Pricing = () => {
                     })}
                 </div>
 
-                {/* Additional Information */}
+                {/* Footer */}
                 <div className="mt-16 text-center">
-                    <p className="text-sm text-muted-foreground">
-                        All plans include a 14-day free trial. No credit card required.
-                    </p>
+                    {!needsPayment && (
+                        <p className="text-sm text-muted-foreground">
+                            All plans include a 14-day free trial. No credit card required.
+                        </p>
+                    )}
+
                     <p className="text-sm text-muted-foreground mt-2">
                         Need a custom plan?{" "}
                         <a
-                            href="/contact"
+                            href="#"
                             className="text-primary hover:underline font-medium"
                         >
                             Contact our sales team
@@ -156,6 +208,6 @@ const Pricing = () => {
             </div>
         </div>
     );
-}
+};
 
-export default Pricing
+export default Pricing;
