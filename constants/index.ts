@@ -59,16 +59,16 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 550,
+        price: 550, // R1,200
         priceId: "price_1T2zHjGanontDcTuyXAbHcNS",
         paymentLink:
-          "https://buy.stripe.com/test_cNi6oH1FG0dd5Im8rienS00?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_14A3cv2JKaRR4Ei8rienS09?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
       yearly: {
         price: 5610,
         priceId: "price_1T30L3GanontDcTufCv8Gyrf",
         paymentLink:
-          "https://buy.stripe.com/test_6oU00j4RScZZ5Im8rienS04?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_fZu28r700gcbb2GazqenS0d?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
     },
     limits: {
@@ -92,16 +92,16 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 1650,
+        price: 1650, // R2500
         priceId: "price_1T2zJLGanontDcTu5yEKYpdt",
         paymentLink:
-          "https://buy.stripe.com/test_7sYcN5ess7FFfiW4b2enS01?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_cNi28r2JK5xx6Mq36YenS0a?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
       yearly: {
         price: 16830,
         priceId: "price_1T30PPGanontDcTuylpmWyG4",
         paymentLink:
-          "https://buy.stripe.com/test_00weVd2JKgcbeeScHyenS05?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_dRm8wP0BCbVV0o29vmenS0e?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
     },
     limits: {
@@ -126,16 +126,16 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 3300,
+        price: 3300, // R3700
         priceId: "price_1T2zL0GanontDcTuXlltEKCB",
         paymentLink:
-          "https://buy.stripe.com/test_eVqfZh0BC5xx8Uy7neenS02?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_5kQ7sL0BCf879YCcHyenS0b?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
       yearly: {
         price: 33660,
         priceId: "price_1T30ewGanontDcTuKlQlVAui",
         paymentLink:
-          "https://buy.stripe.com/test_eVq5kDbggf872wa4b2enS06?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_aFa9AT4RSbVVgn07neenS0f?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
     },
     limits: {
@@ -163,13 +163,13 @@ export const PRICE_PLANS: PricePlan[] = [
         price: 7000,
         priceId: "price_1T2zMnGanontDcTuSOOTpS12",
         paymentLink:
-          "https://buy.stripe.com/test_4gMdR9esscZZ8UyePGenS03?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_14A5kD9887FFb2G7neenS0c?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
       yearly: {
         price: 71400,
         priceId: "price_1T30hsGanontDcTudbpUa72u",
         paymentLink:
-          "https://buy.stripe.com/test_9B65kD8441hh3AeazqenS07?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+          "https://buy.stripe.com/test_5kQ4gzaccf872waazqenS0g?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
       },
     },
     limits: {

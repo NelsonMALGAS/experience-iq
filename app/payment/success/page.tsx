@@ -57,7 +57,7 @@ const PaymentSuccess = async () => {
                             </Link>
                         </Button>
                         <Button asChild variant="outline" size="lg">
-                            <Link href="/admin/settings">
+                            <Link href="#">
                                 Manage Subscription
                             </Link>
                         </Button>
