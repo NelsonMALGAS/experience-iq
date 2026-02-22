@@ -89,9 +89,9 @@ export async function requireVerifiedUser(
 
       return {
         uid,
-        isVerified: true,
+        isVerified: isVerified,
         role: "admin",
-        canAccessData: true,
+        canAccessData: isVerified,
         subscription,
         adminId: null,
       };
@@ -106,20 +106,22 @@ export async function requireVerifiedUser(
           uid,
           isVerified: isVerified,
           role: "staff",
-          canAccessData: false,
+          canAccessData: isVerified,
           subscription: null,
           adminId: null,
         };
       }
 
-      const adminDoc = await db?.collection("users").doc(adminId).get();
+      const adminDoc = adminId
+        ? await db?.collection("users").doc(adminId).get()
+        : null;
 
       if (!adminDoc?.exists) {
         return {
           uid,
-          isVerified: true,
+          isVerified: isVerified,
           role: "staff",
-          canAccessData: false,
+          canAccessData: isVerified,
           subscription: null,
           adminId,
         };
@@ -131,9 +133,9 @@ export async function requireVerifiedUser(
       if (!adminVerified) {
         return {
           uid,
-          isVerified: true,
+          isVerified: isVerified,
           role: "staff",
-          canAccessData: false,
+          canAccessData: isVerified,
           subscription: null,
           adminId,
         };
@@ -143,9 +145,9 @@ export async function requireVerifiedUser(
 
       return {
         uid,
-        isVerified: true,
+        isVerified: isVerified,
         role: "staff",
-        canAccessData: true,
+        canAccessData: isVerified,
         subscription,
         adminId,
       };
@@ -156,7 +158,7 @@ export async function requireVerifiedUser(
       uid,
       isVerified: false,
       role,
-      canAccessData: false,
+      canAccessData: isVerified,
       subscription: null,
       adminId: null,
     };
