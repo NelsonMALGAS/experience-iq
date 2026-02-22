@@ -11,6 +11,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2, Trash } from "lucide-react";
@@ -46,6 +48,8 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     });
     const lastRoomRef = useRef<HTMLInputElement | null>(null);
     const plan = getPlanByPriceId(subscription?.priceId)
+
+    const disabled = plan ? properties.length >= plan.limits.propertyLimit : false
 
     const addRoom = () => {
 
@@ -150,6 +154,17 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                             Create a new property to manage issues and track performance.
                         </DialogDescription>
                     </DialogHeader>
+                    {disabled && (
+                        <Alert variant="destructive" className="mt-4">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Property limit reached</AlertTitle>
+                            <AlertDescription>
+                                Your current plan allows up to {plan?.limits.propertyLimit}{" "}
+                                {plan?.limits.propertyLimit === 1 ? "property" : "properties"}.
+                                Please upgrade your subscription to add more.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     <div className="flex-1 overflow-y-auto pr-2">
 
                         <div className="grid gap-6 py-6">
@@ -163,9 +178,9 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     placeholder="e.g., Grand Plaza Hotel"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
-                                    disabled={isPending}
+                                    disabled={isPending || disabled}
                                     required
-                                    className="h-11"
+                                    className="h-11 hover:disabled:cursor-not-allowed"
                                 />
                             </div>
 
@@ -179,9 +194,9 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     placeholder="e.g., New York, NY"
                                     value={formData.location}
                                     onChange={(e) => handleChange("location", e.target.value)}
-                                    disabled={isPending}
+                                    disabled={isPending || disabled}
                                     required
-                                    className="h-11"
+                                    className="h-11 hover:disabled:cursor-not-allowed"
                                 />
                             </div>
                             {/* Rooms Section */}
@@ -193,7 +208,8 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                         variant="outline"
                                         size="sm"
                                         onClick={addRoom}
-                                        disabled={isPending}
+                                        disabled={isPending || disabled}
+                                        className="hover:disabled:cursor-not-allowed"
                                     >
                                         <Plus className="h-4 w-4 mr-1" />
                                         Add Room
@@ -255,7 +271,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending}>
+                        <Button type="submit" disabled={isPending || disabled}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
