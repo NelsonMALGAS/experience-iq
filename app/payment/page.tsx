@@ -1,4 +1,4 @@
-import Pricing from "@/components/payment/Pricing"
+import Pricing from "@/components/payment/Pricing";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { requireVerifiedUser } from "@/lib/verificationGuards";

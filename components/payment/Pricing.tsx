@@ -23,34 +23,27 @@ const Pricing = ({ needsPayment }: PricingProps) => {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const { currentUser } = useCurrentUser();
 
+    console.log("PRICING COMPONENT VERSION 2 LOADED");
+
     const formatPrice = (price: number) => {
         return price.toLocaleString("en-ZA");
     };
 
-    const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
-
     const getPaymentLink = (baseLink: string) => {
-        if (!origin) return baseLink;
+        const email = currentUser?.email || "";
 
-        const email = currentUser?.email || "unknown@gmail.com";
-        const successUrl = `${origin}/payment/success`;
-        const cancelUrl = `${origin}/payment/canceled`;
-
-        const params = new URLSearchParams({
-            success_url: successUrl,
-            cancel_url: cancelUrl,
-        });
-
-        if (email) {
-            params.append("prefilled_email", email);
+        if (!email) {
+            return baseLink;
         }
 
-        return `${baseLink}?${params.toString()}`;
+        // Check if the base link already has query parameters
+        const separator = baseLink.includes('?') ? '&' : '?';
+
+        return `${baseLink}${separator}prefilled_email=${email}`;
     };
 
     const yearlyDiscountLabel = useMemo(() => {
-        return "Save 15%";
+        return "Save 20%";
     }, []);
 
     return (
@@ -105,7 +98,7 @@ const Pricing = ({ needsPayment }: PricingProps) => {
 
                     {billing === "yearly" && (
                         <p className="text-sm text-muted-foreground">
-                            Billed annually at a 15% discount.
+                            Billed annually at a 20% discount.
                         </p>
                     )}
                 </div>

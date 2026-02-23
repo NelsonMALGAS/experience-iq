@@ -12,6 +12,10 @@ import {
   Activity,
 } from "lucide-react";
 
+// Environment-aware pricing configuration
+// const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = true;
+
 export interface NavLink {
   label: string;
   href: string;
@@ -28,7 +32,7 @@ export type PlanLimits = {
 export type PlanPricing = {
   price: number; // in ZAR
   priceId: string; // Stripe Price ID
-  paymentLink: string; // Stripe Payment Link URL
+  paymentLink: string;
 };
 
 export type PricePlan = {
@@ -59,16 +63,22 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 550, // R1,200
-        priceId: "price_1T2zHjGanontDcTuyXAbHcNS",
-        paymentLink:
-          "https://buy.stripe.com/test_14A3cv2JKaRR4Ei8rienS09?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 1200,
+        priceId: isDevelopment
+          ? "price_1T3vPAGanontDcTuDaUws5J1"
+          : "PROD_PRICE_ID_STARTER_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_7sYaEXbggaRR4Ei7neenS0h"
+          : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
       },
       yearly: {
-        price: 5610,
-        priceId: "price_1T30L3GanontDcTufCv8Gyrf",
-        paymentLink:
-          "https://buy.stripe.com/test_fZu28r700gcbb2GazqenS0d?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 11520,
+        priceId: isDevelopment
+          ? "price_1T3vgLGanontDcTun1I3jrE4"
+          : "PROD_PRICE_ID_STARTER_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_14A6oHckkbVV6Mq36YenS0l"
+          : "PROD_PAYMENT_LINK_STARTER_YEARLY",
       },
     },
     limits: {
@@ -92,16 +102,22 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 1650, // R2500
-        priceId: "price_1T2zJLGanontDcTu5yEKYpdt",
-        paymentLink:
-          "https://buy.stripe.com/test_cNi28r2JK5xx6Mq36YenS0a?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 2500,
+        priceId: isDevelopment
+          ? "price_1T3vSYGanontDcTusTMMUNXi"
+          : "PROD_PRICE_ID_GROWTH_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_00waEX5VW1hhfiWgXOenS0i"
+          : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
       },
       yearly: {
-        price: 16830,
-        priceId: "price_1T30PPGanontDcTuylpmWyG4",
-        paymentLink:
-          "https://buy.stripe.com/test_dRm8wP0BCbVV0o29vmenS0e?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 24000,
+        priceId: isDevelopment
+          ? "price_1T3vk0GanontDcTu4y3lRzWv"
+          : "PROD_PRICE_ID_GROWTH_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_cNi28r4RS9NN1s66jaenS0m"
+          : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
       },
     },
     limits: {
@@ -126,16 +142,22 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 3300, // R3700
-        priceId: "price_1T2zL0GanontDcTuXlltEKCB",
-        paymentLink:
-          "https://buy.stripe.com/test_5kQ7sL0BCf879YCcHyenS0b?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 3700,
+        priceId: isDevelopment
+          ? "price_1T3vVoGanontDcTu5kDIA2RQ"
+          : "PROD_PRICE_ID_PRO_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_9B6cN5ess0dd2waePGenS0j"
+          : "PROD_PAYMENT_LINK_PRO_MONTHLY",
       },
       yearly: {
-        price: 33660,
-        priceId: "price_1T30ewGanontDcTuKlQlVAui",
-        paymentLink:
-          "https://buy.stripe.com/test_aFa9AT4RSbVVgn07neenS0f?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 35520,
+        priceId: isDevelopment
+          ? "price_1T3vnEGanontDcTufvnhGIZX"
+          : "PROD_PRICE_ID_PRO_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_bJeaEXacc3pp7Qu0YQenS0n"
+          : "PROD_PAYMENT_LINK_PRO_YEARLY",
       },
     },
     limits: {
@@ -149,8 +171,8 @@ export const PRICE_PLANS: PricePlan[] = [
     description:
       "Tailored for large hotel chains and hospitality groups needing unlimited scalability and advanced features.",
     info: [
-      "Unlimited properties",
-      "Unlimited staff accounts",
+      "Up to 200 properties",
+      "Up to 4000 staff accounts",
       "Dedicated account manager",
       "White-label branding (optional)",
       "API integrations",
@@ -160,21 +182,27 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 7000,
-        priceId: "price_1T2zMnGanontDcTuSOOTpS12",
-        paymentLink:
-          "https://buy.stripe.com/test_14A5kD9887FFb2G7neenS0c?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 7500,
+        priceId: isDevelopment
+          ? "price_1T3vYKGanontDcTuW103cZfG"
+          : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_dRmaEX4RS0ddfiWfTKenS0k"
+          : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
       },
       yearly: {
-        price: 71400,
-        priceId: "price_1T30hsGanontDcTudbpUa72u",
-        paymentLink:
-          "https://buy.stripe.com/test_5kQ4gzaccf872waazqenS0g?success_url={CHECKOUT_SESSION_ID}&cancel_url={CHECKOUT_SESSION_ID}",
+        price: 72000,
+        priceId: isDevelopment
+          ? "price_1T3vqGGanontDcTuc3fnsOeI"
+          : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_6oU5kD1FGe43eeSePGenS0o"
+          : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
       },
     },
     limits: {
-      propertyLimit: Infinity,
-      staffLimit: Infinity,
+      propertyLimit: 200,
+      staffLimit: 4000,
     },
   },
 ];
