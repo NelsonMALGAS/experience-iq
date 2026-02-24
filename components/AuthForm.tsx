@@ -552,6 +552,8 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                         value={qrCode}
                                                         size={180}
                                                         level="H"
+                                                        bgColor="transparent"
+                                                        fgColor="#f97316"
                                                         marginSize={1}
                                                         ref={qrRef}
                                                     />
