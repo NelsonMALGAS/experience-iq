@@ -1,10 +1,16 @@
-import { fetchStaffIssues } from "@/app/optimised-actions";
 import { calculateStaffStats } from "@/utils/staffDashboardUtils";
 import { StatCard } from "../dashboard/StatCard";
 import { AlertCircle, CheckCircle2, Loader2, Users } from "lucide-react";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
-const StatsSection = async ({ uid }: { uid: string }) => {
-    const allIssues = await fetchStaffIssues(uid)
+type StatsSectionProps = {
+    uid: string
+    adminId: string
+}
+
+const StatsSection = async ({ uid, adminId }: StatsSectionProps) => {
+
+    const { issues: allIssues } = await fetchPropertiesWithStats(adminId)
 
     const assignedIssues = allIssues.filter(i => i.assignedTo === uid);
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status === 'open');

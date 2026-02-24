@@ -72,7 +72,7 @@ const PropertiesPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -87,7 +87,8 @@ const PropertiesPage = async () => {
     let error = null;
 
     try {
-        properties = await fetchPropertiesWithStats(uid);
+        const { properties: data } = await fetchPropertiesWithStats(uid);
+        properties = data
     } catch (e) {
         error = e instanceof Error ? e.message : "Failed to fetch properties";
         console.error("Error fetching properties:", e);
@@ -97,7 +98,7 @@ const PropertiesPage = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24">
-                <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
                     <div className="space-y-6 animate-fade-in">
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

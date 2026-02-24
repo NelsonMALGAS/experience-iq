@@ -15,9 +15,10 @@ type StaffIssuesProps = {
     issues: Issue[],
     staff: StaffMember[]
     isVerified: boolean
+    adminId: string | null | undefined
 }
 
-export default function StaffIssues({ role, uid, issues, staff, isVerified }: StaffIssuesProps) {
+export default function StaffIssues({ role, uid, issues, staff, isVerified, adminId }: StaffIssuesProps) {
     const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -34,7 +35,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified }: St
     };
 
     return (
-        <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+        <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
             <div className="space-y-6 animate-fade-in">
                 <div className="flex flex-col gap-4">
                     <div>

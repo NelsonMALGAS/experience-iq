@@ -1,15 +1,24 @@
-import { fetchStaffIssues, getStaffUsers } from "@/app/optimised-actions";
+import { getStaffUsers } from "@/app/optimised-actions";
 import { staffColorPalette } from "@/lib/optimise-helpers";
 import { Role, StaffMember } from "@/types";
 import IssuesList from "../issues/IssuesList";
 import { Card, CardContent } from "../ui/card";
 import { CheckCircle2 } from "lucide-react";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
-const ActiveIssuesSection = async ({ uid, role }: { uid: string; role: Role }) => {
-    const [allIssues, staffUsers] = await Promise.all([
-        fetchStaffIssues(uid),
+type ActiveIssuesSectionProps = {
+    uid: string;
+    role: Role,
+    adminId: string
+}
+
+const ActiveIssuesSection = async ({ uid, role, adminId }: ActiveIssuesSectionProps) => {
+    const [data, staffUsers] = await Promise.all([
+        fetchPropertiesWithStats(adminId),
         getStaffUsers()
     ]);
+
+    const allIssues = data.issues
 
     const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
         id: user.id,

@@ -18,10 +18,11 @@ export interface DashboardLayoutProps {
     children: ReactNode;
     role: Role;
     uid: AppUser["uid"];
-    isVerified: boolean; // Server-provided verification status
+    isVerified: boolean;
+    adminId: string | null | undefined
 }
 
-export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified }: DashboardLayoutProps) {
+export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId }: DashboardLayoutProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser();
     const { fetchUserInfo, currentUser: user } = useUserStore();
     const isAuthenticated = !loading && !!uid;
@@ -104,7 +105,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <NotificationCenter role={role} uid={uid} />
+                            <NotificationCenter role={role} uid={uid} adminId={adminId} />
                             <Button
                                 variant="ghost"
                                 size="icon"

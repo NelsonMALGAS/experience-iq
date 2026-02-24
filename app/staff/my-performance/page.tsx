@@ -65,7 +65,7 @@ const MyPerformance = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -79,7 +79,7 @@ const MyPerformance = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24 space-y-4">
-                <DashboardLayout isVerified={isVerified} role={role} uid={uid}>
+                <DashboardLayout isVerified={isVerified} role={role} uid={uid} adminId={adminId}>
                     {/* Header */}
                     <div className="space-y-1">
                         <h1 className="text-3xl font-bold tracking-tight">
