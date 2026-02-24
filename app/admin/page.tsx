@@ -144,11 +144,11 @@ const AdminDashboard = async () => {
 
                     {/* 🚀 STREAMING: Each section loads independently */}
                     <Suspense fallback={<StatsGridSkeleton />}>
-                        <StatsSection />
+                        <StatsSection uid={uid} />
                     </Suspense>
 
                     <Suspense fallback={<PropertiesSkeleton />}>
-                        <PropertiesSection />
+                        <PropertiesSection uid={uid} />
                     </Suspense>
 
                     <Suspense fallback={<IssuesSkeleton />}>
@@ -156,7 +156,7 @@ const AdminDashboard = async () => {
                     </Suspense>
 
                     <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse"><div className="h-64 bg-muted rounded" /><div className="h-64 bg-muted rounded lg:col-span-2" /></div>}>
-                        <CriticalIssuesSection />
+                        <CriticalIssuesSection uid={uid} />
                     </Suspense>
                 </div>
             </DashboardLayout>

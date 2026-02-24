@@ -1,14 +1,17 @@
-import { fetchAllIssues, getStaffUsers } from "@/app/optimised-actions";
+import { getStaffUsers } from "@/app/optimised-actions";
 import { Role } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2, Clock } from "lucide-react";
 import { IssueCard } from "../issues/IssueCard";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
 const RecentIssuesSection = async ({ uid, role }: { uid: string; role: Role }) => {
-    const [allIssues, staffUsers] = await Promise.all([
-        fetchAllIssues(),
+    const [data, staffUsers] = await Promise.all([
+        fetchPropertiesWithStats(uid),
         getStaffUsers()
     ]);
+
+    const allIssues = data.issues
 
 
     const recentIssues = allIssues

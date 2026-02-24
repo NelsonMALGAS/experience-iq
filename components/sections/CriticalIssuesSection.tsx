@@ -1,9 +1,13 @@
-import { fetchAllIssues } from "@/app/optimised-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { AlertCircle, CheckCircle2, Users } from "lucide-react";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
-const CriticalIssuesSection = async () => {
-    const allIssues = await fetchAllIssues();
+type CriticalIssuesSectionProps = {
+    uid: string
+}
+
+const CriticalIssuesSection = async ({ uid }: CriticalIssuesSectionProps) => {
+    const { issues: allIssues } = await fetchPropertiesWithStats(uid)
     const criticalIssues = allIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status !== 'resolved');
 

@@ -1,10 +1,14 @@
-import { fetchAllIssues } from "@/app/optimised-actions";
 import { calculateDashboardStats } from "@/utils/dashboardUtiils";
 import { StatCard } from "../dashboard/StatCard";
 import { AlertCircle, BarChart3, Clock, TrendingUp } from "lucide-react";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
-const StatsSection = async () => {
-    const allIssues = await fetchAllIssues()
+type StatsSectionProps = {
+    uid: string
+}
+
+const StatsSection = async ({ uid }: StatsSectionProps) => {
+    const { issues: allIssues } = await fetchPropertiesWithStats(uid)
 
     const stats = calculateDashboardStats(allIssues);
 

@@ -1,12 +1,14 @@
-import { fetchAllIssues } from "@/app/optimised-actions";
-import { aggregatePropertyStats } from "@/utils/dashboardUtiils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Building2 } from "lucide-react";
 import { Progress } from "../ui/progress";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
-const PropertiesSection = async () => {
-    const allIssues = await fetchAllIssues();
-    const properties = aggregatePropertyStats(allIssues);
+type PropertiesSectionProps = {
+    uid: string
+}
+
+const PropertiesSection = async ({ uid }: PropertiesSectionProps) => {
+    const { properties } = await fetchPropertiesWithStats(uid);
 
     return (
         <Card>

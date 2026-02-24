@@ -42,7 +42,7 @@ export type PropertyWithStats = Property & {
  */
 export async function fetchPropertiesWithStats(
   uid: string,
-): Promise<PropertyWithStats[]> {
+): Promise<{ properties: PropertyWithStats[]; issues: Issue[] }> {
   try {
     if (!db) throw new Error("Firestore not initialized");
     if (!uid) throw new Error("Unauthorized");
@@ -53,12 +53,11 @@ export async function fetchPropertiesWithStats(
         .where("ownerId", "==", uid)
         .orderBy("createdAt", "desc")
         .get(),
-      fetchAllIssues(), // ✅ Reuse existing optimized function - already returns flat array
+      fetchAllIssues(), // returns flat array
     ]);
 
     const properties: Property[] = propertiesSnapshot.docs.map((doc) => {
       const data = doc.data();
-
       return {
         id: doc.id,
         ownerId: data.ownerId,
@@ -67,9 +66,7 @@ export async function fetchPropertiesWithStats(
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
         rooms: (data.rooms || []).map((room: Room) => ({
           ...room,
-          createdAt: toDate(room.createdAt)
-            ? toDate(room.createdAt)
-            : room.createdAt || null,
+          createdAt: toDate(room.createdAt) || room.createdAt || null,
         })),
         createdAt: toDate(data.createdAt),
         avgResolutionTime: data.avgResolutionTime,
@@ -81,7 +78,7 @@ export async function fetchPropertiesWithStats(
 
     const statsMap = new Map<string, PropertyStats>();
 
-    // Initialize stats for all properties (even those with no issues)
+    // Initialize stats for all properties
     properties.forEach((property) => {
       statsMap.set(property.id, {
         totalIssues: 0,
@@ -91,34 +88,24 @@ export async function fetchPropertiesWithStats(
       });
     });
 
-    // Aggregate from issues (already flat array from fetchAllIssues)
-    allIssues.forEach((issue: Issue) => {
-      const propertyId = issue.propertyId;
+    // Filter issues to only those belonging to this owner's properties
+    const ownerIssues = allIssues.filter((issue: Issue) =>
+      statsMap.has(issue.propertyId),
+    );
 
-      // Skip issues for properties that don't exist
-      if (!statsMap.has(propertyId)) {
-        return;
-      }
+    // Aggregate stats
+    ownerIssues.forEach((issue: Issue) => {
+      const stats = statsMap.get(issue.propertyId)!;
 
-      const stats = statsMap.get(propertyId)!;
-
-      // Increment total issues
       stats.totalIssues += 1;
-
-      // Count open vs resolved
       if (issue.status === "resolved") {
         stats.resolvedIssues += 1;
 
-        // Calculate resolution time (if resolvedAt exists)
         if (issue.resolvedAt && issue.createdAt) {
           const createdAt = toDate(issue.createdAt).getTime();
           const resolvedAt = toDate(issue.resolvedAt).getTime();
           const resolutionTime = resolvedAt - createdAt;
-
-          // Only add positive resolution times
-          if (resolutionTime > 0) {
-            stats.totalResolutionTime += resolutionTime;
-          }
+          if (resolutionTime > 0) stats.totalResolutionTime += resolutionTime;
         }
       } else {
         stats.openIssues += 1;
@@ -129,7 +116,6 @@ export async function fetchPropertiesWithStats(
       (property) => {
         const stats = statsMap.get(property.id)!;
 
-        // Calculate average resolution time in hours
         const avgResolutionTime =
           stats.resolvedIssues > 0
             ? Math.round(
@@ -137,7 +123,7 @@ export async function fetchPropertiesWithStats(
                   stats.resolvedIssues /
                   (1000 * 60 * 60)) *
                   10,
-              ) / 10 // Convert ms to hours, 1 decimal
+              ) / 10
             : 0;
 
         return {
@@ -150,7 +136,10 @@ export async function fetchPropertiesWithStats(
       },
     );
 
-    return propertiesWithStats;
+    return {
+      properties: propertiesWithStats,
+      issues: ownerIssues,
+    };
   } catch (error) {
     Sentry.captureException(error, {
       tags: { operation: "fetchPropertiesWithStats" },
@@ -169,7 +158,9 @@ export async function fetchPropertiesWithStats(
 export async function fetchProperties(
   uid: string,
 ): Promise<PropertyWithStats[]> {
-  return fetchPropertiesWithStats(uid);
+  const { properties } = await fetchPropertiesWithStats(uid);
+
+  return properties;
 }
 
 /**
