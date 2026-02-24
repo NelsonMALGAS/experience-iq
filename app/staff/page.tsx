@@ -139,15 +139,15 @@ const StaffDashboard = async () => {
 
                     {/* 🚀 Progressive streaming sections */}
                     <Suspense fallback={<StatsGridSkeleton />}>
-                        <StatsSection uid={uid} />
+                        <StatsSection uid={uid} adminId={adminId} />
                     </Suspense>
 
                     <Suspense fallback={<PerformanceSkeleton />}>
-                        <PerformanceSection uid={uid} />
+                        <PerformanceSection uid={uid} adminId={adminId} />
                     </Suspense>
 
                     <Suspense fallback={<IssuesListSkeleton />}>
-                        <ActiveIssuesSection uid={uid} role={role} />
+                        <ActiveIssuesSection uid={uid} role={role} adminId={adminId} />
                     </Suspense>
                 </div>
             </DashboardLayout>

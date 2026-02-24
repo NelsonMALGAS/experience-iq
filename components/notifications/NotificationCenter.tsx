@@ -128,7 +128,7 @@ export function NotificationCenter({ role, uid }: NotificationCenterType) {
                     </div>
                 </div>
 
-                <ScrollArea className="h-[400px]">
+                <ScrollArea className="h-100">
                     {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                             <Bell className="h-8 w-8 mb-2 opacity-50" />
