@@ -174,8 +174,8 @@ const useCurrentUser = () => {
         credentials: "include",
       });
 
-      toast.success("Logged out successfully", {
-        description: "🎉 Success",
+      toast.success("🎉 Success", {
+        description: "Logged out successfully",
       });
     } catch (error) {
       if (error instanceof Error) {

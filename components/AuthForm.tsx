@@ -1,6 +1,7 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState, useRef } from "react";
+import { QRCodeCanvas } from "qrcode.react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,10 +40,12 @@ interface Data {
     department: IssueCategory;
 }
 
+
 const AuthForm = ({ role }: AuthFormType) => {
     const { handleRegister, handleLogin, createSession } = useCurrentUser();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const qrRef = useRef<HTMLCanvasElement | null>(null);
 
     const [mode, setMode] = useState<"login" | "signup">("login");
     const [formErrors, setFormErrors] = useState<Errors | undefined>();
@@ -268,6 +271,18 @@ const AuthForm = ({ role }: AuthFormType) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set("role", newRole);
         router.replace(`/login?${params.toString()}`, { scroll: false });
+    };
+
+    const downloadQR = () => {
+        if (!qrRef.current) return;
+
+        const canvas = qrRef.current;
+        const url = canvas.toDataURL("image/png");
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${qrCode}-qr.png`;
+        link.click();
     };
 
     const inputErrorClass = (field: keyof Errors) =>
@@ -527,13 +542,41 @@ const AuthForm = ({ role }: AuthFormType) => {
 
                             {/* GUEST Content */}
                             <TabsContent value="guest">
-                                <form onSubmit={handleQRLogin} className="space-y-4">
-                                    <div className="text-center p-6 border-2 border-dashed rounded-lg bg-primary/5">
-                                        <QrCode className="h-16 w-16 mx-auto mb-4 text-primary" />
-                                        <p className="text-sm text-muted-foreground">
-                                            Scan the QR code in your room or enter the code manually
-                                        </p>
+                                <form onSubmit={handleQRLogin} className="space-y-6">
+                                    <div className="text-center p-6 border-2 border-dashed rounded-lg bg-primary/5 space-y-4">
+
+                                        {qrCode ? (
+                                            <>
+                                                <div className="flex justify-center">
+                                                    <QRCodeCanvas
+                                                        value={qrCode}
+                                                        size={180}
+                                                        level="H"
+                                                        marginSize={1}
+                                                        ref={qrRef}
+                                                    />
+                                                </div>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={downloadQR}
+                                                    className="mt-2"
+                                                >
+                                                    Download QR Code
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <QrCode className="h-16 w-16 mx-auto text-primary" />
+                                                <p className="text-sm text-muted-foreground">
+                                                    Scan the QR code in your room or enter the code manually
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
+
                                     <div className="flex flex-col gap-2">
                                         <Label htmlFor="roomCode" className="text-sm text-muted-foreground">
                                             Room Code{" "}
@@ -544,13 +587,16 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             id="roomCode"
                                             placeholder="e.g. SUNSET12-305"
                                             value={qrCode}
-                                            onChange={(e) => setQrCode(e.target.value.toUpperCase())}
+                                            onChange={(e) =>
+                                                setQrCode(e.target.value.toUpperCase())
+                                            }
                                             maxLength={16}
                                             className="text-center text-lg tracking-widest font-mono"
                                             autoFocus
                                             disabled={isLoading}
                                         />
                                     </div>
+
                                     <Button
                                         type="submit"
                                         className="w-full"
