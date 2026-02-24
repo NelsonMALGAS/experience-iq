@@ -15,6 +15,7 @@ import PerformanceSkeleton from "@/components/skeletons/PerformanceSkeleton";
 import PerformanceSection from "@/components/sections/PerformanceSection";
 import IssuesListSkeleton from "@/components/skeletons/IssuesListSkeleton";
 import ActiveIssuesSection from "@/components/sections/ActiveIssueSection";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 
 export const metadata: Metadata = {
     title: "Staff Dashboard – ExperienceIQ",
@@ -66,7 +67,8 @@ const StaffDashboard = async () => {
     const role: Role = "staff";
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
+
 
     if (!canAccessData) {
         return (
@@ -111,6 +113,10 @@ const StaffDashboard = async () => {
                 </DashboardLayout>
             </div>
         );
+    }
+
+    if (!subscription || !adminId || !subscription.hasAccess) {
+        return <SubscriptionBanner type="staff" />
     }
 
     // 🚀 INSTANT shell with progressive streaming

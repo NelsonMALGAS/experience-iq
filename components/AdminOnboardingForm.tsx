@@ -40,25 +40,20 @@ const AdminOnboardingForm = ({ role, uid }: AdminOnboardingFormProps) => {
                 }
 
                 const data = await res.json();
-                console.log('Registration check result:', data); // ✅ Debug log
 
                 // ✅ Not authenticated - redirect to login
                 if (!data.authenticated) {
-                    console.log('Not authenticated, redirecting to login');
                     router.push(`/login?role=${role}`);
                     return;
                 }
 
                 // ✅ Authenticated AND registered - redirect to dashboard
                 if (data.registered === true) {
-                    console.log(`User already registered (isRegistered: true), redirecting to /${data.role}`);
                     // ✅ Use replace to prevent back button issues
                     router.replace(`/${data.role}`);
                     return;
                 }
 
-                // ✅ Authenticated but NOT registered - show the form
-                console.log("User authenticated but NOT registered (isRegistered: false), showing form");
                 setShowForm(true);
             } catch (error) {
                 console.error("Error checking registration:", error);

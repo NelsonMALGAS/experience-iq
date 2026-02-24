@@ -11,13 +11,18 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { generateRandomCode } from "@/utils/staffDashboardUtils";
-import { Room } from "@/types";
+import { Property, Room, UserSubscription } from "@/types";
 import { createProperty } from "@/app/optimised-actions";
+import { getPlanByPriceId } from "@/lib/plans";
+
+
 
 type FormDataTypes = {
     name: string,
@@ -28,9 +33,11 @@ type FormDataTypes = {
 
 type AddPropertyDialogProps = {
     uid: string
+    properties: Property[]
+    subscription?: UserSubscription | null
 }
 
-export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
+export function AddPropertyDialog({ uid, properties, subscription }: AddPropertyDialogProps) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [formData, setFormData] = useState<FormDataTypes>({
@@ -40,8 +47,12 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
         ownerId: uid
     });
     const lastRoomRef = useRef<HTMLInputElement | null>(null);
+    const plan = getPlanByPriceId(subscription?.priceId)
+
+    const disabled = plan ? properties.length >= plan.limits.propertyLimit : false
 
     const addRoom = () => {
+
         // If there are rooms, check the last one
         if (formData.rooms.length > 0) {
             const lastRoom = formData.rooms[formData.rooms.length - 1];
@@ -90,6 +101,22 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!plan) {
+            toast.error("Subscription required", {
+                description: "Please subscribe to a plan before creating a property.",
+                duration: 10000
+            });
+            return;
+        }
+
+        if (properties.length >= plan.limits.propertyLimit) {
+            toast.error("Property limit reached", {
+                description: `Your plan allows up to ${plan.limits.propertyLimit} ${plan.limits.propertyLimit === 1 ? "property" : "properties"
+                    }. Please upgrade your plan to add more.`,
+                duration: 10000
+            })
+            return
+        }
 
         startTransition(async () => {
             const result = await createProperty({ ...formData, code: generateRandomCode(6, 6, ""), });
@@ -127,6 +154,17 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
                             Create a new property to manage issues and track performance.
                         </DialogDescription>
                     </DialogHeader>
+                    {disabled && (
+                        <Alert variant="destructive" className="mt-4">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Property limit reached</AlertTitle>
+                            <AlertDescription>
+                                Your current plan allows up to {plan?.limits.propertyLimit}{" "}
+                                {plan?.limits.propertyLimit === 1 ? "property" : "properties"}.
+                                Please upgrade your subscription to add more.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     <div className="flex-1 overflow-y-auto pr-2">
 
                         <div className="grid gap-6 py-6">
@@ -140,9 +178,9 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
                                     placeholder="e.g., Grand Plaza Hotel"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
-                                    disabled={isPending}
+                                    disabled={isPending || disabled}
                                     required
-                                    className="h-11"
+                                    className="h-11 hover:disabled:cursor-not-allowed"
                                 />
                             </div>
 
@@ -156,9 +194,9 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
                                     placeholder="e.g., New York, NY"
                                     value={formData.location}
                                     onChange={(e) => handleChange("location", e.target.value)}
-                                    disabled={isPending}
+                                    disabled={isPending || disabled}
                                     required
-                                    className="h-11"
+                                    className="h-11 hover:disabled:cursor-not-allowed"
                                 />
                             </div>
                             {/* Rooms Section */}
@@ -170,7 +208,8 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
                                         variant="outline"
                                         size="sm"
                                         onClick={addRoom}
-                                        disabled={isPending}
+                                        disabled={isPending || disabled}
+                                        className="hover:disabled:cursor-not-allowed"
                                     >
                                         <Plus className="h-4 w-4 mr-1" />
                                         Add Room
@@ -232,7 +271,7 @@ export function AddPropertyDialog({ uid }: AddPropertyDialogProps) {
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending}>
+                        <Button type="submit" disabled={isPending || disabled}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

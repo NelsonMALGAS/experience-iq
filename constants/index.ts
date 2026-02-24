@@ -5,18 +5,207 @@ import {
   PlusCircle,
   ClipboardList,
   Building2,
-  Users,
   CalendarClock,
   type LucideIcon,
   Clock,
   Activity,
+  BarChart3,
 } from "lucide-react";
+
+// Environment-aware pricing configuration
+// const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = true;
 
 export interface NavLink {
   label: string;
   href: string;
   icon: LucideIcon;
 }
+
+export type BillingInterval = "monthly" | "yearly";
+
+export type PlanLimits = {
+  propertyLimit: number;
+  staffLimit: number;
+};
+
+export type PlanPricing = {
+  price: number; // in ZAR
+  priceId: string; // Stripe Price ID
+  paymentLink: string;
+};
+
+export type PricePlan = {
+  id: string;
+  title: string;
+  description: string;
+  info: string[];
+  limits: PlanLimits;
+  pricing: {
+    monthly: PlanPricing;
+    yearly: PlanPricing;
+  };
+};
+
+export const PRICE_PLANS: PricePlan[] = [
+  {
+    id: "starter",
+    title: "Starter Plan",
+    description:
+      "Ideal for small hotels or boutique properties starting with digital guest experience management.",
+    info: [
+      "1 property included",
+      "Up to 10 staff accounts",
+      "Real-time guest issue reporting",
+      "Basic SLA tracking",
+      "Admin dashboard",
+      "Email support",
+    ],
+    pricing: {
+      monthly: {
+        price: 1200,
+        priceId: isDevelopment
+          ? "price_1T3vPAGanontDcTuDaUws5J1"
+          : "PROD_PRICE_ID_STARTER_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_7sYaEXbggaRR4Ei7neenS0h"
+          : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
+      },
+      yearly: {
+        price: 11520,
+        priceId: isDevelopment
+          ? "price_1T3vgLGanontDcTun1I3jrE4"
+          : "PROD_PRICE_ID_STARTER_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_14A6oHckkbVV6Mq36YenS0l"
+          : "PROD_PAYMENT_LINK_STARTER_YEARLY",
+      },
+    },
+    limits: {
+      propertyLimit: 1,
+      staffLimit: 10,
+    },
+  },
+  {
+    id: "growth",
+    title: "Growth Plan",
+    description:
+      "Perfect for medium-sized hotels and resorts managing multiple properties.",
+    info: [
+      "Up to 3 properties",
+      "Up to 50 staff accounts",
+      "Advanced SLA escalation rules",
+      "Staff performance analytics",
+      "Monthly roster management",
+      "Data export capabilities",
+      "Priority email support",
+    ],
+    pricing: {
+      monthly: {
+        price: 2500,
+        priceId: isDevelopment
+          ? "price_1T3vSYGanontDcTusTMMUNXi"
+          : "PROD_PRICE_ID_GROWTH_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_00waEX5VW1hhfiWgXOenS0i"
+          : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
+      },
+      yearly: {
+        price: 24000,
+        priceId: isDevelopment
+          ? "price_1T3vk0GanontDcTu4y3lRzWv"
+          : "PROD_PRICE_ID_GROWTH_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_cNi28r4RS9NN1s66jaenS0m"
+          : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
+      },
+    },
+    limits: {
+      propertyLimit: 3,
+      staffLimit: 50,
+    },
+  },
+  {
+    id: "pro",
+    title: "Pro Plan",
+    description:
+      "Designed for growing hospitality groups managing multiple properties and larger teams.",
+    info: [
+      "Up to 8 properties",
+      "Up to 200 staff accounts",
+      "Multi-property analytics",
+      "Cross-property performance comparisons",
+      "Custom SLA rules",
+      "Automated escalation workflows",
+      "Role & permission control",
+      "Advanced reporting dashboards",
+    ],
+    pricing: {
+      monthly: {
+        price: 3700,
+        priceId: isDevelopment
+          ? "price_1T3vVoGanontDcTu5kDIA2RQ"
+          : "PROD_PRICE_ID_PRO_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_9B6cN5ess0dd2waePGenS0j"
+          : "PROD_PAYMENT_LINK_PRO_MONTHLY",
+      },
+      yearly: {
+        price: 35520,
+        priceId: isDevelopment
+          ? "price_1T3vnEGanontDcTufvnhGIZX"
+          : "PROD_PRICE_ID_PRO_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_bJeaEXacc3pp7Qu0YQenS0n"
+          : "PROD_PAYMENT_LINK_PRO_YEARLY",
+      },
+    },
+    limits: {
+      propertyLimit: 8,
+      staffLimit: 200,
+    },
+  },
+  {
+    id: "enterprise",
+    title: "Enterprise Plan",
+    description:
+      "Tailored for large hotel chains and hospitality groups needing unlimited scalability and advanced features.",
+    info: [
+      "Up to 200 properties",
+      "Up to 4000 staff accounts",
+      "Dedicated account manager",
+      "White-label branding (optional)",
+      "API integrations",
+      "Custom SLA configurations",
+      "Advanced analytics & reporting",
+      "Multi-property performance tracking",
+    ],
+    pricing: {
+      monthly: {
+        price: 7500,
+        priceId: isDevelopment
+          ? "price_1T3vYKGanontDcTuW103cZfG"
+          : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_dRmaEX4RS0ddfiWfTKenS0k"
+          : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
+      },
+      yearly: {
+        price: 72000,
+        priceId: isDevelopment
+          ? "price_1T3vqGGanontDcTuc3fnsOeI"
+          : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
+        paymentLink: isDevelopment
+          ? "https://buy.stripe.com/test_6oU5kD1FGe43eeSePGenS0o"
+          : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
+      },
+    },
+    limits: {
+      propertyLimit: 200,
+      staffLimit: 4000,
+    },
+  },
+];
 
 export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   guest: [
@@ -32,7 +221,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
-    { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Insights", href: "/admin/insights", icon: BarChart3 },
     { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
 } as const;
@@ -182,6 +371,105 @@ export const priorityConfig = {
     icon: Clock,
   },
 };
+
+// Types for Experience Intelligence Dashboard
+
+export interface ExperienceMetrics {
+  overallSatisfaction: number;
+  satisfactionTrend?: number; // Percentage change
+  activeAlerts: number;
+  avgResponseTime: number; // in minutes
+  responseTimeTrend?: number; // Percentage change
+  sentimentRisk: "low" | "medium" | "high";
+}
+
+export interface CriticalAlert {
+  id: string;
+  guest: string;
+  roomNumber: string;
+  issue: string;
+  severity: "high" | "medium" | "low";
+  reportedMinutesAgo: number;
+  category?: "maintenance" | "housekeeping" | "service" | "noise" | "other";
+  assignedTo?: string;
+  status?: "pending" | "in_progress" | "resolved";
+}
+
+export interface AIInsight {
+  id: string;
+  insight: string;
+  priority: "high" | "medium" | "low";
+  category?: "operations" | "satisfaction" | "performance" | "trends";
+  actionable?: boolean;
+  timestamp?: Date;
+}
+
+export interface SentimentData {
+  label: "positive" | "neutral" | "negative";
+  value: number; // Percentage (0-100)
+  count?: number; // Actual count of responses
+  color: string; // Tailwind class
+}
+
+export interface SatisfactionTrendPoint {
+  day: string; // e.g., "Mon", "Tue" or "2024-01-15"
+  date?: Date;
+  score: number; // 0-5
+  totalResponses?: number;
+}
+
+export interface GuestIssue extends CriticalAlert {
+  guestId?: string;
+  propertyId?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  resolvedAt?: Date;
+  resolutionTime?: number; // in minutes
+  guestSatisfactionAfterResolution?: number;
+}
+
+export interface OperationalInsight extends AIInsight {
+  affectedRooms?: string[];
+  affectedShifts?: string[];
+  impactScore?: number; // 0-100
+  suggestedAction?: string;
+}
+
+// Response types for API calls
+export interface ExperienceIntelligenceResponse {
+  metrics: ExperienceMetrics;
+  alerts: CriticalAlert[];
+  insights: AIInsight[];
+  sentimentBreakdown?: SentimentData[];
+  satisfactionTrend?: SatisfactionTrendPoint[];
+  lastUpdated: Date;
+}
+
+// Filter types for querying data
+export interface ExperienceDataFilters {
+  propertyId?: string;
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+  severity?: Array<"high" | "medium" | "low">;
+  alertStatus?: Array<"pending" | "in_progress" | "resolved">;
+  categories?: string[];
+}
+
+// Dashboard configuration
+export interface DashboardConfig {
+  refreshIntervalMs: number;
+  alertThresholds: {
+    critical: number;
+    warning: number;
+  };
+  displayOptions: {
+    showTrends: boolean;
+    showAIInsights: boolean;
+    maxAlertsDisplayed: number;
+  };
+}
 
 export const years = Array.from(
   { length: 11 },

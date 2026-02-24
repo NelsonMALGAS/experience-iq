@@ -1,6 +1,6 @@
 # Guest Experience & Service Recovery Platform
 
-A real-time guest feedback and service recovery system built with **Next.js** and **Firebase**, designed for large hospitality and entertainment groups such as **Sun International**.
+A real-time guest feedback and service recovery system built with **Next.js** and **Firebase**, designed for large hospitality and entertainment groups such as **Sun International** && Royal Marang Hotel.
 
 
 ---

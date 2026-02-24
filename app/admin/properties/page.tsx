@@ -1,10 +1,9 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Property, Role } from "@/types";
-import { MapPin, MoreHorizontal, Search, Building2 } from "lucide-react";
+import { MapPin, Search, Building2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -19,6 +18,7 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import { Suspense } from "react";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
 import CopyPropertyCode from "@/components/CopyPropertyCode";
+import { PropertyDetailsPopover } from "@/components/properties/PropertyDetailsPopover";
 
 export const metadata: Metadata = {
     title: "Properties – ExperienceIQ",
@@ -72,7 +72,7 @@ const PropertiesPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
@@ -87,11 +87,12 @@ const PropertiesPage = async () => {
     let error = null;
 
     try {
-        properties = await fetchPropertiesWithStats();
+        properties = await fetchPropertiesWithStats(uid);
     } catch (e) {
         error = e instanceof Error ? e.message : "Failed to fetch properties";
         console.error("Error fetching properties:", e);
     }
+
 
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
@@ -112,7 +113,7 @@ const PropertiesPage = async () => {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input placeholder="Search properties..." className="pl-9 bg-card" />
                                 </div>
-                                <AddPropertyDialog uid={uid} />
+                                <AddPropertyDialog uid={uid} properties={properties} subscription={subscription} />
                             </div>
                         </div>
 
@@ -169,14 +170,11 @@ const PropertiesPage = async () => {
                                                     </p>
                                                 </div>
 
-                                                {/* Menu button */}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
-                                                >
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
+
+                                                {/* Menu button with popover */}
+                                                <div className="absolute top-3 right-3">
+                                                    <PropertyDetailsPopover property={property} />
+                                                </div>
                                             </div>
 
                                             {/* Content */}
@@ -252,7 +250,7 @@ const PropertiesPage = async () => {
                                     <p className="text-muted-foreground text-center mb-6 max-w-md">
                                         Get started by adding your first property. Properties help you organize and track issues across different locations.
                                     </p>
-                                    <AddPropertyDialog uid={uid} />
+                                    <AddPropertyDialog uid={uid} properties={properties} subscription={subscription} />
                                 </CardContent>
                             </Card>
                         ) : null}

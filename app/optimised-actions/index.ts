@@ -22,6 +22,7 @@ import { revalidatePath } from "next/cache";
 import { verifyAdmin } from "@/lib/verificationGuards";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { linkStaffToAdmin } from "@/lib/auth/adminStaffLink";
 
 /**
  * Fetch issues for staff dashboard - optimized to return flat array
@@ -538,6 +539,12 @@ export async function updateIssue(
       throw new Error("Unauthorized: Invalid session");
     }
 
+    const adminUid = decoded.uid;
+
+    // Verify user is admin (optional but recommended)
+    const adminDoc = await db.collection("users").doc(adminUid).get();
+    const isAdmin = adminDoc.exists && adminDoc.data()?.role === "admin";
+
     // Try to get the issue document
     // First, try using propertyId as document ID
     let issueDocRef = db.collection("issues").doc(propertyId);
@@ -605,7 +612,29 @@ export async function updateIssue(
       updatedAt: new Date().toISOString(),
     });
 
+    // If an admin is assigning to staff, link staff to admin
+    if (
+      isAdmin &&
+      updates.assignedTo &&
+      updates.assignedTo !== "" &&
+      updates.assignedTo !== prevIssue.assignedTo // Only if assignment changed
+    ) {
+      // Run staff linking asynchronously - don't block issue update
+      linkStaffToAdmin(updates.assignedTo, adminUid)
+        .then((result) => {
+          if (result.success) {
+            console.log(`✅ ${result.message}`);
+          } else {
+            console.warn(`⚠️ Staff linking warning: ${result.message}`);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ Staff linking error (non-blocking):", error);
+        });
+    }
+
     revalidatePath("/admin");
+    revalidatePath("/staff");
 
     return { success: true, message: "Issue updated successfully" };
   } catch (error) {

@@ -57,10 +57,30 @@ export interface RoomCodeValidation {
   error?: string;
 }
 
+export type SubscriptionStatus =
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "incomplete"
+  | "unpaid";
+
+export type UserSubscription = {
+  hasAccess?: boolean;
+  subscriptionId?: string;
+  customerId?: string;
+  priceId?: string;
+  currentPeriodStart?: number; // Unix timestamp
+  currentPeriodEnd?: number; // Unix timestamp
+  status?: SubscriptionStatus;
+  cancelAtPeriodEnd?: boolean;
+};
+
 type BaseAppUser = Partial<User> & {
   uid: string;
   role: Role;
   isVerified: boolean;
+  subscription?: UserSubscription;
 };
 
 export type GuestUser = BaseAppUser & {
@@ -72,6 +92,7 @@ export type StaffUser = BaseAppUser & {
   role: "staff";
   property: [Property];
   department: IssueCategory;
+  adminId?: string;
 };
 
 export type AdminUser = BaseAppUser & {
