@@ -13,6 +13,9 @@ import { useState, useEffect } from 'react';
 import {
     collection,
     onSnapshot,
+    query,
+    where,
+    getDocs,
 } from "firebase/firestore";
 import { db } from "@/db/client";
 import { AppUser, Issue, Role } from '@/types';
@@ -37,68 +40,135 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
 
     const handleClose = () => setOpen(false);
 
-    // TODO: Make use of adminId to fetch issues that belong to properties of the admin
-
-    console.log(adminId, "ADMIN_ID(NotificationCenter)")
-
-    // Subscribe to Firestore issues
+    // Subscribe to Firestore issues scoped to admin's properties
     useEffect(() => {
+        // Guard: Exit if no adminId
+        if (!adminId) {
+            console.warn("⚠️ No adminId provided - cannot fetch notifications");
+            setNotifications([]);
+            return;
+        }
 
-        if (!adminId) return
-        const q = collection(db, "issues");
+        let unsubscribe: (() => void) | undefined;
+        let isMounted = true;
 
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const nextNotifications: Notification[] = [];
+        const setupNotificationListener = async () => {
+            try {
+                // Step 1: Fetch all property IDs owned by this admin
+                const propertiesQuery = query(
+                    collection(db, "properties"),
+                    where("ownerId", "==", adminId)
+                );
 
-                snapshot.docs.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const issues: Issue[] = data.issues ?? [];
+                const propertiesSnapshot = await getDocs(propertiesQuery);
 
-                    issues.forEach((issue) => {
-                        const status = issue.status ?? "open";
-                        const assigned = !!issue.assignedTo;
+                if (propertiesSnapshot.empty) {
+                    console.log("ℹ️ Admin has no properties - no notifications to display");
+                    if (isMounted) setNotifications([]);
+                    return;
+                }
 
-                        // ✅ Firebase-based read logic: check if uid is in readBy array
-                        const isRead = issue.readBy?.includes(uid) === true;
+                // Extract property IDs into a Set for fast lookup
+                const propertyIds = new Set(propertiesSnapshot.docs.map(doc => doc.id));
+                console.log(`✅ Found ${propertyIds.size} properties for admin ${adminId}`);
 
-                        let title = "New Issue Created";
-                        let type: Notification["type"] = "info";
+                // Step 2: Subscribe to ALL issues (we'll filter by propertyId on the client side)
+                // Note: Firestore doesn't support querying nested array fields directly,
+                // so we need to fetch all issue documents and filter in memory
+                const issuesQuery = collection(db, "issues");
 
-                        if (assigned || status === "in_progress") {
-                            title = "Issue Assigned";
-                            type = "warning";
-                        } else if (status === "resolved") {
-                            title = "Issue Resolved";
-                            type = "success";
-                        }
+                unsubscribe = onSnapshot(
+                    issuesQuery,
+                    (snapshot) => {
+                        if (!isMounted) return;
 
-                        if (!issue.readBy?.includes(uid)) {
-                            nextNotifications.push({
-                                colId: docSnap.id,
-                                id: issue.id,
-                                title,
-                                message: issue.title || issue.description || "No details available",
-                                type,
-                                read: isRead,
-                                createdAt: toDate(issue.createdAt) ?? new Date(),
-                                link: role === "staff"
-                                    ? `/staff/issues/${issue.id}`
-                                    : `/admin/issues/${issue.id}`,
+                        console.log(`📊 Received ${snapshot.docs.length} issue documents`);
+
+                        // Use a Map to prevent duplicate issue IDs
+                        const notificationsMap = new Map<string, Notification>();
+
+                        snapshot.docs.forEach((docSnap) => {
+                            const data = docSnap.data();
+
+                            // ✅ Each document has an 'issues' array field
+                            const issuesArray: Issue[] = data.issues ?? [];
+
+                            // Process each issue in the array
+                            issuesArray.forEach((issue) => {
+                                // ✅ CRITICAL: propertyId is INSIDE each issue object
+                                // Only process issues that belong to admin's properties
+                                if (!propertyIds.has(issue.propertyId)) {
+                                    return; // Skip issues not owned by this admin
+                                }
+
+                                // Only process unread notifications
+                                if (issue.readBy?.includes(uid)) {
+                                    return; // Skip already read issues
+                                }
+
+                                const status = issue.status ?? "open";
+                                const assigned = !!issue.assignedTo;
+
+                                let title = "New Issue Created";
+                                let type: Notification["type"] = "info";
+
+                                if (assigned || status === "in_progress") {
+                                    title = "Issue Assigned";
+                                    type = "warning";
+                                } else if (status === "resolved") {
+                                    title = "Issue Resolved";
+                                    type = "success";
+                                }
+
+                                const notification: Notification = {
+                                    colId: docSnap.id,
+                                    id: issue.id,
+                                    title,
+                                    message: issue.title || issue.description || "No details available",
+                                    type,
+                                    read: false, // We already filtered out read ones
+                                    createdAt: toDate(issue.createdAt) ?? new Date(),
+                                    link: role === "staff"
+                                        ? `/staff/issues/${issue.id}`
+                                        : `/admin/issues/${issue.id}`,
+                                };
+
+                                // ✅ Map automatically prevents duplicates by issue.id
+                                notificationsMap.set(issue.id, notification);
                             });
+                        });
+
+                        // Convert Map to sorted array
+                        const allNotifications = Array.from(notificationsMap.values())
+                            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+                        console.log(`✅ Filtered ${allNotifications.length} notifications for admin's properties`);
+
+                        if (isMounted) {
+                            setNotifications(allNotifications);
                         }
-                    });
-                });
+                    },
+                    (error) => {
+                        console.error("❌ Issues snapshot error:", error);
+                    }
+                );
 
-                setNotifications(nextNotifications);
-            },
-            (error) => {
-                console.error("❌ Issues snapshot error:", error);
+            } catch (error) {
+                console.error("❌ Error setting up notification listener:", error);
+                if (isMounted) setNotifications([]);
             }
-        );
+        };
 
-        return unsubscribe;
+        // Initialize listener
+        setupNotificationListener();
+
+        // Cleanup function
+        return () => {
+            isMounted = false;
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [setNotifications, role, uid, adminId]);
 
     const handleMarkAllAsRead = () => {
