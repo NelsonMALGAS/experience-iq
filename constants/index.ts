@@ -68,7 +68,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vPAGanontDcTuDaUws5J1"
           : "PROD_PRICE_ID_STARTER_MONTHLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_7sYaEXbggaRR4Ei7neenS0h"
+          ? "https://buy.stripe.com/test_8x228racc0dd7Qu4b2enS0p"
           : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
       },
       yearly: {
@@ -77,7 +77,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vgLGanontDcTun1I3jrE4"
           : "PROD_PRICE_ID_STARTER_YEARLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_14A6oHckkbVV6Mq36YenS0l"
+          ? "https://buy.stripe.com/test_5kQdR99881hh3Ae8rienS0t"
           : "PROD_PAYMENT_LINK_STARTER_YEARLY",
       },
     },
@@ -107,7 +107,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vSYGanontDcTusTMMUNXi"
           : "PROD_PRICE_ID_GROWTH_MONTHLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_00waEX5VW1hhfiWgXOenS0i"
+          ? "https://buy.stripe.com/test_bJe3cv9885xxfiWgXOenS0q"
           : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
       },
       yearly: {
@@ -116,7 +116,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vk0GanontDcTu4y3lRzWv"
           : "PROD_PRICE_ID_GROWTH_YEARLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_cNi28r4RS9NN1s66jaenS0m"
+          ? "https://buy.stripe.com/test_6oU14n2JKcZZdaO8rienS0u"
           : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
       },
     },
@@ -147,7 +147,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vVoGanontDcTu5kDIA2RQ"
           : "PROD_PRICE_ID_PRO_MONTHLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_9B6cN5ess0dd2waePGenS0j"
+          ? "https://buy.stripe.com/test_28E28r1FG5xxfiW22UenS0r"
           : "PROD_PAYMENT_LINK_PRO_MONTHLY",
       },
       yearly: {
@@ -156,7 +156,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vnEGanontDcTufvnhGIZX"
           : "PROD_PRICE_ID_PRO_YEARLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_bJeaEXacc3pp7Qu0YQenS0n"
+          ? "https://buy.stripe.com/test_8x26oHbgg0ddb2GbDuenS0v"
           : "PROD_PAYMENT_LINK_PRO_YEARLY",
       },
     },
@@ -187,7 +187,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vYKGanontDcTuW103cZfG"
           : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_dRmaEX4RS0ddfiWfTKenS0k"
+          ? "https://buy.stripe.com/test_00w7sL1FG6BB8Uy8rienS0s"
           : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
       },
       yearly: {
@@ -196,7 +196,7 @@ export const PRICE_PLANS: PricePlan[] = [
           ? "price_1T3vqGGanontDcTuc3fnsOeI"
           : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
         paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_6oU5kD1FGe43eeSePGenS0o"
+          ? "https://buy.stripe.com/test_00w5kD1FGbVV1s64b2enS0w"
           : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
       },
     },
