@@ -5,11 +5,11 @@ import {
   PlusCircle,
   ClipboardList,
   Building2,
-  Users,
   CalendarClock,
   type LucideIcon,
   Clock,
   Activity,
+  BarChart3,
 } from "lucide-react";
 
 // Environment-aware pricing configuration
@@ -221,7 +221,7 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
-    { label: "Users", href: "/admin/users", icon: Users },
+    { label: "Insights", href: "/admin/insights", icon: BarChart3 },
     { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
 } as const;
@@ -371,6 +371,105 @@ export const priorityConfig = {
     icon: Clock,
   },
 };
+
+// Types for Experience Intelligence Dashboard
+
+export interface ExperienceMetrics {
+  overallSatisfaction: number;
+  satisfactionTrend?: number; // Percentage change
+  activeAlerts: number;
+  avgResponseTime: number; // in minutes
+  responseTimeTrend?: number; // Percentage change
+  sentimentRisk: "low" | "medium" | "high";
+}
+
+export interface CriticalAlert {
+  id: string;
+  guest: string;
+  roomNumber: string;
+  issue: string;
+  severity: "high" | "medium" | "low";
+  reportedMinutesAgo: number;
+  category?: "maintenance" | "housekeeping" | "service" | "noise" | "other";
+  assignedTo?: string;
+  status?: "pending" | "in_progress" | "resolved";
+}
+
+export interface AIInsight {
+  id: string;
+  insight: string;
+  priority: "high" | "medium" | "low";
+  category?: "operations" | "satisfaction" | "performance" | "trends";
+  actionable?: boolean;
+  timestamp?: Date;
+}
+
+export interface SentimentData {
+  label: "positive" | "neutral" | "negative";
+  value: number; // Percentage (0-100)
+  count?: number; // Actual count of responses
+  color: string; // Tailwind class
+}
+
+export interface SatisfactionTrendPoint {
+  day: string; // e.g., "Mon", "Tue" or "2024-01-15"
+  date?: Date;
+  score: number; // 0-5
+  totalResponses?: number;
+}
+
+export interface GuestIssue extends CriticalAlert {
+  guestId?: string;
+  propertyId?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  resolvedAt?: Date;
+  resolutionTime?: number; // in minutes
+  guestSatisfactionAfterResolution?: number;
+}
+
+export interface OperationalInsight extends AIInsight {
+  affectedRooms?: string[];
+  affectedShifts?: string[];
+  impactScore?: number; // 0-100
+  suggestedAction?: string;
+}
+
+// Response types for API calls
+export interface ExperienceIntelligenceResponse {
+  metrics: ExperienceMetrics;
+  alerts: CriticalAlert[];
+  insights: AIInsight[];
+  sentimentBreakdown?: SentimentData[];
+  satisfactionTrend?: SatisfactionTrendPoint[];
+  lastUpdated: Date;
+}
+
+// Filter types for querying data
+export interface ExperienceDataFilters {
+  propertyId?: string;
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+  severity?: Array<"high" | "medium" | "low">;
+  alertStatus?: Array<"pending" | "in_progress" | "resolved">;
+  categories?: string[];
+}
+
+// Dashboard configuration
+export interface DashboardConfig {
+  refreshIntervalMs: number;
+  alertThresholds: {
+    critical: number;
+    warning: number;
+  };
+  displayOptions: {
+    showTrends: boolean;
+    showAIInsights: boolean;
+    maxAlertsDisplayed: number;
+  };
+}
 
 export const years = Array.from(
   { length: 11 },

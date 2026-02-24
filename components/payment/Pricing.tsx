@@ -13,151 +13,116 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import { cn } from "@/lib/utils";
 
-type PricingProps = {
-    uid?: string;
-    needsPayment?: boolean;
-};
-
-const Pricing = ({ needsPayment }: PricingProps) => {
+export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const { currentUser } = useCurrentUser();
 
-    console.log("PRICING COMPONENT VERSION 2 LOADED");
+    const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 
-    const formatPrice = (price: number) => {
-        return price.toLocaleString("en-ZA");
-    };
+    const formatPrice = (price: number) =>
+        price.toLocaleString("en-ZA");
 
     const getPaymentLink = (baseLink: string) => {
         const email = currentUser?.email || "";
-
-        if (!email) {
-            return baseLink;
-        }
-
-        // Check if the base link already has query parameters
-        const separator = baseLink.includes('?') ? '&' : '?';
-
+        if (!email) return baseLink;
+        const separator = baseLink.includes("?") ? "&" : "?";
         return `${baseLink}${separator}prefilled_email=${email}`;
     };
 
-    const yearlyDiscountLabel = useMemo(() => {
-        return "Save 20%";
-    }, []);
-
     return (
-        <div className="min-h-screen bg-background py-16 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-background py-24 px-4">
+            <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
                         {needsPayment
                             ? "Reactivate Your Subscription"
                             : "Simple, Transparent Pricing"}
                     </h1>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                    <p className="mt-5 text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
                         {needsPayment
                             ? "Choose a plan to continue accessing all features."
-                            : "Choose a plan that fits your hospitality operation."}
+                            : "Flexible pricing built for modern hospitality operations."}
                     </p>
                 </div>
 
                 {/* Billing Toggle */}
-                <div className="flex flex-col items-center gap-4 mb-12">
-                    <div className="inline-flex items-center rounded-lg bg-muted p-1 gap-1">
+                <div className="flex justify-center mb-16">
+                    <div className="inline-flex items-center rounded-full bg-muted p-1">
                         <Button
-                            type="button"
-                            variant="ghost"
+                            variant={billing === "monthly" ? "default" : "ghost"}
                             onClick={() => setBilling("monthly")}
-                            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${billing === "monthly"
-                                ? "bg-background text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                                }`}
+                            className="rounded-full px-6"
                         >
                             Monthly
                         </Button>
 
                         <Button
-                            type="button"
-                            variant="ghost"
+                            variant={billing === "yearly" ? "default" : "ghost"}
                             onClick={() => setBilling("yearly")}
-                            className={`px-6 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${billing === "yearly"
-                                ? "bg-background text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                                }`}
+                            className="rounded-full px-6 flex items-center gap-2"
                         >
                             Yearly
-                            {billing === "yearly" && (
-                                <Badge variant="secondary" className="text-xs">
-                                    {yearlyDiscountLabel}
-                                </Badge>
-                            )}
+                            <Badge variant="secondary" className="text-xs">
+                                {yearlyDiscountLabel}
+                            </Badge>
                         </Button>
                     </div>
-
-                    {billing === "yearly" && (
-                        <p className="text-sm text-muted-foreground">
-                            Billed annually at a 20% discount.
-                        </p>
-                    )}
                 </div>
 
-                {/* Pricing Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Pricing Grid */}
+                <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4 items-stretch">
                     {PRICE_PLANS.map((plan) => {
                         const isPro = plan.id === "pro";
                         const currentPricing = plan.pricing[billing];
-                        const paymentLink = getPaymentLink(
-                            currentPricing.paymentLink,
-                        );
+                        const paymentLink = getPaymentLink(currentPricing.paymentLink);
 
                         return (
                             <Card
                                 key={plan.id}
-                                className={`relative flex flex-col rounded-2xl transition-all duration-200 hover:shadow-lg ${isPro
-                                    ? "ring-2 ring-primary scale-[1.03] shadow-xl"
-                                    : "hover:scale-[1.02]"
-                                    }`}
+                                className={cn(
+                                    "relative flex flex-col rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl",
+                                    isPro && "border-primary shadow-xl scale-[1.02]"
+                                )}
                             >
                                 {isPro && (
-                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                                        <Badge className="bg-primary text-primary-foreground">
-                                            Most Popular
-                                        </Badge>
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                        <Badge>Most Popular</Badge>
                                     </div>
                                 )}
 
-                                <CardHeader className="pb-6">
-                                    <CardTitle className="text-2xl font-bold">
+                                <CardHeader className="pb-4 space-y-3">
+                                    <CardTitle className="text-xl font-semibold">
                                         {plan.title}
                                     </CardTitle>
-                                    <CardDescription className="text-sm">
+                                    <CardDescription className="leading-relaxed">
                                         {plan.description}
                                     </CardDescription>
                                 </CardHeader>
 
-                                <CardContent className="flex-1 flex flex-col">
+                                <CardContent className="flex flex-col gap-8 pt-2">
                                     {/* Price */}
-                                    <div className="mb-6">
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-4xl font-bold text-foreground">
+                                    <div>
+                                        <div className="flex items-end gap-2">
+                                            <span className="text-4xl font-bold tracking-tight">
                                                 R{formatPrice(currentPricing.price)}
                                             </span>
-                                            <span className="text-muted-foreground">
+                                            <span className="text-sm text-muted-foreground mb-1">
                                                 /{billing === "monthly" ? "month" : "year"}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Features */}
-                                    <ul className="space-y-3 mb-8 flex-1">
+                                    <ul className="space-y-3">
                                         {plan.info.map((feature, index) => (
                                             <li key={index} className="flex items-start gap-3">
-                                                <div className="rounded-full bg-primary/10 p-1 mt-0.5 shrink-0">
+                                                <div className="mt-1 rounded-full bg-primary/10 p-1">
                                                     <Check className="h-3.5 w-3.5 text-primary" />
                                                 </div>
-                                                <span className="text-sm text-muted-foreground">
+                                                <span className="text-sm text-muted-foreground leading-relaxed">
                                                     {feature}
                                                 </span>
                                             </li>
@@ -165,15 +130,18 @@ const Pricing = ({ needsPayment }: PricingProps) => {
                                     </ul>
 
                                     {/* CTA */}
-                                    <a
-                                        href={paymentLink}
-                                        className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full ${isPro
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                                            }`}
-                                    >
-                                        {needsPayment ? "Reactivate" : "Subscribe"}
-                                    </a>
+                                    <div className="mt-auto">
+                                        <Button
+                                            asChild
+                                            size="lg"
+                                            variant={isPro ? "default" : "secondary"}
+                                            className="w-full rounded-xl"
+                                        >
+                                            <a href={paymentLink}>
+                                                {needsPayment ? "Reactivate" : "Subscribe"}
+                                            </a>
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         );
@@ -181,26 +149,15 @@ const Pricing = ({ needsPayment }: PricingProps) => {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-16 text-center">
-                    {!needsPayment && (
-                        <p className="text-sm text-muted-foreground">
-                            All plans include a 14-day free trial. No credit card required.
-                        </p>
-                    )}
-
-                    <p className="text-sm text-muted-foreground mt-2">
+                <div className="mt-20 text-center">
+                    <p className="text-sm text-muted-foreground">
                         Need a custom plan?{" "}
-                        <a
-                            href="#"
-                            className="text-primary hover:underline font-medium"
-                        >
-                            Contact our sales team
+                        <a href="#" className="text-primary font-medium hover:underline">
+                            Contact sales
                         </a>
                     </p>
                 </div>
             </div>
         </div>
     );
-};
-
-export default Pricing;
+}
