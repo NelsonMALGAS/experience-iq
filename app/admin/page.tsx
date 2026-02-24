@@ -69,14 +69,14 @@ const AdminDashboard = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId } = verificationResult;
 
 
     // 🚫 Unverified state (this is fast because no data fetching)
     if (!canAccessData) {
         return (
             <div className="mt-16 sm:mt-20 lg:mt-24">
-                <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
                     <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
@@ -127,7 +127,7 @@ const AdminDashboard = async () => {
     // 🚀 CRITICAL OPTIMIZATION: Return INSTANT shell, stream data sections
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={true}>
+            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT: Header renders immediately with no await */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

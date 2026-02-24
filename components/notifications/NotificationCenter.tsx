@@ -22,9 +22,10 @@ import { NotificationItem } from './NotificationContentAndIcon';
 type NotificationCenterType = {
     role: Role
     uid: AppUser["uid"]
+    adminId: string | null | undefined
 }
 
-export function NotificationCenter({ role, uid }: NotificationCenterType) {
+export function NotificationCenter({ role, uid, adminId }: NotificationCenterType) {
     const {
         notifications,
         unreadCount,
@@ -36,8 +37,14 @@ export function NotificationCenter({ role, uid }: NotificationCenterType) {
 
     const handleClose = () => setOpen(false);
 
+    // TODO: Make use of adminId to fetch issues that belong to properties of the admin
+
+    console.log(adminId, "ADMIN_ID(NotificationCenter)")
+
     // Subscribe to Firestore issues
     useEffect(() => {
+
+        if (!adminId) return
         const q = collection(db, "issues");
 
         const unsubscribe = onSnapshot(
@@ -92,7 +99,7 @@ export function NotificationCenter({ role, uid }: NotificationCenterType) {
         );
 
         return unsubscribe;
-    }, [setNotifications, role, uid]);
+    }, [setNotifications, role, uid, adminId]);
 
     const handleMarkAllAsRead = () => {
         markAllAsRead(uid);

@@ -73,7 +73,7 @@ const StaffDashboard = async () => {
     if (!canAccessData) {
         return (
             <div className="mt-16 sm:mt-20 lg:mt-24">
-                <DashboardLayout role={role} uid={uid} isVerified={isVerified}>
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
                     <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
@@ -122,7 +122,7 @@ const StaffDashboard = async () => {
     // 🚀 INSTANT shell with progressive streaming
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={true}>
+            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId}>
                 <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

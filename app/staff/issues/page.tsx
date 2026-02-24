@@ -1,13 +1,14 @@
 
-import { fetchAllIssues, getStaffUsers } from "@/app/optimised-actions";
+import { getStaffUsers } from "@/app/optimised-actions";
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import StaffIssues from "@/components/issues/StaffIssues"
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import Unverified from "@/components/Unverified";
-import { staffColorPalette } from "@/constants";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
-import { Role, StaffMember } from "@/types";
+import { Role } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -66,7 +67,7 @@ const StaffIssuesPage = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
 
@@ -75,22 +76,34 @@ const StaffIssuesPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} />
     }
 
+    if (!subscription || !subscription.hasAccess || !adminId) {
 
-    const [allIssues, staffUsers] = await Promise.all([fetchAllIssues(), getStaffUsers()])
+        return <SubscriptionBanner type="staff" />
+    }
 
-    const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-        id: user.id,
-        name: user.name ?? user.email ?? "Unknown",
-        email: user.email ?? "unknown@example.com",
-        isVerified: user.isVerified ?? false,
-        color: staffColorPalette[index % staffColorPalette.length],
-        department: user.department || "other",
-        role: user.role || "guest"
-    }));
+
+    const [data, plainStaffUsers] = await Promise.all([fetchPropertiesWithStats(adminId), getStaffUsers()])
+    const allIssues = data.issues
+
+    // const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
+    //     id: user.id,
+    //     name: user.name ?? user.email ?? "Unknown",
+    //     email: user.email ?? "unknown@example.com",
+    //     isVerified: user.isVerified ?? false,
+    //     color: staffColorPalette[index % staffColorPalette.length],
+    //     department: user.department || "other",
+    //     role: user.role || "guest"
+    // }));
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24">
-                <StaffIssues role={role || "staff"} uid={uid} issues={allIssues} staff={plainStaffUsers} isVerified={isVerified} />
+                <StaffIssues
+                    role={role || "staff"}
+                    uid={uid} issues={allIssues}
+                    staff={plainStaffUsers}
+                    isVerified={isVerified}
+                    adminId={adminId}
+                />
             </div>
         </Suspense>
     )

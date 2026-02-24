@@ -93,7 +93,7 @@ export async function requireVerifiedUser(
         role: "admin",
         canAccessData: isVerified,
         subscription,
-        adminId: null,
+        adminId: uid,
       };
     }
 
