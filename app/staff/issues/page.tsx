@@ -85,15 +85,6 @@ const StaffIssuesPage = async () => {
     const [data, plainStaffUsers] = await Promise.all([fetchPropertiesWithStats(adminId), getStaffUsers()])
     const allIssues = data.issues
 
-    // const plainStaffUsers: StaffMember[] = staffUsers.map((user, index) => ({
-    //     id: user.id,
-    //     name: user.name ?? user.email ?? "Unknown",
-    //     email: user.email ?? "unknown@example.com",
-    //     isVerified: user.isVerified ?? false,
-    //     color: staffColorPalette[index % staffColorPalette.length],
-    //     department: user.department || "other",
-    //     role: user.role || "guest"
-    // }));
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24">
