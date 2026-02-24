@@ -115,7 +115,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         return errors;
     };
 
-    // ✅ FIXED: Google Sign-In now redirects to onboarding for staff/admin
+    // Google Sign-In redirects to onboarding for staff/admin
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         try {
@@ -135,9 +135,9 @@ const AuthForm = ({ role }: AuthFormType) => {
                 body: JSON.stringify({ token, role: userRole, department }),
             });
 
-            toast.success("Logged in successfully", {
+            toast.success("🎉 Success", {
                 position: "top-center",
-                description: "🎉 Success",
+                description: "Logged in successfully",
             });
 
             // ✅ FIXED: Redirect to onboarding for staff/admin
@@ -148,9 +148,9 @@ const AuthForm = ({ role }: AuthFormType) => {
             }
         } catch (error) {
             console.error("Sign-in error:", error);
-            toast.error("Failed to login", {
+            toast.error("🚨 Error", {
                 position: "top-center",
-                description: "🚨 Error",
+                description: "Failed to login",
             });
         } finally {
             setIsLoading(false);
@@ -193,9 +193,9 @@ const AuthForm = ({ role }: AuthFormType) => {
             }
 
             // ✅ FIXED: Redirect to onboarding after successful auth
-            toast.success(mode === "signup" ? "Account created successfully" : "Logged in successfully", {
+            toast.success("🎉 Success", {
                 position: "top-center",
-                description: "🎉 Success",
+                description: mode === "signup" ? "Account created successfully" : "Logged in successfully",
             });
 
             // ✅ Redirect to onboarding for staff/admin
@@ -206,9 +206,9 @@ const AuthForm = ({ role }: AuthFormType) => {
             }
         } catch (error) {
             console.error("Auth error:", error);
-            toast.error(mode === "signup" ? "Failed to create account" : "Failed to login", {
+            toast.error("🚨 Error", {
                 position: "top-center",
-                description: "🚨 Error",
+                description: mode === "signup" ? "Failed to create account" : "Failed to login",
             });
         } finally {
             setIsLoading(false);
