@@ -1,10 +1,10 @@
 import AdminOnboardingForm from "@/components/AdminOnboardingForm";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
-import { auth } from "@/db/server";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+
 
 
 export const metadata: Metadata = {
@@ -55,12 +55,8 @@ const StaffOnboarding = async () => {
     const session = cookieStore?.get("_SESSION_")?.value;
     const role: Role = "staff"
 
-    if (!session) redirect(`/login?role=${role}`);
-
-    const decoded = await auth?.verifySessionCookie(session, true);
-
-    if (!decoded) redirect(`/login?role=${role}`)
-    const uid = decoded.uid;
+    const verificationResult = await requireVerifiedUser(session, role);
+    const { uid } = verificationResult;
 
     return (
         <div className="mt-24">

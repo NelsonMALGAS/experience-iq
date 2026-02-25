@@ -282,6 +282,33 @@ export const months = [
   "December",
 ];
 
+export const placeholderAdminProperties = [
+  {
+    id: crypto.randomUUID(),
+    name: "-",
+    location: "-",
+    totalIssues: 0,
+    resolvedIssues: 0,
+    openIssues: 0,
+    avgResolutionTime: 0,
+    code: "",
+    rooms: [],
+    ownerId: "placeholderUID",
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "-",
+    location: "-",
+    totalIssues: 0,
+    resolvedIssues: 0,
+    openIssues: 0,
+    avgResolutionTime: 0,
+    code: "",
+    rooms: [],
+    ownerId: "placeholderUID",
+  },
+];
+
 export const shiftTemplates = [
   {
     label: "Morning",
