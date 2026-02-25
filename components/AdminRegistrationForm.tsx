@@ -337,7 +337,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                                     value={selectedProperty}
                                     onChange={handlePropertyChange}
                                     placeholder="Search and select a property..."
-                                    limit={2}
+                                    limit={10}
                                 />
 
                                 {errors.selectedProperty && (
