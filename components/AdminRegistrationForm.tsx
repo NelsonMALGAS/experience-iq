@@ -1,7 +1,7 @@
 "use client";
 
 import { AppUser, IssueCategory, Property, Role } from "@/types";
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useCurrentUser from "@/hooks/useCurrentUser";
@@ -15,11 +15,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { placeholderAdminProperties, STAFF_DEPARTMENTS } from "@/constants";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/db/client";
-import { Loader2 } from "lucide-react";
+import { STAFF_DEPARTMENTS } from "@/constants";
 import Image from "next/image";
+import { PropertySelect } from "./properties/PropertySelect";
 
 type AdminRegistrationFormProps = {
     role: Role;
@@ -35,61 +33,58 @@ type FormErrors = {
 
 const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
     const { currentUser, loading } = useCurrentUser();
-    const [properties] = useState<Property[]>(placeholderAdminProperties);
+    const [properties, setProperties] = useState<Property[]>([]);
     const [department, setDepartment] = useState<IssueCategory>("other");
     const [name, setName] = useState(currentUser?.displayName || "");
     const [errors, setErrors] = useState<FormErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
     // Staff-specific state
-    const [availableProperties, setAvailableProperties] = useState<Property[]>([]);
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [adminId, setAdminId] = useState<string | undefined>(undefined);
-    const [loadingProperties, setLoadingProperties] = useState(false);
 
     const router = useRouter();
 
-    // Fetch available properties for staff
+    // Initialize placeholder properties for admin
     useEffect(() => {
-        if (role !== "staff") return;
-
-        setLoadingProperties(true);
-
-        const propertiesRef = collection(db, "properties");
-        const unsubscribe = onSnapshot(
-            propertiesRef,
-            (snapshot) => {
-                const fetchedProperties: Property[] = [];
-                snapshot.forEach((doc) => {
-                    fetchedProperties.push({
-                        id: doc.id,
-                        ...doc.data(),
-                    } as Property);
-                });
-
-                setAvailableProperties(fetchedProperties);
-                setLoadingProperties(false);
-            },
-            (error) => {
-                console.error("Error fetching properties:", error);
-                toast.error("Failed to load properties");
-                setLoadingProperties(false);
-            }
-        );
-
-        return () => unsubscribe();
-    }, [role]);
+        if (role === "admin") {
+            setProperties([
+                {
+                    id: crypto.randomUUID(),
+                    name: "-",
+                    location: "-",
+                    totalIssues: 0,
+                    resolvedIssues: 0,
+                    openIssues: 0,
+                    avgResolutionTime: 0,
+                    code: "",
+                    rooms: [],
+                    ownerId: uid,
+                },
+                {
+                    id: crypto.randomUUID(),
+                    name: "-",
+                    location: "-",
+                    totalIssues: 0,
+                    resolvedIssues: 0,
+                    openIssues: 0,
+                    avgResolutionTime: 0,
+                    code: "",
+                    rooms: [],
+                    ownerId: uid,
+                },
+            ]);
+        }
+    }, [role, uid]);
 
     // Handle staff property selection
-    const handlePropertySelect = (propertyId: string) => {
-        const property = availableProperties.find((p) => p.id === propertyId);
+    const handlePropertyChange = useCallback((property: Property | null) => {
+        setSelectedProperty(property);
+        setAdminId(property?.ownerId ?? undefined);
         if (property) {
-            setSelectedProperty(property);
-            setAdminId(property.ownerId ?? undefined);
             setErrors((prev) => ({ ...prev, selectedProperty: undefined }));
         }
-    };
-
+    }, []);
 
     // --- VALIDATION ---
     const validate = (): FormErrors => {
@@ -99,27 +94,17 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
             newErrors.name = "Name is required";
         }
 
-        if (role === "admin" && properties.length === 0) {
-            newErrors.properties = "At least one property is required";
-        }
-
         if (role === "staff" && !selectedProperty) {
             newErrors.selectedProperty = "Please select a property";
         }
 
         if (role === "staff" && selectedProperty && !selectedProperty.ownerId) {
-            newErrors.selectedProperty = "Selected property has no owner. Please contact administrator.";
+            newErrors.selectedProperty =
+                "Selected property has no owner. Please contact administrator.";
         }
 
         if (role === "staff" && !department) {
             newErrors.department = "Please select a department";
-        }
-
-        if (
-            role === "admin" &&
-            properties.some((p) => !p.name.trim() || !p.location.trim())
-        ) {
-            newErrors.properties = "Property name and location are required";
         }
 
         return newErrors;
@@ -159,11 +144,9 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                 };
 
             case "staff": {
-                // Type guard: ensures selectedProperty is not null
                 if (!selectedProperty) {
                     throw new Error("Staff must have a selected property");
                 }
-                // Explicit type assertion
                 const staffProperty: Property = selectedProperty;
                 return {
                     ...base,
@@ -223,15 +206,17 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
             }
 
             if (response.status === 201) {
-                // 🔁 Refresh token BEFORE redirect so custom claims are available
                 await currentUser.getIdToken(true);
-
-                toast.success("🎉 Success", { description: "User successfully registered" });
+                toast.success("🎉 Success", {
+                    description: "User successfully registered",
+                });
                 router.push(`/${role}`);
                 return;
             }
 
-            toast.error("🚨 Error", { description: result?.error ?? "Something went wrong" });
+            toast.error("🚨 Error", {
+                description: result?.error ?? "Something went wrong",
+            });
         } catch (err) {
             console.error(err);
             toast.error("Unexpected error occurred");
@@ -268,7 +253,6 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
 
                 {/* Card */}
                 <div className="bg-card border rounded-2xl shadow-sm p-8 space-y-6">
-
                     <div className="space-y-1">
                         <h2 className="text-xl font-semibold capitalize">
                             {role} Registration
@@ -283,20 +267,21 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="mt-24 space-y-6 max-w-xl">
-                        <h2 className="text-xl font-semibold">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`} Onboarding</h2>
-
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Name Input */}
                         <div className="space-y-2">
+                            <label className="text-sm font-medium">Full Name</label>
                             <Input
-                                placeholder="Full Name"
+                                placeholder="Enter your full name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 disabled={!!currentUser?.displayName}
                             />
 
                             {errors.name && (
-                                <p className="text-sm text-destructive">{errors.name}</p>
+                                <p className="text-sm text-destructive">
+                                    {errors.name}
+                                </p>
                             )}
 
                             {currentUser?.displayName && (
@@ -309,7 +294,9 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                         {/* Staff Department Selection */}
                         {role === "staff" && (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Department</label>
+                                <label className="text-sm font-medium">
+                                    Department
+                                </label>
 
                                 <Select
                                     value={department}
@@ -324,7 +311,8 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                                     <SelectContent>
                                         {STAFF_DEPARTMENTS.map((dept) => (
                                             <SelectItem key={dept} value={dept}>
-                                                {dept.charAt(0).toUpperCase() + dept.slice(1)}
+                                                {dept.charAt(0).toUpperCase() +
+                                                    dept.slice(1)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -338,72 +326,44 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                             </div>
                         )}
 
-                        {/* Staff Property Selection */}
+                        {/* Staff Property Selection - WITH INFINITE SCROLL */}
                         {role === "staff" && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">
                                     Select Property
                                 </label>
 
-                                {loadingProperties ? (
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span className="text-sm">Loading properties...</span>
-                                    </div>
-                                ) : availableProperties.length === 0 ? (
-                                    <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4">
-                                        <p className="text-sm text-destructive">
-                                            No properties available. Please contact an administrator.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <Select
-                                            value={selectedProperty?.id ?? ""}
-                                            onValueChange={handlePropertySelect}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a property" />
-                                            </SelectTrigger>
+                                <PropertySelect
+                                    value={selectedProperty}
+                                    onChange={handlePropertyChange}
+                                    placeholder="Search and select a property..."
+                                    limit={2}
+                                />
 
-                                            <SelectContent>
-                                                {availableProperties.map((property) => (
-                                                    <SelectItem
-                                                        key={property.id}
-                                                        value={property.id}
-                                                    >
-                                                        {property.name} - {property.location}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                {errors.selectedProperty && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.selectedProperty}
+                                    </p>
+                                )}
 
-                                        {errors.selectedProperty && (
-                                            <p className="text-sm text-destructive">
-                                                {errors.selectedProperty}
-                                            </p>
-                                        )}
-
-                                        {selectedProperty && (
-                                            <p className="text-xs text-muted-foreground">
-                                                You will be assigned to{" "}
-                                                <span className="font-medium">
-                                                    {selectedProperty.name}
-                                                </span>
-                                            </p>
-                                        )}
-                                    </>
+                                {selectedProperty && (
+                                    <p className="text-xs text-muted-foreground">
+                                        You will be assigned to{" "}
+                                        <span className="font-medium">
+                                            {selectedProperty.name}
+                                        </span>
+                                    </p>
                                 )}
                             </div>
                         )}
 
                         {/* Admin Property Info */}
                         {role === "admin" && (
-                            <div className="rounded-lg border border-accent-foreground bg-card p-4">
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="shrink-0 w-8 h-8 rounded-full bg-card-foreground flex items-center justify-center">
+                                    <div className="shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
                                         <svg
-                                            className="w-5 h-5 text-foreground"
+                                            className="w-5 h-5 text-blue-600 dark:text-blue-400"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
@@ -417,36 +377,41 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                                         </svg>
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-sm font-semibold text-foreground/20 mb-1">
+                                        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
                                             Property Management
                                         </h3>
-                                        <p className="text-sm text-foreground">
-                                            You&apos;ll be able to add and manage properties after completing your subscription.
-                                            This allows you to configure multiple properties, add rooms, and customize settings
-                                            for your hospitality business.
+                                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                                            You&apos;ll be able to add and manage
+                                            properties after completing your
+                                            subscription. This allows you to configure
+                                            multiple properties, add rooms, and
+                                            customize settings for your hospitality
+                                            business.
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-
                         {/* Submit Button */}
                         <Button
                             type="submit"
-                            disabled={
-                                submitting ||
-                                (role === "staff" &&
-                                    (loadingProperties || availableProperties.length === 0))
-                            }
+                            disabled={submitting}
+                            className="w-full"
+                            size="lg"
                         >
                             {submitting ? "Submitting..." : "Complete Registration"}
                         </Button>
                     </form>
                 </div>
+
                 {/* Footer */}
                 <p className="text-center text-xs text-muted-foreground">
-                    © {new Date().getFullYear()} <span className="text-primary font-semibold">ExperienceIQ</span>. All rights reserved.
+                    © {new Date().getFullYear()}{" "}
+                    <span className="text-primary font-semibold">
+                        ExperienceIQ
+                    </span>
+                    . All rights reserved.
                 </p>
             </div>
         </div>
