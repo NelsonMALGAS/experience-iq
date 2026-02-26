@@ -48,12 +48,20 @@ const Header = () => {
                         </Button>
                     )}
 
-                    <Button asChild variant="outline">
+                    <Button asChild variant="ghost">
                         <Link
                             href="/policy"
                             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             Policy
+                        </Link>
+                    </Button>
+                    <Button asChild variant="ghost">
+                        <Link
+                            href="/contact"
+                            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                        >
+                            Contact
                         </Link>
                     </Button>
 

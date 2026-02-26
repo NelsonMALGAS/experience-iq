@@ -42,7 +42,7 @@ export default function ClientProviders({
                 <IssueProvider>{children}</IssueProvider>
             </NotificationProvider>
 
-            <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-center" duration={3000} closeButton />
             <PWAServiceWorkerRegister />
         </>
     );
