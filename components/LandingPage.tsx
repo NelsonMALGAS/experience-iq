@@ -14,6 +14,7 @@ import {
     BarChart3,
     QrCode,
     Bell,
+    ArrowDown,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Footer from './Footer';
@@ -93,6 +94,24 @@ export default function LandingPage() {
                         Empower your hospitality team to resolve guest issues before they become
                         complaints. Real-time tracking, SLA management, and insights.
                     </p>
+                    {/* Quick Role Buttons for Immediate Login */}
+                    <div className="flex flex-wrap items-center justify-center gap-4 mt-12">
+                        {roles.map((item) => (
+                            <Button
+                                key={item.role}
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                                onClick={() => handleRoleSelect(item.role)}
+                            >
+                                {item.title}
+                            </Button>
+                        ))}
+                    </div>
+
+                    {/* Scroll Indicator */}
+                    <div className="mt-12 animate-bounce">
+                        <ArrowDown className="h-6 w-6 text-muted-foreground mx-auto" />
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Scroll to explore features & portals</p>
+                    </div>
 
                     <div className="flex flex-wrap items-center justify-center gap-6 mt-12">
                         <div className="flex items-center gap-2 text-muted-foreground">
