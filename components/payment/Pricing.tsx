@@ -16,6 +16,7 @@ import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+
 export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -38,24 +39,37 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
             return;
         }
 
-        const selectedPricing = selectedPlan.pricing[billing];
+        const selectedPricing =
+            billing === "monthly"
+                ? selectedPlan.pricing.monthly
+                : selectedPlan.pricing.yearly;
 
-        console.log(selectedPricing, "SELECTED_PRICING")
+        console.log("Billing:", billing);
+        console.log("Selected pricing:", selectedPricing);
+
+        if (!selectedPricing?.priceId || !selectedPricing?.planCode) {
+            toast.error("Pricing configuration error");
+            return;
+        }
+
         setLoadingPlan(planId);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/paystack/initialize`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: currentUser.email,
-                    userId: currentUser.uid,
-                    planId: selectedPlan.id,
-                    billingInterval: billing,
-                    priceId: selectedPricing.priceId,     // ✅ sending priceId
-                    planCode: selectedPricing.planCode,   // ✅ sending Paystack planCode
-                }),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_URL}/api/paystack/initialize`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        userId: currentUser.uid,
+                        planId: selectedPlan.id,
+                        billingInterval: billing,
+                        priceId: selectedPricing.priceId,
+                        planCode: selectedPricing.planCode,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
@@ -65,7 +79,6 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
 
             window.location.href = data.authorizationUrl;
         } catch (error) {
-            console.error("Subscription error:", error);
             toast.error(
                 error instanceof Error
                     ? error.message

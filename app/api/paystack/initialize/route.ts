@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PRICE_PLANS } from "@/constants";
+import { getPlanByPriceId } from "@/lib/plans";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
@@ -8,8 +8,8 @@ interface InitializeRequest {
   planId: string;
   billingInterval: "monthly" | "yearly";
   userId: string;
-  priceId: string; // ✅ Added priceId
-  planCode: string; // ✅ Added planCode
+  priceId: string;
+  planCode: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -32,9 +32,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Find plan (for validation and getting amount)
-    const plan = PRICE_PLANS.find((p) => p.id === planId);
+    const plan = getPlanByPriceId(priceId);
 
-    console.log(plan, "PLAN");
     if (!plan) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
@@ -53,14 +52,14 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           email,
           amount,
-          plan: planCode, // ✅ Paystack plan code
+          plan: planCode,
           currency: "ZAR",
           metadata: {
             userId,
             planId,
             billingInterval,
-            priceId, // ✅ Include priceId in metadata
-            planCode, // ✅ Include planCode in metadata
+            priceId: plan.pricing[billingInterval].priceId,
+            planCode,
             custom_fields: [
               {
                 display_name: "User ID",

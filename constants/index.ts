@@ -71,7 +71,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_8x228racc0dd7Qu4b2enS0p"
           : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
-        planCode: "PLN_5snp87qgxye8py0",
+        planCode: "PLN_f17rtp913f6lexf",
       },
       yearly: {
         price: 11520,
@@ -154,7 +154,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_28E28r1FG5xxfiW22UenS0r"
           : "PROD_PAYMENT_LINK_PRO_MONTHLY",
-        planCode: "PLN_jzdw4tbyeaocq04",
+        planCode: "PLN_hwo0qmsz86e1ly2",
       },
       yearly: {
         price: 35520,

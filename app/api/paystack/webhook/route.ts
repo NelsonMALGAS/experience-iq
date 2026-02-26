@@ -40,15 +40,12 @@ export async function POST(request: NextRequest) {
 
     const event = JSON.parse(body);
 
-    console.log("Paystack webhook event:", event.event);
-
     switch (event.event) {
       /**
        * CHARGE SUCCESS - Initial payment
        */
       case "charge.success": {
-        const { customer, metadata, reference, amount, status, priceId } =
-          event.data;
+        const { customer, metadata, reference, amount, status } = event.data;
 
         if (status !== "success") break;
 
@@ -59,11 +56,8 @@ export async function POST(request: NextRequest) {
             (f: any) => f.variable_name === "user_id",
           )?.value;
 
-        console.log(userId, "USER_ID");
-        console.log("PLAN 123", priceId);
-
-        if (!email) {
-          console.error("Missing email in charge.success");
+        if (!email || !userId) {
+          console.error("Missing email & userId in charge.success");
           break;
         }
 
@@ -88,7 +82,7 @@ export async function POST(request: NextRequest) {
           "subscription.customerCode": customer?.customer_code || null,
           "subscription.hasAccess": true,
           "subscription.status": status,
-          // "subscription.priceId": priceId,
+          "subscription.priceId": metadata.priceId,
         });
 
         break;
@@ -106,12 +100,9 @@ export async function POST(request: NextRequest) {
           next_payment_date,
           amount,
           email_token,
-          priceId,
         } = event.data;
 
         const email = customer?.email;
-
-        console.log(plan, "PLAN", priceId);
 
         if (!email) {
           console.error("Missing email in subscription.create");
@@ -144,17 +135,15 @@ export async function POST(request: NextRequest) {
           "subscription.hasAccess": hasAccess,
           "subscription.cancelAtPeriodEnd": false,
           "subscription.createdAt": new Date().toISOString(),
-          // "subscription.priceId": priceId,
         });
 
-        console.log("Subscription created for:", email);
         break;
       }
 
       /**
        * SUBSCRIPTION DISABLE - Subscription cancelled
        */
-      case "subscription.disable": {
+      case "subscription.not_renew": {
         const { subscription_code, customer } = event.data;
 
         const email = customer?.email;
@@ -182,7 +171,6 @@ export async function POST(request: NextRequest) {
           "subscription.cancelledAt": new Date().toISOString(),
         });
 
-        console.log("Subscription cancelled:", subscription_code);
         break;
       }
 
@@ -224,7 +212,6 @@ export async function POST(request: NextRequest) {
           "subscription.lastPaymentFailed": new Date().toISOString(),
         });
 
-        console.log("Payment failed for:", email);
         break;
       }
 

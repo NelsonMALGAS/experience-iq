@@ -1,9 +1,8 @@
 import { PRICE_PLANS } from "@/constants";
-import { toast } from "sonner";
 
 export const getPlanByPriceId = (priceId?: string) => {
   if (!priceId) {
-    toast.error("Price ID is required");
+    console.error("Price ID is required");
     return null;
   }
 
