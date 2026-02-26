@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Send, Loader2 } from "lucide-react";
+import emailjs from "@emailjs/browser"
 
 export default function ContactForm() {
     const [formData, setFormData] = useState({
@@ -22,8 +23,14 @@ export default function ContactForm() {
         propertyName: "",
         subject: "",
         message: "",
+        time: new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const formRef = useRef<HTMLFormElement | null>(null)
 
     const handleChange = (
         e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -72,12 +79,21 @@ export default function ContactForm() {
 
         setIsSubmitting(true);
 
-        try {
-            // Log form data (ready for EmailJS integration)
-            console.log("Form submitted:", formData);
+        if (!formRef.current) {
+            toast.error("🚨 Error", {
+                description: "Form reference is missing. Please refresh and try again."
+            })
+            return
+        }
 
-            // Simulate API call delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+
+            await emailjs.sendForm(
+                process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID!,
+                process.env.NEXT_PUBLIC_EMAIL_JS_TEMPLATE_ID!,
+                formRef.current,
+                process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY
+            );
 
             toast.success("Message sent successfully!", {
                 description: "We'll get back to you within 24 hours.",
@@ -91,6 +107,11 @@ export default function ContactForm() {
                 propertyName: "",
                 subject: "",
                 message: "",
+                time: new Date().toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                })
             });
         } catch (error) {
             console.error("Error: ", error)
@@ -111,7 +132,7 @@ export default function ContactForm() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" ref={formRef}>
                     {/* Full Name */}
                     <div className="space-y-2">
                         <Label htmlFor="fullName">
@@ -194,6 +215,21 @@ export default function ContactForm() {
                             disabled={isSubmitting}
                             rows={6}
                             className="resize-none"
+                        />
+                    </div>
+                    {/* Time */}
+                    <div className="opacity-0">
+                        <Input
+                            id="time"
+                            type="hidden"
+                            name="time"
+                            value={new Date().toLocaleTimeString("en-GB", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                            })}
+
+                            className="h-11"
                         />
                     </div>
 
