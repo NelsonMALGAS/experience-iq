@@ -33,6 +33,7 @@ export type PlanPricing = {
   price: number; // in ZAR
   priceId: string; // Stripe Price ID
   paymentLink: string;
+  planCode: string;
 };
 
 export type PricePlan = {
@@ -70,6 +71,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_8x228racc0dd7Qu4b2enS0p"
           : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
+        planCode: "PLN_5snp87qgxye8py0",
       },
       yearly: {
         price: 11520,
@@ -79,6 +81,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_5kQdR99881hh3Ae8rienS0t"
           : "PROD_PAYMENT_LINK_STARTER_YEARLY",
+        planCode: "PLN_2wa3mtf7ey6x6iq",
       },
     },
     limits: {
@@ -109,6 +112,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_bJe3cv9885xxfiWgXOenS0q"
           : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
+        planCode: "PLN_docx7po6h0t7c94",
       },
       yearly: {
         price: 24000,
@@ -118,6 +122,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_6oU14n2JKcZZdaO8rienS0u"
           : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
+        planCode: "PLN_hbomofbn80mhae5",
       },
     },
     limits: {
@@ -149,6 +154,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_28E28r1FG5xxfiW22UenS0r"
           : "PROD_PAYMENT_LINK_PRO_MONTHLY",
+        planCode: "PLN_jzdw4tbyeaocq04",
       },
       yearly: {
         price: 35520,
@@ -158,6 +164,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_8x26oHbgg0ddb2GbDuenS0v"
           : "PROD_PAYMENT_LINK_PRO_YEARLY",
+        planCode: "PLN_7c3t1j0w4qo0j55",
       },
     },
     limits: {
@@ -189,6 +196,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_00w7sL1FG6BB8Uy8rienS0s"
           : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
+        planCode: "PLN_dljcw17884zbofc",
       },
       yearly: {
         price: 72000,
@@ -198,6 +206,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_00w5kD1FGbVV1s64b2enS0w"
           : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
+        planCode: "PLN_6b2r7co1y4putgh",
       },
     },
     limits: {
