@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import {
     Card,
     CardContent,
@@ -14,21 +14,78 @@ import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
 
 export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const { currentUser } = useCurrentUser();
 
     const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 
-    const formatPrice = (price: number) =>
-        price.toLocaleString("en-ZA");
+    const formatPrice = (price: number) => price.toLocaleString("en-ZA");
 
-    const getPaymentLink = (baseLink: string) => {
-        const email = currentUser?.email || "";
-        if (!email) return baseLink;
-        const separator = baseLink.includes("?") ? "&" : "?";
-        return `${baseLink}${separator}prefilled_email=${email}`;
+    const handleSubscribe = async (planId: string) => {
+        if (!currentUser?.email || !currentUser?.uid) {
+            toast.error("Please sign in to subscribe");
+            return;
+        }
+
+        const selectedPlan = PRICE_PLANS.find((p) => p.id === planId);
+
+        if (!selectedPlan) {
+            toast.error("Invalid plan selected");
+            return;
+        }
+
+        const selectedPricing =
+            billing === "monthly"
+                ? selectedPlan.pricing.monthly
+                : selectedPlan.pricing.yearly;
+
+        console.log("Billing:", billing);
+        console.log("Selected pricing:", selectedPricing);
+
+        if (!selectedPricing?.priceId || !selectedPricing?.planCode) {
+            toast.error("Pricing configuration error");
+            return;
+        }
+
+        setLoadingPlan(planId);
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_URL}/api/paystack/initialize`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        userId: currentUser.uid,
+                        planId: selectedPlan.id,
+                        billingInterval: billing,
+                        priceId: selectedPricing.priceId,
+                        planCode: selectedPricing.planCode,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to initialize payment");
+            }
+
+            window.location.href = data.authorizationUrl;
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to start subscription"
+            );
+            setLoadingPlan(null);
+        }
     };
 
     return (
@@ -77,7 +134,7 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                     {PRICE_PLANS.map((plan) => {
                         const isPro = plan.id === "pro";
                         const currentPricing = plan.pricing[billing];
-                        const paymentLink = getPaymentLink(currentPricing.paymentLink);
+                        const isLoading = loadingPlan === plan.id;
 
                         return (
                             <Card
@@ -132,14 +189,20 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                                     {/* CTA */}
                                     <div className="mt-auto">
                                         <Button
-                                            asChild
                                             size="lg"
                                             variant={isPro ? "default" : "secondary"}
                                             className="w-full rounded-xl"
+                                            onClick={() => handleSubscribe(plan.id)}
+                                            disabled={isLoading || !!loadingPlan}
                                         >
-                                            <a href={paymentLink}>
-                                                {needsPayment ? "Reactivate" : "Subscribe"}
-                                            </a>
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>{needsPayment ? "Reactivate" : "Subscribe"}</>
+                                            )}
                                         </Button>
                                     </div>
                                 </CardContent>
