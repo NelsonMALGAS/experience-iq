@@ -17,7 +17,12 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 
-export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
+type PricingProps = {
+    needsPayment?: boolean
+    uid: string
+}
+
+export default function Pricing({ needsPayment, uid }: PricingProps) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const { currentUser } = useCurrentUser();
@@ -59,7 +64,7 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         email: currentUser.email,
-                        userId: currentUser.uid,
+                        userId: uid,
                         planId: selectedPlan.id,
                         billingInterval: billing,
                         priceId: selectedPricing.priceId,

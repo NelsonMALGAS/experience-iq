@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPlanByPriceId } from "@/lib/plans";
+import { cookies } from "next/headers";
+import { Role } from "@/types";
+import { requireVerifiedUser } from "@/lib/verificationGuards";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
@@ -14,6 +17,27 @@ interface InitializeRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore?.get("_SESSION_")?.value;
+    const role: Role = "admin";
+
+    const verificationResult = await requireVerifiedUser(session, role);
+
+    const { uid, isVerified } = verificationResult;
+
+    if (!uid) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please sign in." },
+        { status: 401 },
+      );
+    }
+
+    if (!isVerified) {
+      return NextResponse.json(
+        { error: "Forbidden. Account not verified." },
+        { status: 403 },
+      );
+    }
     const body: InitializeRequest = await request.json();
     const { email, planId, billingInterval, userId, priceId, planCode } = body;
 

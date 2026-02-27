@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
           "subscription.hasAccess": hasAccess,
           "subscription.cancelAtPeriodEnd": false,
           "subscription.createdAt": new Date().toISOString(),
+          "subscription.cancelledAt": null,
         });
 
         break;
