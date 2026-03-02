@@ -57,8 +57,10 @@ export async function POST(request: NextRequest) {
           )?.value;
 
         if (!email || !userId) {
-          console.error("Missing email & userId in charge.success");
-          break;
+          return NextResponse.json(
+            { error: "Unauthorized. Please sign in." },
+            { status: 401 },
+          );
         }
 
         // Find user
@@ -68,8 +70,10 @@ export async function POST(request: NextRequest) {
           .get();
 
         if (userQuery.empty) {
-          console.error("User not found:", email);
-          break;
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 },
+          );
         }
 
         const userDoc = userQuery.docs[0];
@@ -106,7 +110,10 @@ export async function POST(request: NextRequest) {
 
         if (!email) {
           console.error("Missing email in subscription.create");
-          break;
+          return NextResponse.json(
+            { error: "Missing email in subscription.create" },
+            { status: 401 },
+          );
         }
 
         const userQuery = await db
@@ -116,7 +123,10 @@ export async function POST(request: NextRequest) {
 
         if (userQuery.empty) {
           console.error("User not found:", email);
-          break;
+          return NextResponse.json(
+            { error: `User not found: ${email}` },
+            { status: 404 },
+          );
         }
 
         const userDoc = userQuery.docs[0];
@@ -151,7 +161,10 @@ export async function POST(request: NextRequest) {
 
         if (!email) {
           console.error("Missing email in subscription.disable");
-          break;
+          return NextResponse.json(
+            { error: "Missing email in subscription.disable" },
+            { status: 401 },
+          );
         }
 
         const userQuery = await db
@@ -161,7 +174,10 @@ export async function POST(request: NextRequest) {
 
         if (userQuery.empty) {
           console.error("Subscription not found:", subscription_code);
-          break;
+          return NextResponse.json(
+            { error: `Subscription not found: ${subscription_code}` },
+            { status: 404 },
+          );
         }
 
         const userDoc = userQuery.docs[0];
