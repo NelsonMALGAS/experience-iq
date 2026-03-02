@@ -104,9 +104,9 @@ const PaymentSuccess = async () => {
                         </div>
 
                         {/* Footer Note */}
-                        {/* <p className="text-center text-sm text-muted-foreground mt-8">
+                        <p className="text-center text-sm text-muted-foreground mt-8">
                             A confirmation email has been sent to your inbox
-                        </p> */}
+                        </p>
                     </CardContent>
                 </Card>
 
