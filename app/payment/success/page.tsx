@@ -6,9 +6,18 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth, db } from "@/db/server";
 
-const PaymentSuccess = async () => {
+
+
+const PaymentSuccess = async (props: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
+
+    const searchParams = await props.searchParams;
+
+    const reference = searchParams.reference;
+    const trxref = searchParams.trxref;
 
     if (!session) redirect("/");
 
@@ -51,6 +60,19 @@ const PaymentSuccess = async () => {
                             <p className="text-lg text-muted-foreground max-w-md mx-auto">
                                 Your subscription has been activated. You now have full access to all premium features.
                             </p>
+                            {(reference || trxref) && (
+                                <div className="w-full bg-muted/50 border rounded-lg px-4 py-3 mt-4">
+                                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                                        Transaction Reference
+                                    </p>
+                                    <div className="flex items-center justify-center">
+                                        <span className="text-sm font-mono break-all text-foreground">
+                                            {reference || trxref}
+                                        </span>
+
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Feature Highlights */}
@@ -64,7 +86,7 @@ const PaymentSuccess = async () => {
                                     <ul className="space-y-2 text-sm text-muted-foreground">
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                            Access your Experience Intelligence Dashboard
+                                            Access your ExperienceIQ Dashboard
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
