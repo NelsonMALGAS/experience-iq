@@ -173,6 +173,7 @@ export interface StaffMember {
   color: string;
   isVerified: boolean;
   role: Role;
+  adminId?: string | null;
 }
 
 export interface Shift {

@@ -173,10 +173,6 @@ const CalendarGrid = (props: CalendarGridProps) => {
                                         return (
                                             <div
                                                 key={shift.id}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeShift(shift.id);
-                                                }}
                                                 className={`
                                                     text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 sm:py-1 rounded text-foreground font-medium 
                                                     flex items-center justify-between gap-0.5 sm:gap-1 hover:opacity-80 transition-opacity group
@@ -185,8 +181,20 @@ const CalendarGrid = (props: CalendarGridProps) => {
                                                 style={{ backgroundColor: staff?.color }}
                                                 title={`${staff?.name} - Click to remove`}
                                             >
-                                                <span className="truncate">{staff?.name.split(" ")[0]}</span>
-                                                <Trash2 className="w-2 h-2 sm:w-3 sm:h-3 opacity-0 group-hover:opacity-100 shrink-0" />
+                                                <span className="truncate">
+                                                    {(() => {
+                                                        const name = staff?.name ?? "";
+                                                        const firstWord = name.split(" ")[0];
+
+                                                        return firstWord.length <= 2 ? name.slice(0, 7) : firstWord;
+                                                    })()}
+                                                </span>
+                                                <Trash2 className="w-4 h-4 sm:w-3 sm:h-3 opacity-0 group-hover:opacity-100 shrink-0 text-red-300"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeShift(shift.id);
+                                                    }}
+                                                />
                                             </div>
                                         );
                                     })}
