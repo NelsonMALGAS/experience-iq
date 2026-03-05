@@ -1,36 +1,33 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useTransition } from "react";
 
 export function RefreshButton() {
     const router = useRouter();
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-
-        router.refresh();
-
-        setTimeout(() => {
-            setIsRefreshing(false);
-        }, 500);
+    const handleRefresh = () => {
+        startTransition(() => {
+            router.refresh();
+        });
     };
 
     return (
         <Button
             onClick={handleRefresh}
             variant="outline"
-            size="default"
-            disabled={isRefreshing}
-            className="gap-2"
+            disabled={isPending}
+            className="gap-2 w-full sm:w-auto h-10 sm:h-11"
         >
             <RefreshCw
-                className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`}
             />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">
+                {isPending ? "Refreshing..." : "Refresh"}
+            </span>
         </Button>
     );
 }

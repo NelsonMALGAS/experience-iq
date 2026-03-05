@@ -28,7 +28,7 @@ const IssueContent = async ({ id }: { id: string; }) => {
             <div className="mb-6 sm:mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 break-words">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 wrap-break-word">
                             {issue.title}
                         </h1>
                         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
