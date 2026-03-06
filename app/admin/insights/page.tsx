@@ -94,7 +94,7 @@ const InsightsPage = async () => {
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
-                                        Experience Intelligence
+                                        ExperienceIQ Intelligence
                                     </h1>
                                     <Badge className="bg-green-100 text-green-800 border-green-200">
                                         Live Data

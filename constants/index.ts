@@ -10,6 +10,7 @@ import {
   Clock,
   Activity,
   BarChart3,
+  UserCheck,
 } from "lucide-react";
 
 // Environment-aware pricing configuration
@@ -105,7 +106,7 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 2500,
+        price: 2500, // R2800
         priceId: isDevelopment
           ? "price_1T3vSYGanontDcTusTMMUNXi"
           : "PROD_PRICE_ID_GROWTH_MONTHLY",
@@ -115,7 +116,7 @@ export const PRICE_PLANS: PricePlan[] = [
         planCode: "PLN_docx7po6h0t7c94",
       },
       yearly: {
-        price: 24000,
+        price: 24000, // R26880
         priceId: isDevelopment
           ? "price_1T3vk0GanontDcTu4y3lRzWv"
           : "PROD_PRICE_ID_GROWTH_YEARLY",
@@ -147,7 +148,7 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 3700,
+        price: 3700, //R4500
         priceId: isDevelopment
           ? "price_1T3vVoGanontDcTu5kDIA2RQ"
           : "PROD_PRICE_ID_PRO_MONTHLY",
@@ -157,7 +158,7 @@ export const PRICE_PLANS: PricePlan[] = [
         planCode: "PLN_hwo0qmsz86e1ly2",
       },
       yearly: {
-        price: 35520,
+        price: 35520, //R43200
         priceId: isDevelopment
           ? "price_1T3vnEGanontDcTufvnhGIZX"
           : "PROD_PRICE_ID_PRO_YEARLY",
@@ -189,7 +190,7 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 7500,
+        price: 7500, // R8000
         priceId: isDevelopment
           ? "price_1T3vYKGanontDcTuW103cZfG"
           : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
@@ -199,7 +200,7 @@ export const PRICE_PLANS: PricePlan[] = [
         planCode: "PLN_dljcw17884zbofc",
       },
       yearly: {
-        price: 72000,
+        price: 72000, // R76800
         priceId: isDevelopment
           ? "price_1T3vqGGanontDcTuc3fnsOeI"
           : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
@@ -210,8 +211,8 @@ export const PRICE_PLANS: PricePlan[] = [
       },
     },
     limits: {
-      propertyLimit: 200,
-      staffLimit: 4000,
+      propertyLimit: 200, // (25)
+      staffLimit: 4000, // (400)
     },
   },
 ];
@@ -229,6 +230,11 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   ],
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
+    {
+      label: "Staff Approval",
+      href: "/admin/staff-verification",
+      icon: UserCheck,
+    },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
     { label: "Insights", href: "/admin/insights", icon: BarChart3 },
     { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
