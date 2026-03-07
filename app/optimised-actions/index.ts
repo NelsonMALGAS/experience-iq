@@ -552,10 +552,6 @@ export async function updateIssue(
 
     // If not found, try to find the document by querying
     if (!issueDoc.exists) {
-      console.log(
-        `Document not found with ID: ${propertyId}, searching all documents...`,
-      );
-
       const allIssuesSnapshot = await db.collection("issues").get();
 
       // Search through all documents to find the one containing this issue
