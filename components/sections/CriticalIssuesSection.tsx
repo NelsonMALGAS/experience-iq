@@ -4,10 +4,11 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
 type CriticalIssuesSectionProps = {
     uid: string
+    inheritedFrom: string | undefined
 }
 
-const CriticalIssuesSection = async ({ uid }: CriticalIssuesSectionProps) => {
-    const { issues: allIssues } = await fetchPropertiesWithStats(uid)
+const CriticalIssuesSection = async ({ uid, inheritedFrom }: CriticalIssuesSectionProps) => {
+    const { issues: allIssues } = await fetchPropertiesWithStats(uid, inheritedFrom)
     const criticalIssues = allIssues.filter(i => i.priority === 'critical' && i.status !== 'resolved');
     const unassignedIssues = allIssues.filter(i => !i.assignedTo && i.status !== 'resolved');
 

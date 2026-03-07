@@ -21,14 +21,16 @@ import { db } from "@/db/client";
 import { AppUser, Issue, Role } from '@/types';
 import { toDate } from '@/utils/issueDetailsUtils';
 import { NotificationItem } from './NotificationContentAndIcon';
+import { toast } from 'sonner';
 
 type NotificationCenterType = {
     role: Role
     uid: AppUser["uid"]
     adminId: string | null | undefined
+    inheritedFrom: string | undefined
 }
 
-export function NotificationCenter({ role, uid, adminId }: NotificationCenterType) {
+export function NotificationCenter({ role, uid, adminId, inheritedFrom }: NotificationCenterType) {
     const {
         notifications,
         unreadCount,
@@ -44,7 +46,7 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
     useEffect(() => {
         // Guard: Exit if no adminId
         if (!adminId) {
-            console.warn("⚠️ No adminId provided - cannot fetch notifications");
+            toast.warning("⚠️ Warning", { description: "No adminId provided - cannot fetch notifications" });
             setNotifications([]);
             return;
         }
@@ -53,26 +55,26 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
         let isMounted = true;
 
         const setupNotificationListener = async () => {
+
+            const id = inheritedFrom ? inheritedFrom : adminId
             try {
-                // Step 1: Fetch all property IDs owned by this admin
+                // Fetch all property IDs owned by this admin
                 const propertiesQuery = query(
                     collection(db, "properties"),
-                    where("ownerId", "==", adminId)
+                    where("ownerId", "==", id)
                 );
 
                 const propertiesSnapshot = await getDocs(propertiesQuery);
 
                 if (propertiesSnapshot.empty) {
-                    console.log("ℹ️ Admin has no properties - no notifications to display");
                     if (isMounted) setNotifications([]);
                     return;
                 }
 
                 // Extract property IDs into a Set for fast lookup
                 const propertyIds = new Set(propertiesSnapshot.docs.map(doc => doc.id));
-                console.log(`✅ Found ${propertyIds.size} properties for admin ${adminId}`);
 
-                // Step 2: Subscribe to ALL issues (we'll filter by propertyId on the client side)
+                // Subscribe to ALL issues (we'll filter by propertyId on the client side)
                 // Note: Firestore doesn't support querying nested array fields directly,
                 // so we need to fetch all issue documents and filter in memory
                 const issuesQuery = collection(db, "issues");
@@ -81,8 +83,6 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
                     issuesQuery,
                     (snapshot) => {
                         if (!isMounted) return;
-
-                        console.log(`📊 Received ${snapshot.docs.length} issue documents`);
 
                         // Use a Map to prevent duplicate issue IDs
                         const notificationsMap = new Map<string, Notification>();
@@ -142,8 +142,6 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
                         const allNotifications = Array.from(notificationsMap.values())
                             .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-                        console.log(`✅ Filtered ${allNotifications.length} notifications for admin's properties`);
-
                         if (isMounted) {
                             setNotifications(allNotifications);
                         }
@@ -169,7 +167,7 @@ export function NotificationCenter({ role, uid, adminId }: NotificationCenterTyp
                 unsubscribe();
             }
         };
-    }, [setNotifications, role, uid, adminId]);
+    }, [setNotifications, role, uid, adminId, inheritedFrom]);
 
     const handleMarkAllAsRead = () => {
         markAllAsRead(uid);

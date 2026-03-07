@@ -67,7 +67,7 @@ const InsightsPage = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom } = verificationResult;
     const userRole = role || "admin"
 
     if (!uid) redirect(`/login?role=${role}`)
@@ -86,7 +86,7 @@ const InsightsPage = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-16 sm:mt-20 lg:mt-24">
-                <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified} adminId={adminId}>
+                <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom}>
                     <div className="space-y-6 sm:space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8">
 
                         {/* ===== HEADER SECTION ===== */}
@@ -94,7 +94,7 @@ const InsightsPage = async () => {
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
-                                        Experience Intelligence
+                                        ExperienceIQ Intelligence
                                     </h1>
                                     <Badge className="bg-green-100 text-green-800 border-green-200">
                                         Live Data

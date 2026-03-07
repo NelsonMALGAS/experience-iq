@@ -183,7 +183,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         const { email, password, department } = formData;
 
         if (!userRole) {
-            toast.error("Role is required");
+            toast.error("Role is required", { description: "Please select a role" });
             setIsLoading(false);
             return;
         }

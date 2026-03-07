@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import {
     Card,
     CardContent,
@@ -14,34 +14,93 @@ import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
+
+type PricingProps = {
+    needsPayment?: boolean
+    uid: string
+}
+
+export default function Pricing({ needsPayment, uid }: PricingProps) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const { currentUser } = useCurrentUser();
 
     const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 
-    const formatPrice = (price: number) =>
-        price.toLocaleString("en-ZA");
+    const formatPrice = (price: number) => price.toLocaleString("en-ZA");
 
-    const getPaymentLink = (baseLink: string) => {
-        const email = currentUser?.email || "";
-        if (!email) return baseLink;
-        const separator = baseLink.includes("?") ? "&" : "?";
-        return `${baseLink}${separator}prefilled_email=${email}`;
+    const handleSubscribe = async (planId: string) => {
+        if (!currentUser?.email || !currentUser?.uid) {
+            toast.error("Please sign in to subscribe");
+            return;
+        }
+
+        const selectedPlan = PRICE_PLANS.find((p) => p.id === planId);
+
+        if (!selectedPlan) {
+            toast.error("Invalid plan selected");
+            return;
+        }
+
+        const selectedPricing =
+            billing === "monthly"
+                ? selectedPlan.pricing.monthly
+                : selectedPlan.pricing.yearly;
+
+        if (!selectedPricing?.priceId || !selectedPricing?.planCode) {
+            toast.error("Pricing configuration error");
+            return;
+        }
+
+        setLoadingPlan(planId);
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_URL}/api/paystack/initialize`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        userId: uid,
+                        planId: selectedPlan.id,
+                        billingInterval: billing,
+                        priceId: selectedPricing.priceId,
+                        planCode: selectedPricing.planCode,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to initialize payment");
+            }
+
+            window.location.href = data.authorizationUrl;
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to start subscription"
+            );
+            setLoadingPlan(null);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-background py-24 px-4">
+        <div className="min-h-screen bg-background py-20 px-4">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-16">
+                <div className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
                         {needsPayment
                             ? "Reactivate Your Subscription"
                             : "Simple, Transparent Pricing"}
                     </h1>
-                    <p className="mt-5 text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
                         {needsPayment
                             ? "Choose a plan to continue accessing all features."
                             : "Flexible pricing built for modern hospitality operations."}
@@ -49,8 +108,8 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                 </div>
 
                 {/* Billing Toggle */}
-                <div className="flex justify-center mb-16">
-                    <div className="inline-flex items-center rounded-full bg-muted p-1">
+                <div className="flex justify-center mb-10">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1">
                         <Button
                             variant={billing === "monthly" ? "default" : "ghost"}
                             onClick={() => setBilling("monthly")}
@@ -73,17 +132,17 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                 </div>
 
                 {/* Pricing Grid */}
-                <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4 items-stretch">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                     {PRICE_PLANS.map((plan) => {
                         const isPro = plan.id === "pro";
                         const currentPricing = plan.pricing[billing];
-                        const paymentLink = getPaymentLink(currentPricing.paymentLink);
+                        const isLoading = loadingPlan === plan.id;
 
                         return (
                             <Card
                                 key={plan.id}
                                 className={cn(
-                                    "relative flex flex-col rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl",
+                                    "relative flex flex-col h-full rounded-2xl border bg-card transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl",
                                     isPro && "border-primary shadow-xl scale-[1.02]"
                                 )}
                             >
@@ -93,16 +152,16 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                                     </div>
                                 )}
 
-                                <CardHeader className="pb-4 space-y-3">
+                                <CardHeader className="pb-3 space-y-2">
                                     <CardTitle className="text-xl font-semibold">
                                         {plan.title}
                                     </CardTitle>
-                                    <CardDescription className="leading-relaxed">
+                                    <CardDescription className="text-sm leading-relaxed line-clamp-2">
                                         {plan.description}
                                     </CardDescription>
                                 </CardHeader>
 
-                                <CardContent className="flex flex-col gap-8 pt-2">
+                                <CardContent className="flex flex-col flex-1 gap-6 pt-0">
                                     {/* Price */}
                                     <div>
                                         <div className="flex items-end gap-2">
@@ -116,30 +175,38 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                                     </div>
 
                                     {/* Features */}
-                                    <ul className="space-y-3">
-                                        {plan.info.map((feature, index) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                                <div className="mt-1 rounded-full bg-primary/10 p-1">
-                                                    <Check className="h-3.5 w-3.5 text-primary" />
-                                                </div>
-                                                <span className="text-sm text-muted-foreground leading-relaxed">
-                                                    {feature}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="flex-1">
+                                        <ul className="space-y-2.5 min-h-50">
+                                            {plan.info.map((feature, index) => (
+                                                <li key={index} className="flex items-start gap-2.5">
+                                                    <div className="mt-0.5 rounded-full bg-primary/10 p-1 shrink-0">
+                                                        <Check className="h-3.5 w-3.5 text-primary" />
+                                                    </div>
+                                                    <span className="text-sm text-muted-foreground leading-snug">
+                                                        {feature}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
 
                                     {/* CTA */}
-                                    <div className="mt-auto">
+                                    <div className="mt-auto pt-4">
                                         <Button
-                                            asChild
                                             size="lg"
                                             variant={isPro ? "default" : "secondary"}
                                             className="w-full rounded-xl"
+                                            onClick={() => handleSubscribe(plan.id)}
+                                            disabled={isLoading || !!loadingPlan}
                                         >
-                                            <a href={paymentLink}>
-                                                {needsPayment ? "Reactivate" : "Subscribe"}
-                                            </a>
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>{needsPayment ? "Reactivate" : "Subscribe"}</>
+                                            )}
                                         </Button>
                                     </div>
                                 </CardContent>
@@ -149,7 +216,7 @@ export default function Pricing({ needsPayment }: { needsPayment?: boolean }) {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-20 text-center">
+                <div className="mt-16 text-center">
                     <p className="text-sm text-muted-foreground">
                         Need a custom plan?{" "}
                         <a href="#" className="text-primary font-medium hover:underline">

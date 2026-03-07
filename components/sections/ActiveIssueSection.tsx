@@ -10,6 +10,7 @@ type ActiveIssuesSectionProps = {
     uid: string;
     role: Role,
     adminId: string
+
 }
 
 const ActiveIssuesSection = async ({ uid, role, adminId }: ActiveIssuesSectionProps) => {

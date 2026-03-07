@@ -1,4 +1,4 @@
-import { IssueCategory, Role } from "@/types";
+import { IssueCategory, PropertyPermissions, Role } from "@/types";
 import {
   LayoutDashboard,
   AlertCircle,
@@ -10,6 +10,9 @@ import {
   Clock,
   Activity,
   BarChart3,
+  UserCheck,
+  UserPlus,
+  MailCheck,
 } from "lucide-react";
 
 // Environment-aware pricing configuration
@@ -33,6 +36,7 @@ export type PlanPricing = {
   price: number; // in ZAR
   priceId: string; // Stripe Price ID
   paymentLink: string;
+  planCode: string;
 };
 
 export type PricePlan = {
@@ -70,6 +74,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_8x228racc0dd7Qu4b2enS0p"
           : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
+        planCode: "PLN_f17rtp913f6lexf",
       },
       yearly: {
         price: 11520,
@@ -79,6 +84,7 @@ export const PRICE_PLANS: PricePlan[] = [
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_5kQdR99881hh3Ae8rienS0t"
           : "PROD_PAYMENT_LINK_STARTER_YEARLY",
+        planCode: "PLN_2wa3mtf7ey6x6iq",
       },
     },
     limits: {
@@ -102,22 +108,24 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 2500,
+        price: 2500, // R2800
         priceId: isDevelopment
           ? "price_1T3vSYGanontDcTusTMMUNXi"
           : "PROD_PRICE_ID_GROWTH_MONTHLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_bJe3cv9885xxfiWgXOenS0q"
           : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
+        planCode: "PLN_docx7po6h0t7c94",
       },
       yearly: {
-        price: 24000,
+        price: 24000, // R26880
         priceId: isDevelopment
           ? "price_1T3vk0GanontDcTu4y3lRzWv"
           : "PROD_PRICE_ID_GROWTH_YEARLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_6oU14n2JKcZZdaO8rienS0u"
           : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
+        planCode: "PLN_hbomofbn80mhae5",
       },
     },
     limits: {
@@ -142,22 +150,24 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 3700,
+        price: 3700, //R4500
         priceId: isDevelopment
           ? "price_1T3vVoGanontDcTu5kDIA2RQ"
           : "PROD_PRICE_ID_PRO_MONTHLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_28E28r1FG5xxfiW22UenS0r"
           : "PROD_PAYMENT_LINK_PRO_MONTHLY",
+        planCode: "PLN_hwo0qmsz86e1ly2",
       },
       yearly: {
-        price: 35520,
+        price: 35520, //R43200
         priceId: isDevelopment
           ? "price_1T3vnEGanontDcTufvnhGIZX"
           : "PROD_PRICE_ID_PRO_YEARLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_8x26oHbgg0ddb2GbDuenS0v"
           : "PROD_PAYMENT_LINK_PRO_YEARLY",
+        planCode: "PLN_7c3t1j0w4qo0j55",
       },
     },
     limits: {
@@ -182,32 +192,37 @@ export const PRICE_PLANS: PricePlan[] = [
     ],
     pricing: {
       monthly: {
-        price: 7500,
+        price: 7500, // R8000
         priceId: isDevelopment
           ? "price_1T3vYKGanontDcTuW103cZfG"
           : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_00w7sL1FG6BB8Uy8rienS0s"
           : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
+        planCode: "PLN_dljcw17884zbofc",
       },
       yearly: {
-        price: 72000,
+        price: 72000, // R76800
         priceId: isDevelopment
           ? "price_1T3vqGGanontDcTuc3fnsOeI"
           : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
         paymentLink: isDevelopment
           ? "https://buy.stripe.com/test_00w5kD1FGbVV1s64b2enS0w"
           : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
+        planCode: "PLN_6b2r7co1y4putgh",
       },
     },
     limits: {
-      propertyLimit: 200,
-      staffLimit: 4000,
+      propertyLimit: 200, // (25)
+      staffLimit: 4000, // (400)
     },
   },
 ];
 
-export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
+export const NAV_LINKS: Record<
+  "guest" | "staff" | "admin" | "owner",
+  NavLink[]
+> = {
   guest: [
     { label: "Dashboard", href: "/guest", icon: LayoutDashboard },
     { label: "Report Issue", href: "/guest/add-issue", icon: PlusCircle },
@@ -220,10 +235,19 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   ],
   admin: [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
+    {
+      label: "Staff Approval",
+      href: "/admin/staff-verification",
+      icon: UserCheck,
+    },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
+    { label: "Collaborators", href: "/admin/collaborators", icon: UserPlus },
+    { label: "Invitations", href: "/admin/invitations", icon: MailCheck },
     { label: "Insights", href: "/admin/insights", icon: BarChart3 },
     { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
+
+  owner: [{ label: "Overview", href: "/owner", icon: LayoutDashboard }],
 } as const;
 
 export const ISSUE_CATEGORIES = [
@@ -497,6 +521,14 @@ export interface DashboardConfig {
     maxAlertsDisplayed: number;
   };
 }
+
+export const DEFAULT_PERMISSIONS: PropertyPermissions = {
+  canViewIssues: true,
+  canManageIssues: true,
+  canViewStaff: true,
+  canManageStaff: false,
+  canViewAnalytics: true,
+};
 
 export const years = Array.from(
   { length: 11 },

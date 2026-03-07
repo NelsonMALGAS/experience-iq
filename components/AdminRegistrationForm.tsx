@@ -117,7 +117,8 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
         properties: Property[],
         fallbackName: string,
         selectedProperty: Property | null,
-        adminId: string | undefined
+        adminId: string | undefined,
+        department?: IssueCategory
     ): AppUser => {
         const base = {
             photoURL: firebaseUser.photoURL ?? "/images/avatar.png",
@@ -126,7 +127,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
             isVerified: false,
             email: firebaseUser.email,
             displayName:
-                firebaseUser.displayName ?? fallbackName.trim() ?? null,
+                firebaseUser.displayName ?? (fallbackName?.trim() || null),
             isAnonymous: firebaseUser.isAnonymous,
             authMetadata: {
                 creationTime: firebaseUser.metadata.creationTime ?? null,
@@ -143,26 +144,29 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     email: null,
                 };
 
-            case "staff": {
+            case "staff":
                 if (!selectedProperty) {
                     throw new Error("Staff must have a selected property");
                 }
-                const staffProperty: Property = selectedProperty;
+
                 return {
                     ...base,
                     role: "staff",
-                    property: [staffProperty],
-                    adminId: adminId,
-                    department: department,
+                    property: [selectedProperty],
+                    adminId,
+                    department: department || "staff",
                 };
-            }
 
             case "admin":
                 return {
                     ...base,
                     role: "admin",
                     property: properties,
+                    adminType: "main",
                 };
+
+            default:
+                throw new Error(`Unsupported role: ${role}`);
         }
     };
 
@@ -186,7 +190,8 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                 properties,
                 name,
                 selectedProperty,
-                adminId
+                adminId,
+                department
             );
 
             const response = await fetch(
@@ -194,7 +199,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...payload, department }),
+                    body: JSON.stringify({ ...payload }),
                 }
             );
 

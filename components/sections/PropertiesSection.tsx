@@ -5,10 +5,12 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
 type PropertiesSectionProps = {
     uid: string
+    inheritedFrom: string | undefined
 }
 
-const PropertiesSection = async ({ uid }: PropertiesSectionProps) => {
-    const { properties } = await fetchPropertiesWithStats(uid);
+const PropertiesSection = async ({ uid, inheritedFrom }: PropertiesSectionProps) => {
+
+    const { properties } = await fetchPropertiesWithStats(uid, inheritedFrom);
 
     return (
         <Card>

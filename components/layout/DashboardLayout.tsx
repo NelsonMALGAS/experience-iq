@@ -1,7 +1,7 @@
 "use client"
 
 import { ReactNode, useEffect, useState } from 'react';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from '@/db/client';
 import useCurrentUser from '@/hooks/useCurrentUser';
@@ -20,13 +20,14 @@ export interface DashboardLayoutProps {
     uid: AppUser["uid"];
     isVerified: boolean;
     adminId: string | null | undefined
+    inheritedFrom: string | undefined
 }
 
-export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId }: DashboardLayoutProps) {
+export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId, inheritedFrom }: DashboardLayoutProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser();
     const { fetchUserInfo, currentUser: user } = useUserStore();
     const isAuthenticated = !loading && !!uid;
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen] = useState(false);
     const router = useRouter();
 
     // Track verification status from server and Firestore
@@ -75,6 +76,8 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                 sidebarOpen={sidebarOpen}
                 role={user?.role || role}
                 isVerified={effectiveIsVerified}
+                inheritedFrom={inheritedFrom}
+
             />
 
             {/* Main Content */}
@@ -83,12 +86,6 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                 <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden p-2 rounded-lg hover:bg-muted"
-                            >
-                                <Menu className="h-5 w-5" />
-                            </button>
                             <div className="hidden sm:block">
                                 <p className="text-sm text-muted-foreground">Welcome back,</p>
                                 <div className="flex items-center gap-2">
@@ -105,7 +102,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <NotificationCenter role={role} uid={uid} adminId={adminId} />
+                            <NotificationCenter role={role} uid={uid} adminId={adminId} inheritedFrom={inheritedFrom} />
                             <Button
                                 variant="ghost"
                                 size="icon"

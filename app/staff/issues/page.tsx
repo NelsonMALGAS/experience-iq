@@ -67,7 +67,7 @@ const StaffIssuesPage = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, subscription, inheritedFrom } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "staff"}`)
 
@@ -82,7 +82,7 @@ const StaffIssuesPage = async () => {
     }
 
 
-    const [data, plainStaffUsers] = await Promise.all([fetchPropertiesWithStats(adminId), getStaffUsers()])
+    const [data, plainStaffUsers] = await Promise.all([fetchPropertiesWithStats(adminId, inheritedFrom), getStaffUsers()])
     const allIssues = data.issues
 
     return (

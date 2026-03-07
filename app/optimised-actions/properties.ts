@@ -42,22 +42,31 @@ export type PropertyWithStats = Property & {
  */
 export async function fetchPropertiesWithStats(
   uid: string,
+  inheritedFrom?: string,
 ): Promise<{ properties: PropertyWithStats[]; issues: Issue[] }> {
   try {
     if (!db) throw new Error("Firestore not initialized");
     if (!uid) throw new Error("Unauthorized");
 
+    const propertyQuery = inheritedFrom
+      ? db
+          .collection("properties")
+          .where("ownerId", "==", inheritedFrom)
+          .where("collaboratorIds", "array-contains", uid)
+          .orderBy("createdAt", "desc")
+      : db
+          .collection("properties")
+          .where("ownerId", "==", uid)
+          .orderBy("createdAt", "desc");
+
     const [propertiesSnapshot, allIssues] = await Promise.all([
-      db
-        .collection("properties")
-        .where("ownerId", "==", uid)
-        .orderBy("createdAt", "desc")
-        .get(),
-      fetchAllIssues(), // returns flat array
+      propertyQuery.get(),
+      fetchAllIssues(),
     ]);
 
     const properties: Property[] = propertiesSnapshot.docs.map((doc) => {
       const data = doc.data();
+
       return {
         id: doc.id,
         ownerId: data.ownerId,
@@ -157,8 +166,9 @@ export async function fetchPropertiesWithStats(
  */
 export async function fetchProperties(
   uid: string,
+  inheritedFrom?: string,
 ): Promise<PropertyWithStats[]> {
-  const { properties } = await fetchPropertiesWithStats(uid);
+  const { properties } = await fetchPropertiesWithStats(uid, inheritedFrom);
 
   return properties;
 }

@@ -13,7 +13,7 @@ type UnverifiedProps = {
 const Unverified = ({ uid, role, isVerified }: UnverifiedProps) => {
     return (
         <div className="mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={null}>
+            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={null} inheritedFrom={undefined}>
                 <div className="space-y-8 animate-fade-in">
                     {/* Header with Refresh Button */}
                     <div className="flex items-center justify-between">

@@ -552,10 +552,6 @@ export async function updateIssue(
 
     // If not found, try to find the document by querying
     if (!issueDoc.exists) {
-      console.log(
-        `Document not found with ID: ${propertyId}, searching all documents...`,
-      );
-
       const allIssuesSnapshot = await db.collection("issues").get();
 
       // Search through all documents to find the one containing this issue
@@ -709,6 +705,83 @@ export async function bulkUpdateIssueStatus(
       message:
         error instanceof Error ? error.message : "Failed to update issues",
     };
+  }
+}
+
+export async function getAdminStaff(uid: string): Promise<StaffMember[]> {
+  try {
+    if (!db) throw new Error("Firestore not initialized");
+    if (!uid) throw new Error("Please login");
+
+    // Query users collection with role filter
+    const snapshot = await db
+      .collection("users")
+      .where("role", "==", "staff")
+      .where("adminId", "==", uid)
+      .where("isVerified", "==", true)
+      .get();
+
+    const staffMembers: StaffMember[] = snapshot.docs.map((doc, index) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        name: data.displayName ?? data.email ?? "Unknown",
+        email: data.email ?? "unknown@example.com",
+        isVerified: data.isVerified ?? false,
+        color: staffColorPalette[index % staffColorPalette.length],
+        department: data.department || "other",
+        role: data.role || "guest",
+        adminId: data.adminId || null,
+      };
+    });
+
+    return staffMembers;
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { operation: "getStaffUsers" },
+    });
+    console.error("Error fetching staff users:", error);
+    return [];
+  }
+}
+export async function getUnverifiedAdminStaff(
+  uid: string,
+): Promise<StaffMember[]> {
+  try {
+    if (!db) throw new Error("Firestore not initialized");
+    if (!uid) throw new Error("Please login");
+
+    // Query users collection with role filter
+    const snapshot = await db
+      .collection("users")
+      .where("role", "==", "staff")
+      .where("adminId", "==", uid)
+      .where("isVerified", "==", false)
+      .get();
+
+    const staffMembers: StaffMember[] = snapshot.docs.map((doc, index) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        name: data.displayName ?? data.email ?? "Unknown",
+        email: data.email ?? "unknown@example.com",
+        isVerified: data.isVerified ?? false,
+        color: staffColorPalette[index % staffColorPalette.length],
+        department: data.department || "other",
+        role: data.role || "guest",
+        adminId: data.adminId || null,
+      };
+    });
+
+    return staffMembers;
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { operation: "getStaffUsers" },
+    });
+    console.error("Error fetching staff users:", error);
+    return [];
   }
 }
 

@@ -14,9 +14,10 @@ type AppSidebarProps = {
     sidebarOpen: boolean
     role: Role
     isVerified: boolean
+    inheritedFrom: string | undefined
 }
 
-export function AppSidebar({ sidebarOpen, role, isVerified }: AppSidebarProps) {
+export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom }: AppSidebarProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(sidebarOpen);
@@ -26,6 +27,14 @@ export function AppSidebar({ sidebarOpen, role, isVerified }: AppSidebarProps) {
     if (loading) return <LoadingState />
 
     const navLinks = NAV_LINKS[role];
+
+    const filteredNavLinks =
+        role === "admin" && inheritedFrom
+            ? navLinks.filter(
+                (link) =>
+                    link.href !== "/admin/collaborators"
+            )
+            : navLinks;
 
     // Determine which links to show based on verification status
     // Guests always see all links; staff/admin only see links if verified
@@ -116,7 +125,7 @@ export function AppSidebar({ sidebarOpen, role, isVerified }: AppSidebarProps) {
 
                     {shouldShowNavigation ? (
                         // Show navigation links for verified users or guests
-                        navLinks.map((link) => {
+                        filteredNavLinks.map((link) => {
                             const isActive = pathname === link.href;
                             const Icon = link.icon;
 
@@ -139,7 +148,7 @@ export function AppSidebar({ sidebarOpen, role, isVerified }: AppSidebarProps) {
                         })
                     ) : (
                         // Show locked state for unverified staff/admin
-                        navLinks.map((link) => {
+                        filteredNavLinks.map((link) => {
                             const Icon = link.icon;
 
                             return (

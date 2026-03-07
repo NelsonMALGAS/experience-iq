@@ -62,7 +62,7 @@ const Payment = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, serverRole);
-    const { subscription, isVerified, } = verificationResult;
+    const { subscription, isVerified, uid } = verificationResult;
 
     // 🔒 Only admins can access payment page
     if (serverRole !== "admin") {
@@ -94,7 +94,7 @@ const Payment = async () => {
     if (subscription && subscription.hasAccess) redirect("/admin")
     return (
         <div className="mt-20">
-            <Pricing needsPayment={needsPayment} />
+            <Pricing needsPayment={needsPayment} uid={uid} />
         </div>
     )
 }

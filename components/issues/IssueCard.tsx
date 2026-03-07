@@ -33,8 +33,14 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     const isAdmin = userRole === 'admin';
     const isAssignedToMe = issue.assignedTo === currentUserId;
     const hasImages = issue.images && issue.images.length > 0;
+    const canUpdateStatus =
+        isAdmin || (userRole === "staff" && issue.assignedTo === currentUserId);
 
     const handleStatusChange = (newStatus: Issue['status']) => {
+        if (!isAdmin && issue.assignedTo !== currentUserId) {
+            toast.error("You can only update issues assigned to you");
+            return;
+        }
         setOptimisticStatus(newStatus);
         startTransition(async () => {
             const result = await updateIssue(issue.id, issue.propertyId, { status: newStatus });
@@ -229,7 +235,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                         {/* Status Select */}
                         <div className="shrink-0 w-full sm:w-auto">
-                            <Select value={optimisticStatus} onValueChange={handleStatusChange}>
+                            <Select value={optimisticStatus} onValueChange={handleStatusChange} disabled={!canUpdateStatus}>
                                 <SelectTrigger className="h-9 w-full sm:w-32 text-xs">
                                     <div className="flex items-center gap-2">
                                         <SelectValue placeholder="Status" />

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth, db } from '@/db/server';
-import { Calendar, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Calendar, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Role } from '@/types';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import { refreshShifts } from '@/app/optimised-actions';
 import { Suspense } from 'react';
 import { RosterContentSkeleton } from '@/components/skeletons/RosterContentSkeleton';
 import RosterContent from '@/components/sections/RosterContent';
+import { FormRefreshButton } from '@/components/RefreshButton';
 
 export const metadata: Metadata = {
     title: "Roster – ExperienceIQ",
@@ -115,10 +116,7 @@ const StaffRoster = async () => {
                     </div>
 
                     <form action={refreshShifts}>
-                        <Button variant="outline" type="submit" className="gap-2 w-full sm:w-auto h-10 sm:h-11">
-                            <RefreshCw className="w-4 h-4" />
-                            Refresh
-                        </Button>
+                        <FormRefreshButton />
                     </form>
                 </div>
 
