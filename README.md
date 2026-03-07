@@ -1,319 +1,286 @@
-# Guest Experience & Service Recovery Platform
+<div align="center">
 
-A **real-time guest feedback and service recovery platform** built with **Next.js and Firebase**, designed for large hospitality groups such as **Sun International** and **Royal Marang Hotel**.
+<br />
 
-The platform enables hospitality teams to **capture, manage, and resolve guest issues instantly**, ensuring problems are addressed **before guests leave the property**.
+# ExperienceIQ
 
----
+### Guest Experience & Service Recovery Platform
 
-# 🚀 Platform Overview
+**Real-time issue management and service recovery for enterprise hospitality.**  
+Built for hotel groups, resorts, and multi-property operators who demand operational excellence.
 
-Hospitality businesses often lose guests **not because problems occur**, but because **issues are resolved too late or not tracked properly**.
+<br />
 
-This platform solves that by providing:
-
-• Real-time guest issue reporting
-• Live operational dashboards
-• SLA-based escalation workflows
-• Multi-property management
-• Staff accountability tracking
-• Operational insights and analytics
+[![Live Platform](https://img.shields.io/badge/Live%20Platform-experience--iq.vercel.app-0f172a?style=for-the-badge&logo=vercel&logoColor=white)](https://experience-iq.vercel.app)
+&nbsp;
+![Status](https://img.shields.io/badge/Status-Production-22c55e?style=for-the-badge)
+&nbsp;
 
 ---
 
-# 🎯 Core Objectives
+</div>
 
-The system is designed to help hospitality operators:
+## The Problem
 
-• Improve guest satisfaction and retention
-• Reduce negative reviews and complaints at checkout
-• Increase staff accountability and performance visibility
-• Provide management with **real-time operational insight**
-• Standardize issue handling across multiple properties
-• Digitally allocate and monitor staff responsibilities
+Hospitality businesses lose guests **not because problems occur, but because they are resolved too late.**
 
----
+Traditional feedback systems are broken:
 
-# 🧩 Problem Statement
+| Pain Point | Impact |
+|---|---|
+| Paper-based reporting | Hours of delay before management is aware |
+| WhatsApp & informal channels | No accountability, no audit trail |
+| No SLA monitoring | Issues escalate undetected |
+| No centralised data | Management flies blind |
+| Delayed responses | Guest checks out dissatisfied |
 
-Traditional guest feedback systems suffer from:
-
-• Delayed responses
-• Paper-based reporting systems
-• WhatsApp or informal communication channels
-• Lack of accountability or ownership
-• No SLA monitoring
-• No centralized operational data
-
-These gaps make it difficult for management to **detect and resolve guest experience problems early**.
+The result: negative online reviews, lost repeat business, and no operational data to improve.
 
 ---
 
-# ✅ Solution
-
-This platform introduces a **real-time, multi-role service recovery system** where:
-
-### Guests
-
-• Report issues instantly using QR codes
-• Submit feedback without creating an account
-• Track issue status
-• Receive resolution updates
-
-### Staff
-
-• Receive issues in real-time
-• Update issue statuses
-• View assigned tasks
-• Receive push notifications
-• Track personal performance metrics
-
-### Admins
-
-• Monitor issues across properties
-• Grant property access to additional admins
-• Control property ownership and collaboration
-• Approve staff access
-• Assign responsibilities
-• Track resolution times and SLAs
-• Generate operational insights
-• Create monthly staff rosters
-
-### Owners
-
-• Manage subscription and billing
-• Maintain centralized governance across properties
-
----
-
-# 🏨 Multi-Property Management
-
-The platform supports **enterprise hospitality environments** where:
-
-• A single organization manages **multiple properties**
-• Properties may have **multiple administrators**
-• Admins can collaborate on the same property
-• Staff are linked to their managing admin
-
-This enables seamless operations across:
-
-• Resorts
-• Hotel groups
-• Casinos
-• Entertainment complexes
-
----
-
-# 👥 Role-Based Access System
-
-The platform uses strict role separation.
-
-| Role  | Permissions                                 |
-| ----- | ------------------------------------------- |
-| Guest | Submit issues and track status              |
-| Staff | Resolve assigned issues                     |
-| Admin | Manage staff, issues, and rosters           |
-| Owner | The platform owner responsible for verifying admins and maintaining system integrity. |
-
-Security is enforced through:
-
-• Role-based authentication
-• Server-side verification
-• Firestore security rules
-• Admin SDK access control
-
----
-
-# 🧑‍💼 Staff Verification Workflow
-
-To maintain platform integrity:
-
-1. Staff members register
-2. Admin reviews their request
-3. Admin **approves or rejects staff access**
-4. Only verified staff gain system access
-
-This prevents unauthorized internal access.
-
----
-
-# 🤝 Admin Collaboration System
-
-Enterprise environments often require **multiple administrators per property**.
-
-The platform supports:
-
-• Property owners inviting other admins
-• Secure admin invitations
-• Role-based property access
-• Subscription inheritance from the owner
-
-Only the **primary owner manages billing and subscription**, while collaborators receive **limited operational access**.
-
----
-
-# 💳 Subscription & Billing
-
-The platform uses **Paystack** for subscription billing.
-
-Features include:
-
-• Secure payment processing
-• Webhook-based subscription validation
-• Centralized billing under the property owner
-• Subscription inheritance for collaborator admins
-
----
-
-# 📊 Operational Analytics
-
-Admins gain insight into operational performance:
-
-• Issue resolution rate
-• Average resolution time
-• Staff performance metrics
-• Property-level analytics
-• Live issue tracking
-
-These insights allow management to **identify operational bottlenecks and improve service delivery**.
-
----
-
-# 🗓️ Staff Roster Management
-
-Admins can digitally manage staffing schedules.
-
-Features include:
-
-• Monthly staff roster creation
-• Department assignments
-• Shift visibility for staff
-• Operational coordination
-
----
-
-# 🏗️ Tech Stack
-
-## Frontend
-
-• Next.js (App Router)
-• React
-• TypeScript
-• Tailwind CSS
-• Shadcn UI
-• Lucide React Icons
-
----
-
-## Backend & Infrastructure
-
-• Firebase Authentication
-• Firestore (Real-time Database)
-• Firebase Cloud Functions
-• Firebase Cloud Messaging
-• Firebase Hosting
-
----
-
-## Observability & Monitoring
-
-• Sentry
-• Centralized error tracking
-• Production monitoring
-
----
-
-## File Uploads
-
-• UploadThing
-
----
-
-## State Management
-
-• Zustand
-• React Context
-
----
-
-# 🔐 Security Architecture
-
-Security is a **core design principle** of the platform.
-
-Measures include:
-
-• Strict Firestore security rules
-• Server-side permission enforcement
-• Role-based access control
-• Invitation-based admin collaboration
-• Audit logging for sensitive actions
-• Webhook-verified subscription state
-
-Sensitive operations such as:
-
-• property access grants
-• admin invitations
-• audit logs
-
-are **server-side only** and cannot be executed directly from the client.
-
----
-
-# 📂 Navigation Structure
-
-```ts
-guest
- ├ Dashboard
- └ Report Issue
-
-staff
- ├ Dashboard
- ├ Assigned Issues
- ├ Roster
- └ My Performance
-
-admin
- ├ Overview
- ├ Staff Approval
- ├ Properties
- ├ Collaborators
- ├ Invitations
- ├ Insights
- └ Create Roster
-
-owner
- └ Overview
+## The Solution
+
+ExperienceIQ is a **real-time, multi-role service recovery platform** that closes the gap between a guest's problem and its resolution — while the guest is still on property.
+
+```
+Guest reports issue  →  Staff receives alert  →  Issue resolved  →  Guest satisfied
+        │                       │                       │
+   QR code scan           Live dashboard          Audit logged
+   No account needed      SLA tracked             Analytics updated
 ```
 
 ---
 
-# 📈 Real-World Impact
+## Platform Overview
 
-By implementing this system, hospitality businesses can:
+### For Guests
+- Report issues instantly using **QR codes** — no account required
+- Submit feedback and track issue status in real time
+- Receive resolution updates throughout their stay
 
-• Resolve guest issues **before checkout**
-• Reduce negative online reviews
-• Improve staff accountability
-• Monitor service performance in real-time
-• Standardize operations across multiple properties
+### For Staff
+- Receive and action issues the moment they are raised
+- Update issue statuses and track personal performance metrics
+- View assigned tasks and shift rosters
+- Receive push notifications for critical escalations
+
+### For Admins
+- Monitor all issues across one or multiple properties from a single dashboard
+- Approve staff access and manage role assignments
+- Grant property access to collaborator admins
+- Track resolution times and SLA compliance
+- Generate operational insights and monthly staff rosters
+
+### For Owners
+- Manage subscription and billing through a centralised interface
+- Maintain governance across all properties
+- Retain sole authority over billing and access provisioning
 
 ---
 
-# 🌐 Live Demo
+## Multi-Property Architecture
 
-You can view the platform here:
+ExperienceIQ is purpose-built for **enterprise hospitality environments** where a single organisation operates across multiple sites.
+
+- One platform manages an entire property portfolio
+- Properties support **multiple administrators** with granular access control
+- Admins collaborate on shared properties without accessing each other's data
+- Staff are scoped to their managing admin's properties
+- Billing is consolidated under a single owner
+
+Designed for hotel groups, casino resorts, entertainment complexes, and multi-site operators.
+
+---
+
+## Role-Based Access Control
+
+Access is strictly enforced at every layer — authentication, Firestore rules, and server-side validation.
+
+| Role | Core Permissions |
+|---|---|
+| **Guest** | Submit issues · Track resolution status |
+| **Staff** | Resolve assigned issues · View roster · Track performance |
+| **Admin** | Manage staff · Oversee properties · Invite collaborators · View analytics |
+| **Owner** | Verify admins · Manage billing · Maintain system governance |
+
+---
+
+## Staff Verification Workflow
+
+Platform integrity is maintained through a controlled onboarding process:
+
+1. Staff member registers on the platform
+2. Admin receives a verification request
+3. Admin **approves or rejects** access
+4. Only verified staff gain operational access
+
+This prevents unauthorised internal access and ensures accountability from day one.
+
+---
+
+## Admin Collaboration System
+
+Enterprise properties often require multiple administrators working in parallel. ExperienceIQ supports this securely:
+
+- Primary admin (property owner) invites verified admins as collaborators
+- Collaborators receive **scoped, property-level access** only
+- Invitation flow is server-side with 7-day expiry and audit logging
+- Collaborators **cannot access subscription data, billing, or other admins' properties**
+- Access can be revoked instantly at any time
+
+The primary owner remains the **single source of truth** for billing and governance.
+
+---
+
+## Subscription & Billing
+
+Billing is handled via **Paystack**, with a secure, webhook-validated flow.
+
+- Subscription state is the source of truth for platform access
+- Webhooks validate and update access in real time
+- Billing is centralised under the property owner
+- Collaborator admins inherit access without separate billing accounts
+- All payment data is handled server-side — never exposed to the client
+
+---
+
+## Operational Analytics
+
+Admins gain actionable insight into operational performance across every property:
+
+- Issue resolution rate and trend analysis
+- Average resolution time per property and per staff member
+- SLA compliance tracking
+- Staff performance metrics
+- Live issue monitoring across the portfolio
+
+These insights allow management to **identify bottlenecks, improve service standards, and hold teams accountable** with data.
+
+---
+
+## Staff Roster Management
+
+Digital staffing coordination, built into the same platform:
+
+- Monthly roster creation per department
+- Shift visibility for all staff members
+- Department-level assignment management
+- Integrated with the issue management workflow
+
+---
+
+## Security Architecture
+
+Security is a **core design principle**, not an afterthought.
+
+| Layer | Implementation |
+|---|---|
+| **Authentication** | Firebase Auth with session cookie validation |
+| **Authorisation** | Role-based access enforced server-side on every request |
+| **Database** | Strict Firestore security rules — client writes are blocked for sensitive collections |
+| **Admin Collaboration** | Invitation-only access grants with full audit logging |
+| **Billing** | Subscription state validated via Paystack webhook signatures (HMAC-SHA512) |
+| **Observability** | Sentry error tracking and production monitoring |
+
+Sensitive operations — including property access grants, admin invitations, and audit logs — are **server-side only** and cannot be triggered directly from the client under any circumstances.
+
+---
+
+## Tech Stack
+
+**Frontend**
+
+| Technology | Purpose |
+|---|---|
+| Next.js 14 (App Router) | Framework — SSR, streaming, server actions |
+| TypeScript | Type safety across the full stack |
+| Tailwind CSS | Utility-first styling |
+| shadcn/ui | Accessible, composable component library |
+| Lucide React | Icon system |
+| Zustand / React Context | Client-side state management |
+
+**Backend & Infrastructure**
+
+| Technology | Purpose |
+|---|---|
+| Firebase Authentication | Session management and identity |
+| Firestore | Real-time document database |
+| Firebase Cloud Functions | Server-side background processing |
+| Firebase Cloud Messaging | Push notifications for staff |
+| Vercel | Hosting and edge deployment |
+| UploadThing | Managed file uploads |
+| Sentry | Error tracking and production observability |
+| Paystack | Subscription billing and webhook processing |
+
+---
+
+## Navigation Structure
+
+```
+guest/
+├── Dashboard
+└── Report Issue
+
+staff/
+├── Dashboard
+├── Assigned Issues
+├── Roster
+└── My Performance
+
+admin/
+├── Overview
+├── Staff Approval
+├── Properties
+├── Collaborators
+├── Invitations
+├── Insights
+└── Create Roster
+
+owner/
+└── Overview
+```
+
+---
+
+## Real-World Impact
+
+Hospitality operators using ExperienceIQ can expect to:
+
+- **Resolve guest issues before checkout** — eliminating the window for negative reviews
+- **Reduce complaint escalations** by catching problems at the source
+- **Improve staff accountability** through transparent, trackable task ownership
+- **Monitor service performance in real time** across every property
+- **Standardise operations** across multi-property portfolios with a single platform
+
+---
+
+## Live Demo
+
+The platform is live and available for evaluation:
 
 **[https://experience-iq.vercel.app](https://experience-iq.vercel.app)**
 
+| Role | Credentials |
+|---|---|
+| Admin | admin@gmail.com / 123456789 |
+| Staff | staff@gmail.com / 123456789 |
+| Guest | Property Code: `JVBHTG` · Rooms: 101, 102, 103 |
+
+> **Note:** Please log out between role switches. The platform uses session-based authentication.
+
 ---
 
-# 📄 License
+## License
 
-This project is proprietary software.
-All rights reserved.
+This software is **proprietary and confidential**.  
+All rights reserved. Unauthorised use, reproduction, or distribution is strictly prohibited.
 
+&copy; 2026 ExperienceIQ. All rights reserved.
 
+---
 
+<div align="center">
 
+*Built for hospitality operators who refuse to leave guest experience to chance.*
 
-
+</div>
