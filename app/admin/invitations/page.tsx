@@ -10,6 +10,49 @@ import { Separator } from "@/components/ui/separator";
 import Unverified from "@/components/Unverified";
 import { Building2, Mail, Clock } from "lucide-react";
 import { InvitationActionButtons } from "@/components/admins/InvitationActionButtons";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Invitations – ExperienceIQ",
+    description:
+        "View and manage workspace invitations. Accept invitations from other administrators to collaborate on properties within ExperienceIQ.",
+    keywords: [
+        ...baseKeywords,
+        "workspace invitations",
+        "admin invitations",
+        "property collaboration",
+        "team invitations",
+        "property management invites",
+        "admin access invitations",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Invitations – ExperienceIQ",
+        description:
+            "Accept or manage invitations from other administrators to collaborate on properties.",
+        url: `${baseUrl}/admin/invitations`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Invitations",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Invitations – ExperienceIQ",
+        description:
+            "Accept invitations and collaborate with administrators across properties.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+};
 
 const InvitationsPage = async () => {
     const cookieStore = await cookies();

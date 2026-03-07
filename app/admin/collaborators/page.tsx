@@ -1,4 +1,3 @@
-// app/admin/collaborators/page.tsx — Server Component
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Role } from "@/types";
@@ -18,8 +17,49 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import { fetchEligibleAdmins } from "@/app/admin-invite-actions";
 import { InviteAdminForm } from "@/components/admins/InviteAdminForm";
 import { RevokeAccessButton } from "@/components/admins/RevokeAccessButton";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { Metadata } from "next";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export const metadata: Metadata = {
+    title: "Collaborators – ExperienceIQ",
+    description:
+        "Manage property collaborators and administrators. Control access, roles, and permissions for team members across your properties.",
+    keywords: [
+        ...baseKeywords,
+        "collaborators",
+        "team management",
+        "property admins",
+        "staff access control",
+        "workspace collaboration",
+        "property management team",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Collaborators – ExperienceIQ",
+        description:
+            "Manage administrators and collaborators who help operate your properties.",
+        url: `${baseUrl}/admin/collaborators`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Collaborators Management",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Collaborators – ExperienceIQ",
+        description:
+            "Manage property administrators and collaborators across your workspace.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+};
 
 interface PendingInvite {
     id: string;
@@ -28,13 +68,10 @@ interface PendingInvite {
     expiresAt: Date;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function getInitials(name: string) {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 const CollaboratorsPage = async () => {
     const cookieStore = await cookies();

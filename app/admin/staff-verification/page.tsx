@@ -22,22 +22,42 @@ import { RefreshButton } from "@/components/layout/RefreshButton";
 
 export const metadata: Metadata = {
     title: "Staff Verification – ExperienceIQ",
-    description: "Verify or unverify staff members belonging to your properties.",
+    description:
+        "Verify or revoke verification for staff members across your properties. Maintain trusted teams and ensure only authorized staff access operational tools.",
     keywords: [
         ...baseKeywords,
         "staff verification",
         "staff management",
+        "staff permissions",
+        "property staff",
         "admin tools",
+        "team verification",
     ],
     ...sharedMetadata,
     openGraph: {
         title: "Staff Verification – ExperienceIQ",
-        description: "Manage and verify staff members across your properties.",
+        description:
+            "Verify and manage staff members across your properties to maintain a trusted operational team.",
         url: `${baseUrl}/admin/staff-verification`,
         siteName: "ExperienceIQ",
-        images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Staff Verification" }],
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Staff Verification",
+            },
+        ],
         locale: "en_US",
         type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Staff Verification – ExperienceIQ",
+        description:
+            "Verify and manage staff members across your properties.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
     },
 };
 
