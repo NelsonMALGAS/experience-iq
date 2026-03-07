@@ -518,7 +518,8 @@ export async function fetchEligibleAdmins(
                 const data = doc.data();
                 return (
                     doc.id !== inviterUid &&
-                    !data.subscription?.hasAccess
+                    !data.subscription?.hasAccess &&
+                    !data.inheritedFrom
                 );
             })
             .map(doc => ({
