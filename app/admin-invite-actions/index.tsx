@@ -237,9 +237,9 @@ export async function inviteAdminToProperty(
             return { success: false, error: "This admin already has access to this property." };
         }
 
-        // ── 6. Create invitation (7-day expiry) ────────────────────────────
+        // ── 6. Create invitation (1 year expiry) ────────────────────────────
         const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7);
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
         const invitationRef = db.collection("adminInvitations").doc();
         await invitationRef.set({
@@ -541,8 +541,6 @@ export async function fetchEligibleAdmins(
                 return owned.empty ? c : null;
             })
         );
-
-        console.log(ownedChecks, "OWNED_CHECKS")
 
         return ownedChecks.filter(Boolean) as EligibleAdminForInvite[];
 
