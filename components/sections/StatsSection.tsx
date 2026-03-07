@@ -5,10 +5,11 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 
 type StatsSectionProps = {
     uid: string
+    inheritedFrom: string | undefined
 }
 
-const StatsSection = async ({ uid }: StatsSectionProps) => {
-    const { issues: allIssues } = await fetchPropertiesWithStats(uid)
+const StatsSection = async ({ uid, inheritedFrom }: StatsSectionProps) => {
+    const { issues: allIssues } = await fetchPropertiesWithStats(uid, inheritedFrom)
 
     const stats = calculateDashboardStats(allIssues);
 

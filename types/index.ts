@@ -2,6 +2,15 @@ import { shiftTemplates } from "@/constants";
 import { User } from "firebase/auth";
 import { Timestamp } from "firebase/firestore";
 
+export type AdminType = "main" | "inherited";
+export type InvitationStatus =
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "expired"
+  | "revoked";
+export type AccessStatus = "active" | "revoked";
+
 export type PwaModalProps = {
   onInstall: () => void;
   onClose: () => void;
@@ -12,7 +21,7 @@ export type IssueDetailsPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export type Role = "admin" | "staff" | "guest";
+export type Role = "owner" | "admin" | "staff" | "guest";
 
 export interface Room {
   id: string;
@@ -32,6 +41,110 @@ export interface Property {
   code: string;
   rooms: Room[];
   createdAt?: Date;
+  collaboratorIds?: string[];
+}
+
+export interface PropertyPermissions {
+  canViewIssues: boolean;
+  canManageIssues: boolean;
+  canViewStaff: boolean;
+  canManageStaff: boolean;
+  canViewAnalytics: boolean;
+}
+
+export interface PropertyAccessDocument {
+  id: string;
+  propertyId: string;
+  propertyOwnerId: string;
+  grantedToAdminId: string;
+  grantedByAdminId: string;
+  grantedAt: FirebaseFirestore.Timestamp;
+  revokedAt?: FirebaseFirestore.Timestamp;
+  status: "active" | "revoked";
+
+  permissions: {
+    canViewIssues: boolean;
+    canManageIssues: boolean;
+    canViewStaff: boolean;
+    canManageStaff: boolean;
+    canViewAnalytics: boolean;
+  };
+}
+
+export interface AdminInvitationDocument {
+  id: string;
+  propertyId: string;
+  propertyName: string;
+  invitedByAdminId: string;
+  invitedAdminId: string;
+  invitedAdminEmail: string;
+  status: "pending" | "accepted" | "declined" | "expired" | "revoked";
+  createdAt: FirebaseFirestore.Timestamp;
+  expiresAt: FirebaseFirestore.Timestamp;
+  acceptedAt?: FirebaseFirestore.Timestamp;
+  declinedAt?: FirebaseFirestore.Timestamp;
+  permissions: PropertyAccessDocument["permissions"];
+}
+
+export interface SanitisedPropertyAccess {
+  accessId: string;
+  propertyId: string;
+  propertyName: string;
+  propertyLocation: string;
+  propertyCode: string;
+  grantedAt: Date;
+  permissions: PropertyPermissions;
+  ownerDisplayName: string;
+}
+
+export interface AdminInvitation {
+  id: string;
+  propertyId: string;
+  propertyName: string;
+  invitedByAdminId: string;
+  invitedAdminId: string;
+  invitedAdminEmail: string;
+  status: InvitationStatus;
+  createdAt: Date;
+  expiresAt: Date;
+  acceptedAt?: Date;
+  permissions: PropertyPermissions;
+}
+
+export interface EligibleAdminForInvite {
+  uid: string;
+  displayName: string;
+  email: string;
+  department?: string;
+}
+
+export interface AuditLogDocument {
+  id: string;
+  action:
+    | "admin_invited"
+    | "invitation_accepted"
+    | "invitation_declined"
+    | "invitation_expired"
+    | "access_revoked"
+    | "access_granted"
+    | "unauthorized_access_attempt";
+  performedByUid: string;
+  targetAdminId?: string;
+  propertyId?: string;
+  invitationId?: string;
+  metadata?: Record<string, unknown>;
+  timestamp: FirebaseFirestore.Timestamp;
+  ipAddress?: string;
+}
+
+export interface AuditLogEntry {
+  action: string;
+  performedByUid: string;
+  targetAdminId?: string;
+  propertyId?: string;
+  invitationId?: string;
+  metadata?: Record<string, unknown>;
+  timestamp: Timestamp;
 }
 
 /**
@@ -97,7 +210,9 @@ export type StaffUser = BaseAppUser & {
 
 export type AdminUser = BaseAppUser & {
   role: "admin";
-  property: Property[]; // one or more
+  property: Property[];
+  adminType?: "main" | "inherited";
+  inheritedFrom?: string;
 };
 
 export type AppUser = GuestUser | StaffUser | AdminUser;

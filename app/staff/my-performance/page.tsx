@@ -79,7 +79,7 @@ const MyPerformance = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24 space-y-4">
-                <DashboardLayout isVerified={isVerified} role={role} uid={uid} adminId={adminId}>
+                <DashboardLayout isVerified={isVerified} role={role} uid={uid} adminId={adminId} inheritedFrom={undefined}>
                     {/* Header */}
                     <div className="space-y-1">
                         <h1 className="text-3xl font-bold tracking-tight">

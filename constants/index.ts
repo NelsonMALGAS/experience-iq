@@ -1,4 +1,4 @@
-import { IssueCategory, Role } from "@/types";
+import { IssueCategory, PropertyPermissions, Role } from "@/types";
 import {
   LayoutDashboard,
   AlertCircle,
@@ -11,6 +11,8 @@ import {
   Activity,
   BarChart3,
   UserCheck,
+  UserPlus,
+  MailCheck,
 } from "lucide-react";
 
 // Environment-aware pricing configuration
@@ -217,7 +219,10 @@ export const PRICE_PLANS: PricePlan[] = [
   },
 ];
 
-export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
+export const NAV_LINKS: Record<
+  "guest" | "staff" | "admin" | "owner",
+  NavLink[]
+> = {
   guest: [
     { label: "Dashboard", href: "/guest", icon: LayoutDashboard },
     { label: "Report Issue", href: "/guest/add-issue", icon: PlusCircle },
@@ -236,9 +241,13 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
       icon: UserCheck,
     },
     { label: "Properties", href: "/admin/properties", icon: Building2 },
+    { label: "Collaborators", href: "/admin/collaborators", icon: UserPlus },
+    { label: "Invitations", href: "/admin/invitations", icon: MailCheck },
     { label: "Insights", href: "/admin/insights", icon: BarChart3 },
     { label: "Roster", href: "/admin/create-roster", icon: CalendarClock },
   ],
+
+  owner: [{ label: "Overview", href: "/owner", icon: LayoutDashboard }],
 } as const;
 
 export const ISSUE_CATEGORIES = [
@@ -512,6 +521,14 @@ export interface DashboardConfig {
     maxAlertsDisplayed: number;
   };
 }
+
+export const DEFAULT_PERMISSIONS: PropertyPermissions = {
+  canViewIssues: true,
+  canManageIssues: true,
+  canViewStaff: true,
+  canManageStaff: false,
+  canViewAnalytics: true,
+};
 
 export const years = Array.from(
   { length: 11 },

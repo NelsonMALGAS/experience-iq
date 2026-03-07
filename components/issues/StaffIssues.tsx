@@ -35,7 +35,7 @@ export default function StaffIssues({ role, uid, issues, staff, isVerified, admi
     };
 
     return (
-        <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
+        <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={undefined}>
             <div className="space-y-6 animate-fade-in">
                 <div className="flex flex-col gap-4">
                     <div>

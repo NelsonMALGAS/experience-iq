@@ -53,7 +53,7 @@ const StaffVerificationPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, adminId } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, inheritedFrom } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`);
 
@@ -69,7 +69,7 @@ const StaffVerificationPage = async () => {
 
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId}>
+            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8 pb-10">
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

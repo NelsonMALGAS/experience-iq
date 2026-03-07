@@ -67,7 +67,7 @@ const AdminDashboard = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom } = verificationResult;
 
 
     // 🚫 Unverified state (this is fast because no data fetching)
@@ -75,14 +75,14 @@ const AdminDashboard = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} />
     }
 
-    if (!subscription || !subscription.hasAccess) {
+    if ((!subscription || !subscription.hasAccess) && adminType === "main" && !inheritedFrom) {
         return <SubscriptionBanner type="admin" />
     }
 
     // 🚀 CRITICAL OPTIMIZATION: Return INSTANT shell, stream data sections
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId}>
+            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId} inheritedFrom={inheritedFrom}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT: Header renders immediately with no await */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -99,19 +99,19 @@ const AdminDashboard = async () => {
 
                     {/* 🚀 STREAMING: Each section loads independently */}
                     <Suspense fallback={<StatsGridSkeleton />}>
-                        <StatsSection uid={uid} />
+                        <StatsSection uid={uid} inheritedFrom={inheritedFrom} />
                     </Suspense>
 
                     <Suspense fallback={<PropertiesSkeleton />}>
-                        <PropertiesSection uid={uid} />
+                        <PropertiesSection uid={uid} inheritedFrom={inheritedFrom} />
                     </Suspense>
 
                     <Suspense fallback={<IssuesSkeleton />}>
-                        <RecentIssuesSection uid={uid} role={role} />
+                        <RecentIssuesSection uid={uid} role={role} inheritedFrom={inheritedFrom} />
                     </Suspense>
 
                     <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse"><div className="h-64 bg-muted rounded" /><div className="h-64 bg-muted rounded lg:col-span-2" /></div>}>
-                        <CriticalIssuesSection uid={uid} />
+                        <CriticalIssuesSection uid={uid} inheritedFrom={inheritedFrom} />
                     </Suspense>
                 </div>
             </DashboardLayout>

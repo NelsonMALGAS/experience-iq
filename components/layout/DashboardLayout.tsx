@@ -20,9 +20,10 @@ export interface DashboardLayoutProps {
     uid: AppUser["uid"];
     isVerified: boolean;
     adminId: string | null | undefined
+    inheritedFrom: string | undefined
 }
 
-export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId }: DashboardLayoutProps) {
+export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId, inheritedFrom }: DashboardLayoutProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser();
     const { fetchUserInfo, currentUser: user } = useUserStore();
     const isAuthenticated = !loading && !!uid;
@@ -75,6 +76,8 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                 sidebarOpen={sidebarOpen}
                 role={user?.role || role}
                 isVerified={effectiveIsVerified}
+                inheritedFrom={inheritedFrom}
+
             />
 
             {/* Main Content */}
@@ -99,7 +102,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <NotificationCenter role={role} uid={uid} adminId={adminId} />
+                            <NotificationCenter role={role} uid={uid} adminId={adminId} inheritedFrom={inheritedFrom} />
                             <Button
                                 variant="ghost"
                                 size="icon"

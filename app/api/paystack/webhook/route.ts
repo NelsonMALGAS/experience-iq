@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
           "subscription.hasAccess": true,
           "subscription.status": status,
           "subscription.priceId": metadata.priceId,
+          adminType: "main",
+          inheritedFrom: "",
         });
 
         break;
@@ -146,6 +148,8 @@ export async function POST(request: NextRequest) {
           "subscription.cancelAtPeriodEnd": false,
           "subscription.createdAt": new Date().toISOString(),
           "subscription.cancelledAt": null,
+          adminType: "main",
+          inheritedFrom: "",
         });
 
         break;

@@ -10,6 +10,8 @@ export type VerificationResult = {
   canAccessData: boolean;
   subscription?: UserSubscription | null;
   adminId?: string | null;
+  adminType?: "main" | "inherited";
+  inheritedFrom?: string;
 };
 
 /**
@@ -86,14 +88,38 @@ export async function requireVerifiedUser(
     // ✅ ADMIN: return own subscription
     if (role === "admin") {
       const subscription = userData?.subscription ?? null;
+      const adminType = userData?.adminType ?? "inherited";
+      const inheritedFrom = userData?.inheritedFrom ?? undefined;
+
+      const inheritedDoc = inheritedFrom
+        ? await db?.collection("users").doc(uid).get()
+        : null;
+
+      if (!inheritedDoc?.exists) {
+        return {
+          uid,
+          isVerified: isVerified,
+          role: "admin",
+          canAccessData: isVerified,
+          subscription,
+          adminId: uid,
+          adminType: adminType,
+          inheritedFrom: inheritedFrom,
+        };
+      }
+
+      const inheritedData = inheritedDoc.data();
+      const inheritedSubscription = inheritedData?.subscription ?? null;
 
       return {
         uid,
         isVerified: isVerified,
         role: "admin",
         canAccessData: isVerified,
-        subscription,
+        subscription: inheritedSubscription ?? subscription,
         adminId: uid,
+        adminType: adminType,
+        inheritedFrom: inheritedFrom,
       };
     }
 
