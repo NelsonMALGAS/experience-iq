@@ -21,7 +21,7 @@ export type IssueDetailsPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export type Role = "owner" | "admin" | "staff" | "guest";
+export type Role = "admin" | "staff" | "guest";
 
 export interface Room {
   id: string;

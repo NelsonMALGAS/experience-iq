@@ -117,7 +117,7 @@ const IssueDetailsPage = async ({
     if (!uid) redirect(`/login?role=${role || "staff"}`);
 
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />;
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
     const goBackUrl = role === "staff" ? "/staff/issues" : "/admin";

@@ -67,12 +67,12 @@ const AdminDashboard = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom, isOwner } = verificationResult;
 
 
     // 🚫 Unverified state (this is fast because no data fetching)
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />
     }
 
     if ((!subscription || !subscription.hasAccess) && adminType === "main" && !inheritedFrom) {
@@ -82,7 +82,7 @@ const AdminDashboard = async () => {
     // 🚀 CRITICAL OPTIMIZATION: Return INSTANT shell, stream data sections
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId} inheritedFrom={inheritedFrom}>
+            <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT: Header renders immediately with no await */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

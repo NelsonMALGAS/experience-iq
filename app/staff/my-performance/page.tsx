@@ -71,7 +71,7 @@ const MyPerformance = async () => {
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
     }
 
     const performance = await getStaffPerformance(uid)
@@ -79,7 +79,7 @@ const MyPerformance = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24 space-y-4">
-                <DashboardLayout isVerified={isVerified} role={role} uid={uid} adminId={adminId} inheritedFrom={undefined}>
+                <DashboardLayout isVerified={isVerified} role={role} uid={uid} adminId={adminId} inheritedFrom={undefined} isOwner={undefined}>
                     {/* Header */}
                     <div className="space-y-1">
                         <h1 className="text-3xl font-bold tracking-tight">

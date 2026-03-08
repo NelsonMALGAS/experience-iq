@@ -71,7 +71,7 @@ const RosterPage = async () => {
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={userRole} uid={uid} />;
+        return <Unverified isVerified={isVerified} role={userRole} uid={uid} isOwner={undefined} />;
     }
 
     // 🚀 INSTANT shell with streaming content
