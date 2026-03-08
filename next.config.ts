@@ -43,7 +43,13 @@ export default withSentryConfig(nextConfig, {
   // side errors will fail.
   tunnelRoute: "/monitoring",
   sourcemaps: {
-    ignore: ["**/*_client-reference-manifest.js"],
+    ignore: [
+      "**/*_client-reference-manifest.js",
+      "**/interception-route-rewrite-manifest.js",
+      "**/middleware-build-manifest.js",
+      "**/next-font-manifest.js",
+      "**/server-reference-manifest.js",
+    ],
   },
 
   webpack: {
