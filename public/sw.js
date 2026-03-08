@@ -1,4 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v3.1.1";
+const CACHE_NAME = "experience-iq-pages-v4.0.0";
 
 const pagesToCache = [
   "/",
