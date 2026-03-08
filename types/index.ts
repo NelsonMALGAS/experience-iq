@@ -179,14 +179,24 @@ export type SubscriptionStatus =
   | "unpaid";
 
 export type UserSubscription = {
-  hasAccess?: boolean;
-  subscriptionId?: string;
-  customerId?: string;
-  priceId?: string;
-  currentPeriodStart?: number; // Unix timestamp
-  currentPeriodEnd?: number; // Unix timestamp
+  hasAccess: boolean;
+  name?: string;
   status?: SubscriptionStatus;
+  amount?: number;
+  lastPaymentAmount?: number;
+  createdAt?: string;
+  currentPeriodEnd?: string;
+  lastPaymentDate?: string;
   cancelAtPeriodEnd?: boolean;
+  cancelledAt?: string | null;
+  lastPaymentReference?: string;
+  subscriptionCode?: string;
+  customerCode?: string;
+  emailToken?: string;
+  propertyLimit?: number;
+  staffLimit?: number;
+  priceId?: string;
+  planCode?: string;
 };
 
 type BaseAppUser = Partial<User> & {

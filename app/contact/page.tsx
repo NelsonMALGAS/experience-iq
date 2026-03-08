@@ -56,7 +56,7 @@ const ContactPage = () => {
                 <div className="max-w-6xl mx-auto px-4">
                     {/* Back Button */}
                     <div className="mb-6">
-                        <BackButton label="⬅️ Go back" />
+                        <BackButton label="Go back" />
                     </div>
                     <div className="flex flex-col items-center text-center space-y-6">
                         <Image

@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
             (f: any) => f.variable_name === "user_id",
           )?.value;
 
+        const name = metadata?.name;
+
         if (!email || !userId) {
           return NextResponse.json(
             { error: "Unauthorized. Please sign in." },
@@ -87,8 +89,8 @@ export async function POST(request: NextRequest) {
           "subscription.hasAccess": true,
           "subscription.status": status,
           "subscription.priceId": metadata.priceId,
+          "subscription.name": name,
           adminType: "main",
-          inheritedFrom: "",
         });
 
         break;
@@ -149,7 +151,6 @@ export async function POST(request: NextRequest) {
           "subscription.createdAt": new Date().toISOString(),
           "subscription.cancelledAt": null,
           adminType: "main",
-          inheritedFrom: "",
         });
 
         break;

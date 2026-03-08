@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const amount = plan.pricing[billingInterval].price * 100; // Convert to kobo
+    const title = plan.title;
 
     // Initialize Paystack transaction
     const response = await fetch(
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
             billingInterval,
             priceId: plan.pricing[billingInterval].priceId,
             planCode,
+            name: title,
             custom_fields: [
               {
                 display_name: "User ID",

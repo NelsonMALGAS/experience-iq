@@ -79,7 +79,8 @@ export async function requireVerifiedUser(
       const inheritedFrom: string | undefined =
         userData.inheritedFrom ?? undefined;
 
-      let subscription: UserSubscription | null = userData.subscription ?? null;
+      let subscription: UserSubscription | null | undefined =
+        userData.subscription ?? null;
 
       // Inherited admins: resolve subscription from their main admin
       // ✅ FIX: was incorrectly fetching `uid` instead of `inheritedFrom`
@@ -157,7 +158,7 @@ export async function requireVerifiedUser(
       }
 
       // Staff inherit subscription from their managing admin
-      const subscription: UserSubscription | null =
+      const subscription: UserSubscription | null | undefined =
         adminData.subscription ?? null;
 
       return {

@@ -51,7 +51,7 @@ const PolicyPage = () => {
 
             {/* Back Button */}
             <div className="mb-6">
-                <BackButton label="⬅️ Go back" />
+                <BackButton label="Go back" />
             </div>
             <h1 className="text-4xl font-extrabold text-center mb-12 tracking-tight">
                 Refund & Cancellation Policy
@@ -116,7 +116,7 @@ const PolicyPage = () => {
                                 href="mailto:experienceiq.helpdesk@gmail.com"
                                 className="text-primary underline hover:text-primary/80 transition-colors"
                             >
-                                experienceiq.helpdesk@gmail.com
+                                <span className="text-wrap">experienceiq.helpdesk@gmail.com</span>
                             </Link>
                             . We review disputes fairly and aim to resolve them promptly, providing refunds or alternatives where applicable.
                         </p>
