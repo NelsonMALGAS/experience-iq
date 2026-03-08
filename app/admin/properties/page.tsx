@@ -72,13 +72,13 @@ const PropertiesPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`)
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom, isOwner } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
     }
 
     // ✅ USER IS VERIFIED - Fetch properties with live statistics
@@ -98,7 +98,7 @@ const PropertiesPage = async () => {
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-24">
-                <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom}>
+                <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
                     <div className="space-y-6 animate-fade-in">
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

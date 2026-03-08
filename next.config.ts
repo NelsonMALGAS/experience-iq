@@ -42,6 +42,15 @@ export default withSentryConfig(nextConfig, {
   // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
   // side errors will fail.
   tunnelRoute: "/monitoring",
+  sourcemaps: {
+    ignore: [
+      "**/*_client-reference-manifest.js",
+      "**/interception-route-rewrite-manifest.js",
+      "**/middleware-build-manifest.js",
+      "**/next-font-manifest.js",
+      "**/server-reference-manifest.js",
+    ],
+  },
 
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)

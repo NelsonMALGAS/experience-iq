@@ -71,7 +71,7 @@ const Payment = async () => {
 
     const isExpired =
         !!subscription?.currentPeriodEnd &&
-        subscription.currentPeriodEnd * 1000 < now;
+        new Date(subscription.currentPeriodEnd).getTime() < now;
 
     const invalidStatuses: SubscriptionStatus[] = [
         "past_due",

@@ -12,6 +12,7 @@ export type VerificationResult = {
   adminId?: string | null;
   adminType?: "main" | "inherited";
   inheritedFrom?: string;
+  isOwner: boolean;
 };
 
 /**
@@ -26,9 +27,7 @@ export async function requireVerifiedUser(
   session: string | undefined,
   role: Role,
 ): Promise<VerificationResult> {
-  "use server";
-
-  // 1. Check session exists
+  // ── 1. Session must exist ─────────────────────────────────────────────
   if (!session) {
     redirect(`/login?role=${role}`);
   }
@@ -36,7 +35,7 @@ export async function requireVerifiedUser(
     redirect("/");
   }
 
-  // 2. Verify session cookie
+  // ── 2. Verify session cookie with Firebase Auth ───────────────────────
   const decoded = await auth?.verifySessionCookie(session, true);
   if (!decoded?.uid) {
     redirect(`/login?role=${role}`);
@@ -44,7 +43,7 @@ export async function requireVerifiedUser(
 
   const uid = decoded.uid;
 
-  // 3. Guests: always verified, no subscription logic
+  // ── 3. Guests: always verified, no subscription logic ─────────────────
   if (role === "guest") {
     return {
       uid,
@@ -53,153 +52,144 @@ export async function requireVerifiedUser(
       canAccessData: true,
       subscription: null,
       adminId: null,
+      isOwner: false,
     };
   }
 
+  // ── 4. Staff and Admin: fetch user document ───────────────────────────
   try {
     const userDoc = await db?.collection("users").doc(uid).get();
 
     if (!userDoc?.exists) {
-      return {
-        uid,
-        isVerified: false,
-        role,
-        canAccessData: false,
-        subscription: null,
-        adminId: null,
-      };
+      return unverifiedResult(uid, role);
     }
 
-    const userData = userDoc.data();
-    const isVerified = userData?.isVerified ?? false;
+    const userData = userDoc.data()!;
+    const isVerified: boolean = userData.isVerified ?? false;
 
-    // 🔐 Always verify first (admins & staff)
     if (!isVerified) {
-      return {
-        uid,
-        isVerified: false,
-        role,
-        canAccessData: false,
-        subscription: null,
-        adminId: null,
-      };
+      return unverifiedResult(uid, role);
     }
 
-    // ✅ ADMIN: return own subscription
+    // ── ADMIN path ────────────────────────────────────────────────────
     if (role === "admin") {
-      const subscription = userData?.subscription ?? null;
-      const adminType = userData?.adminType ?? "inherited";
-      const inheritedFrom = userData?.inheritedFrom ?? undefined;
+      // adminType defaults to "main" for legacy accounts created before
+      // the field existed — they have no inheritedFrom so they are main.
+      const adminType: "main" | "inherited" = userData.adminType ?? "main";
+      const inheritedFrom: string | undefined =
+        userData.inheritedFrom ?? undefined;
 
-      const inheritedDoc = inheritedFrom
-        ? await db?.collection("users").doc(uid).get()
-        : null;
+      let subscription: UserSubscription | null | undefined =
+        userData.subscription ?? null;
 
-      if (!inheritedDoc?.exists) {
-        return {
-          uid,
-          isVerified: isVerified,
-          role: "admin",
-          canAccessData: isVerified,
-          subscription,
-          adminId: uid,
-          adminType: adminType,
-          inheritedFrom: inheritedFrom,
-        };
+      // Inherited admins: resolve subscription from their main admin
+      // ✅ FIX: was incorrectly fetching `uid` instead of `inheritedFrom`
+      if (adminType === "inherited" && inheritedFrom) {
+        const ownerDoc = await db?.collection("users").doc(inheritedFrom).get();
+
+        if (ownerDoc?.exists) {
+          const ownerData = ownerDoc.data()!;
+          // Use owner's subscription — never expose sensitive Paystack fields
+          subscription = ownerData.subscription ?? null;
+        }
+        // If owner doc doesn't exist or has no subscription, inherited
+        // admin loses access — subscription stays null
       }
 
-      const inheritedData = inheritedDoc.data();
-      const inheritedSubscription = inheritedData?.subscription ?? null;
+      // ✅ isOwner: derived from Firestore data only, never from client input
+      const isOwner =
+        isVerified && adminType === "main" && subscription?.hasAccess === true;
 
       return {
         uid,
-        isVerified: isVerified,
+        isVerified,
         role: "admin",
         canAccessData: isVerified,
-        subscription: inheritedSubscription ?? subscription,
+        subscription,
         adminId: uid,
-        adminType: adminType,
-        inheritedFrom: inheritedFrom,
+        adminType,
+        inheritedFrom,
+        isOwner,
       };
     }
 
-    // ✅ STAFF: fetch admin subscription using adminId
     if (role === "staff") {
-      const adminId = userData?.adminId ?? null;
+      const adminId: string | null = userData.adminId ?? null;
 
       if (!adminId) {
         return {
           uid,
-          isVerified: isVerified,
+          isVerified,
           role: "staff",
           canAccessData: isVerified,
           subscription: null,
           adminId: null,
+          isOwner: false,
         };
       }
 
-      const adminDoc = adminId
-        ? await db?.collection("users").doc(adminId).get()
-        : null;
+      const adminDoc = await db?.collection("users").doc(adminId).get();
 
       if (!adminDoc?.exists) {
         return {
           uid,
-          isVerified: isVerified,
+          isVerified,
           role: "staff",
           canAccessData: isVerified,
           subscription: null,
           adminId,
+          isOwner: false,
         };
       }
 
-      const adminData = adminDoc.data();
-      const adminVerified = adminData?.isVerified ?? false;
+      const adminData = adminDoc.data()!;
+      const adminVerified: boolean = adminData.isVerified ?? false;
 
       if (!adminVerified) {
         return {
           uid,
-          isVerified: isVerified,
+          isVerified,
           role: "staff",
           canAccessData: isVerified,
           subscription: null,
           adminId,
+          isOwner: false,
         };
       }
 
-      const subscription = adminData?.subscription ?? null;
+      // Staff inherit subscription from their managing admin
+      const subscription: UserSubscription | null | undefined =
+        adminData.subscription ?? null;
 
       return {
         uid,
-        isVerified: isVerified,
+        isVerified,
         role: "staff",
         canAccessData: isVerified,
         subscription,
         adminId,
+        isOwner: false, // Staff are never owners
       };
     }
 
-    // Fail closed
-    return {
-      uid,
-      isVerified: false,
-      role,
-      canAccessData: isVerified,
-      subscription: null,
-      adminId: null,
-    };
+    // ── Fail closed: unknown role ─────────────────────────────────────
+    return unverifiedResult(uid, role);
   } catch (error) {
-    console.error("Error fetching user verification status:", error);
-
-    return {
-      uid,
-      isVerified: false,
-      role,
-      canAccessData: false,
-      subscription: null,
-      adminId: null,
-    };
+    console.error("[requireVerifiedUser] Error fetching user:", error);
+    return unverifiedResult(uid, role);
   }
+}
+
+function unverifiedResult(uid: string, role: Role): VerificationResult {
+  return {
+    uid,
+    isVerified: false,
+    role,
+    canAccessData: false,
+    subscription: null,
+    adminId: null,
+    isOwner: false,
+  };
 }
 
 /**

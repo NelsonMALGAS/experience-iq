@@ -21,9 +21,10 @@ export interface DashboardLayoutProps {
     isVerified: boolean;
     adminId: string | null | undefined
     inheritedFrom: string | undefined
+    isOwner: boolean | undefined
 }
 
-export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId, inheritedFrom }: DashboardLayoutProps) {
+export function DashboardLayout({ children, role, uid, isVerified: serverIsVerified, adminId, inheritedFrom, isOwner }: DashboardLayoutProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser();
     const { fetchUserInfo, currentUser: user } = useUserStore();
     const isAuthenticated = !loading && !!uid;
@@ -77,6 +78,7 @@ export function DashboardLayout({ children, role, uid, isVerified: serverIsVerif
                 role={user?.role || role}
                 isVerified={effectiveIsVerified}
                 inheritedFrom={inheritedFrom}
+                isOwner={isOwner}
 
             />
 

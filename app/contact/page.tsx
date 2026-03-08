@@ -4,6 +4,7 @@ import { Mail, Building2, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
+import BackButton from "@/components/BackButton";
 
 export const metadata: Metadata = {
     title: "Contact ExperienceIQ – Enterprise Hospitality Support",
@@ -53,6 +54,10 @@ const ContactPage = () => {
             {/* Hero Section */}
             <section className="border-b bg-linear-to-b from-muted/30 to-background py-12">
                 <div className="max-w-6xl mx-auto px-4">
+                    {/* Back Button */}
+                    <div className="mb-6">
+                        <BackButton label="Go back" />
+                    </div>
                     <div className="flex flex-col items-center text-center space-y-6">
                         <Image
                             src="/images/experienceIQ.png"

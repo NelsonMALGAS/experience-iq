@@ -73,7 +73,7 @@ const StaffRoster = async () => {
     if (!uid) redirect(`/login?role=${role || "staff"}`);
 
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />;
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
     if (!auth || !db) throw new Error("Firebase admin not initialized");

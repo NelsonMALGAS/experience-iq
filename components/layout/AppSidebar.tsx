@@ -15,9 +15,10 @@ type AppSidebarProps = {
     role: Role
     isVerified: boolean
     inheritedFrom: string | undefined
+    isOwner: boolean | undefined
 }
 
-export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom }: AppSidebarProps) {
+export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwner }: AppSidebarProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(sidebarOpen);
@@ -29,17 +30,17 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom }: App
     const navLinks = NAV_LINKS[role];
 
     const filteredNavLinks =
-        role === "admin" && inheritedFrom
+        role === "admin" && inheritedFrom && !isOwner
             ? navLinks.filter(
                 (link) =>
-                    link.href !== "/admin/collaborators"
+                    link.href !== "/admin/collaborators" &&
+                    link.href !== "/owner",
             )
             : navLinks;
 
     // Determine which links to show based on verification status
     // Guests always see all links; staff/admin only see links if verified
     const shouldShowNavigation = role === 'guest' || isVerified;
-
 
     return (
         <>

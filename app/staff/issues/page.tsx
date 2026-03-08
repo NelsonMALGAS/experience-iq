@@ -73,7 +73,7 @@ const StaffIssuesPage = async () => {
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={role} uid={uid} />
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
     }
 
     if (!subscription || !subscription.hasAccess || !adminId) {

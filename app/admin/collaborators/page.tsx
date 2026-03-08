@@ -84,10 +84,10 @@ const CollaboratorsPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom, isOwner } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`);
-    if (!canAccessData) return <Unverified isVerified={isVerified} role={role} uid={uid} />;
+    if (!canAccessData) return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />;
     if (!subscription?.hasAccess && !inheritedFrom) return <SubscriptionBanner type="admin" />;
 
     if (!db) {
@@ -155,7 +155,7 @@ const CollaboratorsPage = async () => {
 
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
-            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom}>
+            <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8 pb-10">
 
                     {/* ── Header ───────────────────────────────────────── */}
