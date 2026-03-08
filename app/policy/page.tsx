@@ -3,6 +3,7 @@ import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadat
 import { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 export const metadata: Metadata = {
     title: "Refund & Cancellation Policy – ExperienceIQ",
@@ -47,6 +48,11 @@ export const metadata: Metadata = {
 const PolicyPage = () => {
     return (
         <main className="container mx-auto px-4 py-24 max-w-4xl">
+
+            {/* Back Button */}
+            <div className="mb-6">
+                <BackButton label="⬅️ Go back" />
+            </div>
             <h1 className="text-4xl font-extrabold text-center mb-12 tracking-tight">
                 Refund & Cancellation Policy
             </h1>
