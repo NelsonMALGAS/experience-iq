@@ -1,4 +1,3 @@
-
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,21 +46,22 @@ export const metadata: Metadata = {
 
 const PolicyPage = () => {
     return (
-        <main className="container mx-auto px-4 py-24 max-w-4xl">
+        <main className="container mx-auto px-3 sm:px-6 py-16 sm:py-24 max-w-4xl">
 
             {/* Back Button */}
-            <div className="mb-6">
+            <div className="mb-5 sm:mb-6">
                 <BackButton label="Go back" />
             </div>
-            <h1 className="text-4xl font-extrabold text-center mb-12 tracking-tight">
+
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-center mb-8 sm:mb-12 tracking-tight">
                 Refund & Cancellation Policy
             </h1>
 
-            <div className="space-y-8">
+            <div className="space-y-5 sm:space-y-8">
                 {/* Intro */}
                 <Card className="bg-primary/5 border border-primary/20">
-                    <CardContent>
-                        <p className="text-base text-muted-foreground leading-relaxed">
+                    <CardContent className="px-4 sm:px-6 pt-4 sm:pt-6">
+                        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                             At <span className="font-semibold">ExperienceIQ</span>, we aim to provide a seamless experience for our clients. If you are unhappy with our service, please follow the guidelines below. Our policies are designed to be transparent, fair, and client-focused.
                         </p>
                     </CardContent>
@@ -69,10 +69,10 @@ const PolicyPage = () => {
 
                 {/* Refunds */}
                 <Card className="border">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Refunds</CardTitle>
+                    <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-3">
+                        <CardTitle className="text-xl sm:text-2xl font-semibold">Refunds</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                             <li>Full refunds are available within 7 days of subscription purchase.</li>
                             <li>After 7 days, partial refunds may be considered on a case-by-case basis.</li>
@@ -83,16 +83,16 @@ const PolicyPage = () => {
 
                 {/* Cancellations */}
                 <Card className="border">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Cancellations</CardTitle>
+                    <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-3">
+                        <CardTitle className="text-xl sm:text-2xl font-semibold">Cancellations</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                             <li>
                                 To cancel your subscription, please contact our support team at{" "}
                                 <Link
                                     href="mailto:experienceiq.helpdesk@gmail.com"
-                                    className="text-primary underline hover:text-primary/80 transition-colors"
+                                    className="text-primary underline hover:text-primary/80 transition-colors break-all"
                                 >
                                     experienceiq.helpdesk@gmail.com
                                 </Link>
@@ -106,17 +106,17 @@ const PolicyPage = () => {
 
                 {/* Dispute Handling */}
                 <Card className="border">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Dispute Handling</CardTitle>
+                    <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-3">
+                        <CardTitle className="text-xl sm:text-2xl font-semibold">Dispute Handling</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                         <p className="text-sm text-muted-foreground leading-relaxed">
                             If a client is unhappy or requests a refund, please contact our support team at{" "}
                             <Link
                                 href="mailto:experienceiq.helpdesk@gmail.com"
-                                className="text-primary underline hover:text-primary/80 transition-colors"
+                                className="text-primary underline hover:text-primary/80 transition-colors break-all"
                             >
-                                <span className="text-wrap">experienceiq.helpdesk@gmail.com</span>
+                                experienceiq.helpdesk@gmail.com
                             </Link>
                             . We review disputes fairly and aim to resolve them promptly, providing refunds or alternatives where applicable.
                         </p>
