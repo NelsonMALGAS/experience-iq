@@ -71,7 +71,7 @@ const Header = () => {
                             <SheetContent side="right" className="w-64">
                                 <div className="flex flex-col gap-4 mt-6">
 
-                                    <div className="flex items-center justify-start border-b pb-3">
+                                    <div className="flex items-center justify-start border-b pb-3 ml-2">
                                         <ModeToggle />
                                     </div>
 
