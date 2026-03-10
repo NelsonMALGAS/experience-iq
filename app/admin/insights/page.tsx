@@ -1,15 +1,17 @@
+import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
+import { RefreshButton } from "@/components/layout/RefreshButton";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Unverified from "@/components/Unverified";
-import { aiInsights, criticalAlerts, insights } from "@/constants/dummyData";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
+import { deriveAiInsights, deriveAvgResponseTime, deriveCriticalAlerts, deriveOverallSatisfaction, deriveSentimentRisk, severityClass } from "@/lib/insights";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
-import { AlertTriangle, BarChart3, Clock, Activity, Sparkles, TrendingUp } from "lucide-react";
+import { AlertTriangle, BarChart3, Clock, Activity, Sparkles, TrendingUp, MapPin } from "lucide-react";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -53,52 +55,77 @@ export const metadata: Metadata = {
         images: ["/og-image.png", "/twitter-card.png"],
         creator: "@ExperienceIQ",
     },
-}
+};
+
+type CriticalAlertDerived = ReturnType<typeof deriveCriticalAlerts>[number];
 
 const InsightsPage = async () => {
-
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
+    const role: Role = "admin";
 
     if (!session) redirect(`/login?role=${role}`);
 
     const decoded = await auth?.verifySessionCookie(session, true);
+    if (!decoded) redirect(`/login?role=${role}`);
 
-    if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom, isOwner } = verificationResult;
-    const userRole = role || "admin"
+    const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom, isOwner } =
+        verificationResult;
 
-    if (!uid) redirect(`/login?role=${role}`)
+    if (!uid) redirect(`/login?role=${role}`);
 
-    // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
-        return <Unverified isVerified={isVerified} role={userRole} uid={uid} isOwner={undefined} />
+        return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
     if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />
+        return <SubscriptionBanner type="admin" />;
     }
 
+    const { issues, properties } = await fetchPropertiesWithStats(uid, inheritedFrom);
 
+    // ── Derive all metrics from real data ──
+    const overallSatisfaction = deriveOverallSatisfaction(issues);
+    const activeAlerts = issues.filter((i) => i.status !== "resolved").length;
+    const avgResponseTime = deriveAvgResponseTime(issues);
+    const sentimentRisk = deriveSentimentRisk(issues);
+    const criticalAlerts = deriveCriticalAlerts(issues, properties);
+    const aiInsights = deriveAiInsights(issues);
+
+    const sentimentRiskBadgeClass: Record<typeof sentimentRisk, string> = {
+        low: "bg-green-50 text-green-700 border-green-200",
+        medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
+        high: "bg-orange-50 text-orange-700 border-orange-200",
+        critical: "bg-red-50 text-red-700 border-red-200",
+    };
 
     return (
         <Suspense fallback={<DashboardLayoutSkeleton />}>
             <div className="mt-16 sm:mt-20 lg:mt-24">
-                <DashboardLayout role={role || "admin"} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
+                <DashboardLayout
+                    role={role}
+                    uid={uid}
+                    isVerified={isVerified}
+                    adminId={adminId}
+                    inheritedFrom={inheritedFrom}
+                    isOwner={isOwner}
+                >
                     <div className="space-y-6 sm:space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8">
 
-                        {/* ===== HEADER SECTION ===== */}
+                        {/* ===== HEADER ===== */}
                         <div className="flex flex-col gap-4 sm:gap-6">
                             <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
-                                        ExperienceIQ Intelligence
-                                    </h1>
-                                    <Badge className="bg-green-100 text-green-800 border-green-200">
-                                        Live Data
-                                    </Badge>
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
+                                            ExperienceIQ Intelligence
+                                        </h1>
+                                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                                            Live Data
+                                        </Badge>
+                                    </div>
+                                    <RefreshButton />
                                 </div>
                                 <p className="text-sm sm:text-base text-muted-foreground">
                                     Real-time guest satisfaction insights and operational intelligence
@@ -106,10 +133,10 @@ const InsightsPage = async () => {
                             </div>
                         </div>
 
-                        {/* ===== KPI CARDS - RESPONSIVE GRID ===== */}
+                        {/* ===== KPI CARDS ===== */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
-                            {/* Overall Satisfaction Card */}
+                            {/* Overall Satisfaction */}
                             <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <CardContent className="p-4 sm:p-6">
                                     <div className="flex items-center gap-3 sm:gap-4">
@@ -118,7 +145,7 @@ const InsightsPage = async () => {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-2xl sm:text-3xl font-display font-bold tabular-nums">
-                                                {insights.overallSatisfaction}
+                                                {overallSatisfaction}
                                                 <span className="text-lg text-muted-foreground">/5</span>
                                             </p>
                                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
@@ -126,14 +153,14 @@ const InsightsPage = async () => {
                                             </p>
                                             <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
                                                 <TrendingUp className="h-3 w-3" />
-                                                <span>↑ 3% this week</span>
+                                                <span>Based on {issues.length} issues</span>
                                             </div>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Active Alerts Card */}
+                            {/* Active Alerts */}
                             <Card className="border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <CardContent className="p-4 sm:p-6">
                                     <div className="flex items-center gap-3 sm:gap-4">
@@ -142,21 +169,23 @@ const InsightsPage = async () => {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-2xl sm:text-3xl font-display font-bold text-foreground tabular-nums">
-                                                {insights.activeAlerts}
+                                                {activeAlerts}
                                             </p>
                                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                                 Active Alerts
                                             </p>
                                             <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
                                                 <AlertTriangle className="h-3 w-3" />
-                                                <span>Requires attention</span>
+                                                <span>
+                                                    {activeAlerts === 0 ? "All clear" : "Requires attention"}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Avg Response Time Card */}
+                            {/* Avg Response Time */}
                             <Card className="border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <CardContent className="p-4 sm:p-6">
                                     <div className="flex items-center gap-3 sm:gap-4">
@@ -165,22 +194,28 @@ const InsightsPage = async () => {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-2xl sm:text-3xl font-display font-bold text-foreground tabular-nums">
-                                                {insights.avgResponseTime}
-                                                <span className="text-lg text-muted-foreground">m</span>
+                                                {avgResponseTime > 0 ? avgResponseTime : "—"}
+                                                {avgResponseTime > 0 && (
+                                                    <span className="text-lg text-muted-foreground">m</span>
+                                                )}
                                             </p>
                                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                                Avg Response Time
+                                                Avg Resolution Time
                                             </p>
-                                            <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
-                                                <TrendingUp className="h-3 w-3 rotate-180" />
-                                                <span>12% faster</span>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                                <TrendingUp className="h-3 w-3" />
+                                                <span>
+                                                    {avgResponseTime === 0
+                                                        ? "No resolved issues yet"
+                                                        : "Across resolved issues"}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Sentiment Risk Card */}
+                            {/* Sentiment Risk */}
                             <Card className="border-l-4 border-l-yellow-500 shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <CardContent className="p-4 sm:p-6">
                                     <div className="flex items-center gap-3 sm:gap-4">
@@ -188,14 +223,20 @@ const InsightsPage = async () => {
                                             <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 dark:text-yellow-400" />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-2xl sm:text-3xl font-display font-bold text-foreground tabular-nums">
-                                                {insights.sentimentRisk}
+                                            <p className="text-2xl sm:text-3xl font-display font-bold text-foreground capitalize">
+                                                {sentimentRisk}
                                             </p>
                                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                                 Sentiment Risk
                                             </p>
-                                            <Badge className="mt-1 bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">
-                                                Moderate Risk
+                                            <Badge
+                                                className={`mt-1 text-xs ${sentimentRiskBadgeClass[sentimentRisk]}`}
+                                            >
+                                                {sentimentRisk === "low"
+                                                    ? "Low Risk"
+                                                    : sentimentRisk === "medium"
+                                                        ? "Moderate Risk"
+                                                        : "High Risk"}
                                             </Badge>
                                         </div>
                                     </div>
@@ -203,10 +244,10 @@ const InsightsPage = async () => {
                             </Card>
                         </div>
 
-                        {/* ===== CRITICAL ALERTS & AI INSIGHTS - TWO COLUMN LAYOUT ===== */}
+                        {/* ===== CRITICAL ALERTS & AI INSIGHTS ===== */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
-                            {/* Critical Guest Alerts Section */}
+                            {/* Critical Guest Alerts */}
                             <Card className="shadow-sm">
                                 <CardHeader className="pb-4 border-b">
                                     <CardTitle className="font-display text-lg sm:text-xl flex items-center gap-2">
@@ -214,7 +255,7 @@ const InsightsPage = async () => {
                                         Critical Guest Alerts
                                     </CardTitle>
                                     <CardDescription>
-                                        Active issues requiring immediate attention
+                                        Open high and medium priority issues
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-4 sm:p-6">
@@ -223,43 +264,52 @@ const InsightsPage = async () => {
                                             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
                                                 <BarChart3 className="w-8 h-8 text-green-600" />
                                             </div>
-                                            <h3 className="text-base font-semibold mb-2">All guests are satisfied</h3>
+                                            <h3 className="text-base font-semibold mb-2">
+                                                All guests are satisfied
+                                            </h3>
                                             <p className="text-sm text-muted-foreground text-center">
                                                 No critical alerts at this time
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
-                                            {criticalAlerts.map((alert, index) => (
+                                            {criticalAlerts.map((alert: CriticalAlertDerived) => (
                                                 <div
-                                                    key={index}
-                                                    className="flex flex-col gap-2 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border hover:shadow-md hover:border-primary/30 transition-all duration-200"
+                                                    key={alert.id}
+                                                    className="flex flex-col gap-3 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border hover:shadow-md hover:border-primary/30 transition-all duration-200"
                                                 >
+                                                    {/* Row 1: Guest name + severity badge */}
                                                     <div className="flex items-center justify-between gap-2">
-                                                        <div className="flex items-center gap-2 min-w-0">
-                                                            <span className="font-semibold text-sm truncate">
-                                                                {alert.guest}
-                                                            </span>
-                                                            <Badge variant="outline" className="shrink-0">
-                                                                Room {alert.roomNumber}
-                                                            </Badge>
-                                                        </div>
+                                                        <span className="font-semibold text-sm truncate">
+                                                            {alert.guest}
+                                                        </span>
                                                         <Badge
-                                                            className={
-                                                                alert.severity === "high"
-                                                                    ? "bg-red-100 text-red-800 border-red-200 shrink-0"
-                                                                    : "bg-yellow-100 text-yellow-800 border-yellow-200 shrink-0"
-                                                            }
+                                                            className={`shrink-0 capitalize ${severityClass(alert.severity)}`}
                                                         >
                                                             {alert.severity}
                                                         </Badge>
                                                     </div>
+
+                                                    {/* Row 2: Issue title */}
                                                     <p className="text-sm text-muted-foreground">
                                                         {alert.issue}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Reported {alert.reportedMinutesAgo} minutes ago
-                                                    </p>
+
+                                                    {/* Row 3: Property + room + time */}
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                            <MapPin className="h-3 w-3 shrink-0" />
+                                                            <span className="truncate">
+                                                                {alert.propertyName} · {alert.propertyLocation}
+                                                            </span>
+                                                        </div>
+                                                        <Badge variant="outline" className="text-xs">
+                                                            Room {alert.roomNumber}
+                                                        </Badge>
+                                                        <span className="text-xs text-muted-foreground ml-auto">
+                                                            {alert.reportedMinutesAgo}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -267,11 +317,11 @@ const InsightsPage = async () => {
                                 </CardContent>
                             </Card>
 
-                            {/* AI Operational Insights Section */}
-                            <Card className="shadow-sm border-purple-200 bg-linear-to-br from-card/50 to-card/50">
+                            {/* AI Operational Insights */}
+                            <Card className="shadow-sm border-primary/40 bg-linear-to-br from-card/50 to-card/50">
                                 <CardHeader className="pb-4 border-b">
                                     <CardTitle className="font-display text-lg sm:text-xl flex items-center gap-2">
-                                        <Sparkles className="h-5 w-5 text-purple-600" />
+                                        <Sparkles className="h-5 w-5 text-primary" />
                                         AI Operational Insights
                                     </CardTitle>
                                     <CardDescription>
@@ -280,13 +330,13 @@ const InsightsPage = async () => {
                                 </CardHeader>
                                 <CardContent className="p-4 sm:p-6">
                                     <div className="space-y-3">
-                                        {aiInsights.map((insight, index) => (
+                                        {aiInsights.map((insight) => (
                                             <div
-                                                key={index}
-                                                className="flex items-start gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border shadow-sm"
+                                                key={insight.id}
+                                                className="flex items-start gap-3 p-3 bg-background rounded-lg border shadow-sm"
                                             >
-                                                <div className="mt-1 h-2 w-2 rounded-full bg-purple-500 shrink-0" />
-                                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
+                                                <p className="text-sm text-foreground">
                                                     {insight.insight}
                                                 </p>
                                             </div>
@@ -302,7 +352,7 @@ const InsightsPage = async () => {
                 </DashboardLayout>
             </div>
         </Suspense>
-    )
-}
+    );
+};
 
-export default InsightsPage
+export default InsightsPage;
