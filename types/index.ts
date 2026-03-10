@@ -231,17 +231,33 @@ export type IssueStatus = "open" | "in_progress" | "resolved";
 
 export type IssuePriority = "low" | "medium" | "high" | "critical";
 
+// export type IssueCategory =
+//   | "management"
+//   | "room"
+//   | "food"
+//   | "maintenance"
+//   | "noise"
+//   | "cleanliness"
+//   | "amenities"
+//   | "billing"
+//   | "staff"
+//   | "security"
+//   | "other";
+
 export type IssueCategory =
-  | "management"
-  | "room"
-  | "food"
+  | "roomIssue"
+  | "housekeeping"
   | "maintenance"
-  | "noise"
-  | "cleanliness"
-  | "amenities"
-  | "billing"
-  | "staff"
-  | "security"
+  | "foodAndBeverage"
+  | "noiseComplaint"
+  | "checkInOut"
+  | "billingPayment"
+  | "staffService"
+  | "amenitiesFacilities"
+  | "wifiInternet"
+  | "securitySafety"
+  | "casinoGaming"
+  | "parkingTransport"
   | "other";
 
 export interface Issue {

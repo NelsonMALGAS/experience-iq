@@ -13,7 +13,7 @@ export const createDefaultIssue = (guestSession: {
     id: crypto.randomUUID(),
     title: "",
     description: "",
-    category: "room",
+    category: "roomIssue",
     status: "open",
     priority: "medium",
 

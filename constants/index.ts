@@ -263,17 +263,26 @@ export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
   ],
 } as const;
 
-export const ISSUE_CATEGORIES = [
-  { value: "room", label: "Room Issue", icon: "🛏️" },
-  { value: "food", label: "Food & Beverage", icon: "🍽️" },
+export const ISSUE_CATEGORIES: {
+  value: IssueCategory;
+  label: string;
+  icon: string;
+}[] = [
+  { value: "roomIssue", label: "Room Issue", icon: "🛏️" },
+  { value: "housekeeping", label: "Housekeeping", icon: "🧹" },
   { value: "maintenance", label: "Maintenance", icon: "🔧" },
-  { value: "noise", label: "Noise Complaint", icon: "🔊" },
-  { value: "cleanliness", label: "Cleanliness", icon: "🧹" },
-  { value: "amenities", label: "Amenities", icon: "🏊" },
-  { value: "billing", label: "Billing", icon: "💳" },
-  { value: "staff", label: "Staff Service", icon: "👤" },
+  { value: "foodAndBeverage", label: "Food & Beverage", icon: "🍽️" },
+  { value: "noiseComplaint", label: "Noise Complaint", icon: "🔊" },
+  { value: "checkInOut", label: "Check-in / Check-out", icon: "🛎️" },
+  { value: "billingPayment", label: "Billing & Payment", icon: "💳" },
+  { value: "staffService", label: "Staff Service", icon: "👤" },
+  { value: "amenitiesFacilities", label: "Amenities & Facilities", icon: "🏊" },
+  { value: "wifiInternet", label: "WiFi / Internet", icon: "📶" },
+  { value: "securitySafety", label: "Security & Safety", icon: "🛡️" },
+  { value: "casinoGaming", label: "Casino / Gaming", icon: "🎰" },
+  { value: "parkingTransport", label: "Parking / Transport", icon: "🚗" },
   { value: "other", label: "Other", icon: "📝" },
-] as const;
+];
 
 export const ISSUE_PRIORITIES = [
   { value: "low", label: "Low", color: "priority-low" },
@@ -382,17 +391,38 @@ export const staffColorPalette = [
 ];
 
 export const STAFF_DEPARTMENTS: IssueCategory[] = [
-  "amenities",
-  "billing",
-  "cleanliness",
-  "food",
+  "amenitiesFacilities",
+  "billingPayment",
+  "housekeeping",
+  "foodAndBeverage",
   "maintenance",
-  "noise",
-  "room",
-  "security",
-  "staff",
+  "noiseComplaint",
+  "roomIssue",
+  "securitySafety",
+  "staffService",
+  "casinoGaming",
+  "checkInOut",
+  "parkingTransport",
+  "wifiInternet",
   "other",
 ];
+
+export const ISSUE_CATEGORY_LABELS: Record<IssueCategory, string> = {
+  roomIssue: "Room Issue",
+  housekeeping: "Housekeeping",
+  maintenance: "Maintenance",
+  foodAndBeverage: "Food & Beverage",
+  noiseComplaint: "Noise Complaint",
+  checkInOut: "Check-in / Check-out",
+  billingPayment: "Billing & Payment",
+  staffService: "Staff Service",
+  amenitiesFacilities: "Amenities & Facilities",
+  wifiInternet: "WiFi / Internet",
+  securitySafety: "Security & Safety",
+  casinoGaming: "Casino / Gaming",
+  parkingTransport: "Parking / Transport",
+  other: "Other",
+};
 
 export const statusConfig = {
   open: {
