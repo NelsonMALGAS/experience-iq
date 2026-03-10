@@ -277,10 +277,11 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Full Name</label>
                             <Input
-                                placeholder="Enter your full name"
+                                placeholder={currentUser?.displayName ?? "Enter full name"}
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 disabled={!!currentUser?.displayName}
+                                className="disabled:hover:cursor-not-allowed"
                             />
 
                             {errors.name && (
