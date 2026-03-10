@@ -76,7 +76,7 @@ const AuthForm = ({ role }: AuthFormType) => {
     // Set department based on role
     useEffect(() => {
         if (userRole === "admin") {
-            setFormData((prev) => ({ ...prev, department: "management" }));
+            setFormData((prev) => ({ ...prev, department: "other" }));
         } else if (userRole === "guest") {
             setFormData((prev) => ({ ...prev, department: "other" }));
         } else if (userRole === "staff") {

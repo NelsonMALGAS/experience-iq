@@ -136,7 +136,23 @@ const AddIssuePage = () => {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    {/* Title */}
+                    {/* Guest Name (Optional) */}
+                    <div className="space-y-2">
+                        <Label htmlFor="guestName">
+                            Guest Name <span className="text-muted-foreground">(optional)</span>
+                        </Label>
+
+                        <Input
+                            id="guestName"
+                            value={issue.guestName}
+                            onChange={(e) => updateIssue("guestName", e.target.value)}
+                            placeholder="e.g. John Smith"
+                        />
+
+                        <p className="text-sm text-muted-foreground">
+                            You may leave this as Guest if you prefer to remain anonymous.
+                        </p>
+                    </div>
                     <div className="space-y-2">
                         <Label>Issue Title</Label>
                         <Input

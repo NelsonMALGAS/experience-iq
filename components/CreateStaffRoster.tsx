@@ -805,7 +805,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                                                     <Button
                                                                         size="sm"
                                                                         variant="destructive"
-                                                                        className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 h-6 w-6 sm:h-7 sm:w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 h-6 w-6 sm:h-7 sm:w-7 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"
                                                                         onClick={() => removeShift(shift.id)}
                                                                     >
                                                                         <Trash2 className="w-3 h-3" />

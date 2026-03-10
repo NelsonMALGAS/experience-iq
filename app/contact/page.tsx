@@ -104,12 +104,12 @@ const ContactPage = () => {
                                     </div>
                                     <div>
                                         <p className="font-medium mb-1">Email Support</p>
-                                        <a
+                                        <Link
                                             href="mailto:experienceiq.helpdesk@gmail.com"
-                                            className="text-muted-foreground hover:text-primary transition-colors"
+                                            className="text-primary underline hover:text-primary/80 transition-colors break-all"
                                         >
                                             experienceiq.helpdesk@gmail.com
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 

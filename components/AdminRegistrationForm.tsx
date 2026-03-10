@@ -154,7 +154,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     role: "staff",
                     property: [selectedProperty],
                     adminId,
-                    department: department || "staff",
+                    department: department || "staffService",
                 };
 
             case "admin":
