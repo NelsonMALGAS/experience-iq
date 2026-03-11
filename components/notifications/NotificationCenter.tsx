@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bell, CheckCheck } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     collection,
     onSnapshot,
@@ -21,7 +21,7 @@ import { db } from "@/db/client";
 import { AppUser, Issue, Role } from '@/types';
 import { toDate } from '@/utils/issueDetailsUtils';
 import { NotificationItem } from './NotificationContentAndIcon';
-import { toast } from 'sonner';
+
 
 type NotificationCenterType = {
     role: Role
@@ -29,6 +29,8 @@ type NotificationCenterType = {
     adminId: string | null | undefined
     inheritedFrom: string | undefined
 }
+
+const getStorageKey = (uid: string) => `notification_count_${uid}`;
 
 export function NotificationCenter({ role, uid, adminId, inheritedFrom }: NotificationCenterType) {
     const {
@@ -39,6 +41,42 @@ export function NotificationCenter({ role, uid, adminId, inheritedFrom }: Notifi
         clearAll,
     } = useNotifications();
     const [open, setOpen] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    // Tracks whether this is the initial mount — prevents playing on navigation/sign-in
+    const isInitialMount = useRef(true);
+
+    // Preload the notification sound once on mount
+    useEffect(() => {
+        audioRef.current = new Audio('/audio/notification.wav');
+        audioRef.current.preload = 'auto';
+    }, []);
+
+    // Play sound only when unread count genuinely increases beyond the last persisted value
+    useEffect(() => {
+        if (!uid) return;
+
+        const storageKey = getStorageKey(uid);
+
+        if (isInitialMount.current) {
+            // On first mount (including page navigations): snapshot current count, no sound
+            localStorage.setItem(storageKey, String(unreadCount));
+            isInitialMount.current = false;
+            return;
+        }
+
+        // After mount: only play if count grew beyond what was last saved
+        const saved = parseInt(localStorage.getItem(storageKey) ?? '0', 10);
+
+        if (unreadCount > saved) {
+            audioRef.current?.play().catch(() => {
+                // Browser autoplay policy may block until first user interaction
+            });
+        }
+
+        // Always keep localStorage in sync
+        localStorage.setItem(storageKey, String(unreadCount));
+
+    }, [unreadCount, uid]);
 
     const handleClose = () => setOpen(false);
 
@@ -46,7 +84,6 @@ export function NotificationCenter({ role, uid, adminId, inheritedFrom }: Notifi
     useEffect(() => {
         // Guard: Exit if no adminId
         if (!adminId) {
-            toast.warning("⚠️ Warning", { description: "No adminId provided - cannot fetch notifications" });
             setNotifications([]);
             return;
         }
@@ -75,7 +112,7 @@ export function NotificationCenter({ role, uid, adminId, inheritedFrom }: Notifi
                 const propertyIds = new Set(propertiesSnapshot.docs.map(doc => doc.id));
 
                 // Subscribe to ALL issues (we'll filter by propertyId on the client side)
-                // Note: Firestore doesn't support querying nested array fields directly,
+                // Firestore doesn't support querying nested array fields directly,
                 // so we need to fetch all issue documents and filter in memory
                 const issuesQuery = collection(db, "issues");
 
