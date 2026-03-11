@@ -2,7 +2,7 @@
 
 import { DEFAULT_PERMISSIONS } from "@/constants";
 import { db } from "@/db/server";
-import { AuditLogEntry, EligibleAdminForInvite, PropertyPermissions, SanitisedPropertyAccess } from "@/types";
+import { AdminPermissions, AuditLogEntry, EligibleAdminForInvite, SanitisedPropertyAccess } from "@/types";
 import * as Sentry from "@sentry/nextjs";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
@@ -126,7 +126,7 @@ export async function inviteAdminToProperty(
     inviterUid: string,
     targetAdminId: string,
     propertyId: string,
-    permissions: PropertyPermissions = DEFAULT_PERMISSIONS
+    permissions: AdminPermissions = DEFAULT_PERMISSIONS
 ): Promise<ActionResult<{ invitationId: string }>> {
     try {
         // ── 1. Validate inputs ─────────────────────────────────────────────

@@ -27,6 +27,10 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
 
     if (loading) return <LoadingState />
 
+    if (role === "admin" && isOwner === undefined) {
+        return <LoadingState />
+    }
+
     const navLinks = NAV_LINKS[role];
 
     const filteredNavLinks =

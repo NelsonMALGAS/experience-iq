@@ -1,4 +1,4 @@
-import { IssueCategory, PropertyPermissions, Role } from "@/types";
+import { AdminPermissions, IssueCategory, Role } from "@/types";
 import {
   LayoutDashboard,
   AlertCircle,
@@ -565,12 +565,28 @@ export interface DashboardConfig {
   };
 }
 
-export const DEFAULT_PERMISSIONS: PropertyPermissions = {
-  canViewIssues: true,
-  canManageIssues: true,
-  canViewStaff: true,
-  canManageStaff: false,
-  canViewAnalytics: true,
+export const DEFAULT_PERMISSIONS: AdminPermissions = {
+  viewIssues: true,
+  manageIssues: true,
+  viewAnalytics: true,
+  manageStaff: false,
+  manageCollaborators: false,
+};
+
+export const PERMISSION_LABELS: Record<keyof AdminPermissions, string> = {
+  viewIssues: "View Issues",
+  manageIssues: "Manage Issues",
+  manageStaff: "Manage Staff",
+  manageCollaborators: "Manage Collaborators",
+  viewAnalytics: "View Analytics",
+};
+
+export const PERMISSION_DESCRIPTIONS: Record<keyof AdminPermissions, string> = {
+  viewIssues: "Can view all guest issues on assigned properties",
+  manageIssues: "Can update, assign, and resolve issues",
+  manageStaff: "Can approve and manage staff accounts",
+  manageCollaborators: "Can invite and revoke other collaborators",
+  viewAnalytics: "Can access insights and performance analytics",
 };
 
 export const years = Array.from(

@@ -231,19 +231,6 @@ export type IssueStatus = "open" | "in_progress" | "resolved";
 
 export type IssuePriority = "low" | "medium" | "high" | "critical";
 
-// export type IssueCategory =
-//   | "management"
-//   | "room"
-//   | "food"
-//   | "maintenance"
-//   | "noise"
-//   | "cleanliness"
-//   | "amenities"
-//   | "billing"
-//   | "staff"
-//   | "security"
-//   | "other";
-
 export type IssueCategory =
   | "roomIssue"
   | "housekeeping"
@@ -413,3 +400,11 @@ export interface UpdateIssuePayload {
   propertyId?: string;
   priority?: Issue["priority"];
 }
+
+export type AdminPermissions = {
+  viewIssues: boolean;
+  manageIssues: boolean;
+  manageStaff: boolean;
+  manageCollaborators: boolean;
+  viewAnalytics: boolean;
+};
