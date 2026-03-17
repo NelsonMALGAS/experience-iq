@@ -371,6 +371,8 @@ export interface CalendarGridProps {
   isDateInRange: (date: string) => boolean;
   selectedTemplate: (typeof shiftTemplates)[0] | null;
   setSelectedTemplate: (t: (typeof shiftTemplates)[0]) => void;
+  rosterId: string | undefined;
+  onNotesUpdated: (shiftId: string, notes: string) => void;
 }
 
 export interface CreatePropertyData {

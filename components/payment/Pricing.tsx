@@ -9,12 +9,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import Link from "next/link";
 
 
 type PricingProps = {
@@ -26,6 +28,8 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const { currentUser } = useCurrentUser();
+
+    const isDevelopment = true
 
     const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 
@@ -106,6 +110,19 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                             : "Flexible pricing built for modern hospitality operations."}
                     </p>
                 </div>
+
+                {/* Test Mode Alert */}
+                {isDevelopment && (
+                    <Alert className="mb-10 border-amber-500 bg-amber-50 text-amber-900">
+                        <AlertTitle>Test Mode</AlertTitle>
+                        <AlertDescription>
+                            ExperienceIQ is currently running in <strong>test mode</strong>.
+                            Payments are being processed through a sandbox environment and
+                            <strong> no real charges will be made</strong>. This page is for
+                            demonstration and testing purposes only.
+                        </AlertDescription>
+                    </Alert>
+                )}
 
                 {/* Billing Toggle */}
                 <div className="flex justify-center mb-10">
@@ -219,9 +236,9 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                 <div className="mt-16 text-center">
                     <p className="text-sm text-muted-foreground">
                         Need a custom plan?{" "}
-                        <a href="#" className="text-primary font-medium hover:underline">
-                            Contact sales
-                        </a>
+                        <Link href="/contact" className="text-primary font-medium hover:underline">
+                            Contact ExperienceIQ
+                        </Link>
                     </p>
                 </div>
             </div>

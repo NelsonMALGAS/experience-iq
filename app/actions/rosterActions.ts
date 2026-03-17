@@ -489,3 +489,30 @@ export async function getRostersByMonthYear(
     };
   }
 }
+
+export async function updateShiftNotes(
+  rosterId: string,
+  shiftId: string,
+  notes: string,
+): Promise<{ success: boolean; message: string }> {
+  if (!db) {
+    return { success: false, message: "Firebase Admin not initialized" };
+  }
+  try {
+    const rosterRef = db.collection("rosters").doc(rosterId);
+    const roster = await rosterRef.get();
+
+    if (!roster.exists) return { success: false, message: "Roster not found" };
+
+    const shifts: Shift[] = roster.data()?.shifts ?? [];
+    const updated = shifts.map((s) =>
+      s.id === shiftId ? { ...s, notes: notes.trim() || null } : s,
+    );
+
+    await rosterRef.update({ shifts: updated });
+    return { success: true, message: "Notes updated" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to update notes" };
+  }
+}
