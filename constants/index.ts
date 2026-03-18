@@ -6,7 +6,6 @@ import {
   ClipboardList,
   Building2,
   CalendarClock,
-  type LucideIcon,
   Clock,
   Activity,
   BarChart3,
@@ -14,11 +13,12 @@ import {
   UserPlus,
   MailCheck,
   ShieldCheck,
+  type LucideIcon,
 } from "lucide-react";
 
-// Environment-aware pricing configuration
-// const isDevelopment = process.env.NODE_ENV === "development";
-const isDevelopment = true;
+// TODO: Environment-aware pricing configuration,Remember to change for production
+//export const isDevelopment = process.env.NODE_ENV === "development";
+export const isDevelopment = true;
 
 export interface NavLink {
   label: string;
@@ -34,9 +34,8 @@ export type PlanLimits = {
 };
 
 export type PlanPricing = {
-  price: number; // in ZAR
-  priceId: string; // Stripe Price ID
-  paymentLink: string;
+  price: number;
+  priceId: string;
   planCode: string;
 };
 
@@ -60,9 +59,9 @@ export const PRICE_PLANS: PricePlan[] = [
       "Ideal for small hotels or boutique properties starting with digital guest experience management.",
     info: [
       "1 property included",
-      "Up to 10 staff accounts",
+      "Up to 50 staff accounts",
       "Real-time guest issue reporting",
-      "Basic SLA tracking",
+      "SLA tracking",
       "Admin dashboard",
       "Email support",
     ],
@@ -71,30 +70,21 @@ export const PRICE_PLANS: PricePlan[] = [
         price: 1700,
         priceId: isDevelopment
           ? "price_1T3vPAGanontDcTuDaUws5J1"
-          : "PROD_PRICE_ID_STARTER_MONTHLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_8x228racc0dd7Qu4b2enS0p"
-          : "PROD_PAYMENT_LINK_STARTER_MONTHLY",
-        planCode: isDevelopment
-          ? "PLN_3nb7rbuv1b1b38d"
-          : "PROD_PLAN_CODE_STARTER_MONTHLY",
+          : "price_1Qz8Zd7QpR5mL1YfC6s8TwKX",
+
+        planCode: isDevelopment ? "PLN_3nb7rbuv1b1b38d" : "PLN_ou39wf0c03ophoo",
       },
       yearly: {
         price: 16320,
         priceId: isDevelopment
           ? "price_1T3vgLGanontDcTun1I3jrE4"
-          : "PROD_PRICE_ID_STARTER_YEARLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_5kQdR99881hh3Ae8rienS0t"
-          : "PROD_PAYMENT_LINK_STARTER_YEARLY",
-        planCode: isDevelopment
-          ? "PLN_3c2ez2b8vqkm9hb"
-          : "PROD_PLAN_CODE_STARTER_YEARLY",
+          : "price_1Qz8aE3UvB0kN9xT5Hc2JqPm",
+        planCode: isDevelopment ? "PLN_3c2ez2b8vqkm9hb" : "PLN_a6rkxroyxlwb1hn",
       },
     },
     limits: {
       propertyLimit: 1,
-      staffLimit: 10,
+      staffLimit: 50,
     },
   },
   {
@@ -104,7 +94,7 @@ export const PRICE_PLANS: PricePlan[] = [
       "Perfect for medium-sized hotels and resorts managing multiple properties.",
     info: [
       "Up to 3 properties",
-      "Up to 50 staff accounts",
+      "Up to 150 staff accounts",
       "Advanced SLA escalation rules",
       "Staff performance analytics",
       "Monthly roster management",
@@ -116,30 +106,20 @@ export const PRICE_PLANS: PricePlan[] = [
         price: 3500,
         priceId: isDevelopment
           ? "price_1T3vSYGanontDcTusTMMUNXi"
-          : "PROD_PRICE_ID_GROWTH_MONTHLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_bJe3cv9885xxfiWgXOenS0q"
-          : "PROD_PAYMENT_LINK_GROWTH_MONTHLY",
-        planCode: isDevelopment
-          ? "PLN_eto6898kbwmw8e4"
-          : "PROD_PLAN_CODE_GROWTH_MONTHLY",
+          : "price_1Qz8bF6RwL2Vg8Pz3NqT0YdS",
+        planCode: isDevelopment ? "PLN_eto6898kbwmw8e4" : "PLN_gf222dolnj9uyz5",
       },
       yearly: {
         price: 33600,
         priceId: isDevelopment
           ? "price_1T3vk0GanontDcTu4y3lRzWv"
-          : "PROD_PRICE_ID_GROWTH_YEARLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_6oU14n2JKcZZdaO8rienS0u"
-          : "PROD_PAYMENT_LINK_GROWTH_YEARLY",
-        planCode: isDevelopment
-          ? "PLN_jrgvlduhr9psxt9"
-          : "PROD_PLAN_CODE_GROWTH_YEARLY",
+          : "price_1Qz8cH9MxK4pD7aT1Vn6LfZB",
+        planCode: isDevelopment ? "PLN_jrgvlduhr9psxt9" : "PLN_2z0x3u9f547iujk",
       },
     },
     limits: {
       propertyLimit: 3,
-      staffLimit: 50,
+      staffLimit: 150,
     },
   },
   {
@@ -148,8 +128,8 @@ export const PRICE_PLANS: PricePlan[] = [
     description:
       "Designed for growing hospitality groups managing multiple properties and larger teams.",
     info: [
-      "Up to 8 properties",
-      "Up to 200 staff accounts",
+      "Up to 6 properties",
+      "Up to 300 staff accounts",
       "Multi-property analytics",
       "Cross-property performance comparisons",
       "Custom SLA rules",
@@ -162,30 +142,20 @@ export const PRICE_PLANS: PricePlan[] = [
         price: 4800,
         priceId: isDevelopment
           ? "price_1T3vVoGanontDcTu5kDIA2RQ"
-          : "PROD_PRICE_ID_PRO_MONTHLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_28E28r1FG5xxfiW22UenS0r"
-          : "PROD_PAYMENT_LINK_PRO_MONTHLY",
-        planCode: isDevelopment
-          ? "PLN_5ddl6x2su5fgvbe"
-          : "PROD_PLAN_CODE_PRO_MONTHLY",
+          : "price_1Qz8dJ2QwC5Yk8L0rT3mVpXs",
+        planCode: isDevelopment ? "PLN_5ddl6x2su5fgvbe" : "PLN_c1dztbf7mwaal6n",
       },
       yearly: {
         price: 46080,
         priceId: isDevelopment
           ? "price_1T3vnEGanontDcTufvnhGIZX"
-          : "PROD_PRICE_ID_PRO_YEARLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_8x26oHbgg0ddb2GbDuenS0v"
-          : "PROD_PAYMENT_LINK_PRO_YEARLY",
-        planCode: isDevelopment
-          ? "PLN_5pnosqjc3prvfjh"
-          : "PROD_PLAN_CODE_PRO_YEARLY",
+          : "price_1Qz8eL7TbP4nA1Zq9Hc6RkWd",
+        planCode: isDevelopment ? "PLN_5pnosqjc3prvfjh" : "PLN_k4m0lot76p9t89x",
       },
     },
     limits: {
-      propertyLimit: 8,
-      staffLimit: 200,
+      propertyLimit: 6,
+      staffLimit: 300,
     },
   },
   {
@@ -194,8 +164,8 @@ export const PRICE_PLANS: PricePlan[] = [
     description:
       "Built for large hospitality groups managing multiple properties, offering high capacity, advanced integrations, and enterprise-grade operational oversight.",
     info: [
-      "Up to 25 properties",
-      "Up to 400 staff accounts",
+      "Up to 12 properties",
+      "Up to 600 staff accounts",
       "Dedicated account manager",
       "White-label branding (optional)",
       "API integrations",
@@ -208,30 +178,20 @@ export const PRICE_PLANS: PricePlan[] = [
         price: 9500,
         priceId: isDevelopment
           ? "price_1T3vYKGanontDcTuW103cZfG"
-          : "PROD_PRICE_ID_ENTERPRISE_MONTHLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_00w7sL1FG6BB8Uy8rienS0s"
-          : "PROD_PAYMENT_LINK_ENTERPRISE_MONTHLY",
-        planCode: isDevelopment
-          ? "PLN_c3hpfblpswylt9x"
-          : "PROD_PLAN_CODE_ENTERPRISE_MONTHLY",
+          : "price_1Qz8XbJkL2a9Fv7PmC4dR6Ty",
+        planCode: isDevelopment ? "PLN_c3hpfblpswylt9x" : "PLN_0ebxbrx3bw5wy3p",
       },
       yearly: {
         price: 91200,
         priceId: isDevelopment
           ? "price_1T3vqGGanontDcTuc3fnsOeI"
-          : "PROD_PRICE_ID_ENTERPRISE_YEARLY",
-        paymentLink: isDevelopment
-          ? "https://buy.stripe.com/test_00w5kD1FGbVV1s64b2enS0w"
-          : "PROD_PAYMENT_LINK_ENTERPRISE_YEARLY",
-        planCode: isDevelopment
-          ? "PLN_aqbyo5rfh8uz0wn"
-          : "PROD_PLAN_CODE_ENTERPRISE_YEARLY",
+          : "price_1Qz8YcN4sH8Wk3LpT9Vx2AbF",
+        planCode: isDevelopment ? "PLN_aqbyo5rfh8uz0wn" : "PLN_ib0ljs4539yxk6d",
       },
     },
     limits: {
-      propertyLimit: 25,
-      staffLimit: 400,
+      propertyLimit: 12,
+      staffLimit: 600,
     },
   },
 ];

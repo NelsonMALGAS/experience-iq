@@ -75,7 +75,7 @@ const CriticalIssuesSection = async ({ uid, inheritedFrom }: CriticalIssuesSecti
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {unassignedIssues.slice(0, 3).map((issue) => (
+                                {unassignedIssues.slice(0, 4).map((issue) => (
                                     <div
                                         key={issue.id}
                                         className="p-4 rounded-lg bg-muted/40 border border-border hover:bg-muted/60 hover:shadow-sm transition-all"
