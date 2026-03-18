@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BillingInterval, PRICE_PLANS } from "@/constants";
+import { BillingInterval, isDevelopment, PRICE_PLANS } from "@/constants";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -27,8 +27,6 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const { currentUser } = useCurrentUser();
-
-    const isDevelopment = true
 
     const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 

@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 // Environment-aware pricing configuration
-// const isDevelopment = process.env.NODE_ENV === "development";
-const isDevelopment = true;
+//export const isDevelopment = process.env.NODE_ENV === "development";
+export const isDevelopment = true;
 
 export interface NavLink {
   label: string;
