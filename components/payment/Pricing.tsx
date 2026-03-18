@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Loader2, Building2, ArrowRight } from "lucide-react";
 import {
     Card,
     CardContent,
@@ -9,7 +9,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BillingInterval, PRICE_PLANS } from "@/constants";
@@ -37,14 +36,14 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
 
     const handleSubscribe = async (planId: string) => {
         if (!currentUser?.email || !currentUser?.uid) {
-            toast.error("Please sign in to subscribe");
+            toast.error("🚨 Error", { description: "Please sign in to subscribe" });
             return;
         }
 
         const selectedPlan = PRICE_PLANS.find((p) => p.id === planId);
 
         if (!selectedPlan) {
-            toast.error("Invalid plan selected");
+            toast.error("🚨 Error", { description: "Invalid plan selected" });
             return;
         }
 
@@ -54,7 +53,7 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                 : selectedPlan.pricing.yearly;
 
         if (!selectedPricing?.priceId || !selectedPricing?.planCode) {
-            toast.error("Pricing configuration error");
+            toast.error("🚨 Error", { description: "Pricing configuration error" });
             return;
         }
 
@@ -97,6 +96,7 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
     return (
         <div className="min-h-screen bg-background py-20 px-4">
             <div className="max-w-6xl mx-auto">
+
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
@@ -113,15 +113,14 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
 
                 {/* Test Mode Alert */}
                 {isDevelopment && (
-                    <Alert className="mb-10 border-amber-500 bg-amber-50 text-amber-900">
-                        <AlertTitle>Test Mode</AlertTitle>
-                        <AlertDescription>
-                            ExperienceIQ is currently running in <strong>test mode</strong>.
-                            Payments are being processed through a sandbox environment and
-                            <strong> no real charges will be made</strong>. This page is for
-                            demonstration and testing purposes only.
-                        </AlertDescription>
-                    </Alert>
+                    <div className="max-w-3xl mx-auto mb-8">
+                        <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-amber-700/30 bg-amber-500/10">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                            <p className="text-sm text-amber-700 dark:text-amber-400 leading-snug">
+                                Test mode — no real charges will be made. Payments run through a sandbox environment.
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 {/* Billing Toggle */}
@@ -232,15 +231,56 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                     })}
                 </div>
 
-                {/* Footer */}
-                <div className="mt-16 text-center">
-                    <p className="text-sm text-muted-foreground">
-                        Need a custom plan?{" "}
-                        <Link href="/contact" className="text-primary font-medium hover:underline">
-                            Contact ExperienceIQ
-                        </Link>
-                    </p>
+                {/* Custom / Enterprise CTA */}
+                <div className="mt-10 rounded-2xl border border-border bg-muted/40 px-6 py-8 sm:px-10 sm:py-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10">
+
+                        {/* Icon */}
+                        <div className="shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Building2 className="w-6 h-6 text-primary" />
+                        </div>
+
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                Managing more than 12 properties?
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground leading-relaxed max-w-xl">
+                                Our standard plans go up to 12 properties. If your organisation
+                                needs more — whether it&apos;s 20, 50, or across multiple
+                                regions — we&apos;ll build a plan around your exact footprint,
+                                team size, and billing preferences.
+                            </p>
+
+                            {/* What you get */}
+                            <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                                {[
+                                    "Unlimited properties",
+                                    "Custom staff limits",
+                                    "Dedicated account manager",
+                                    "Invoice billing available",
+                                    "SLA configurations per property",
+                                ].map((item) => (
+                                    <li key={item} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* CTA Button */}
+                        <div className="shrink-0">
+                            <Button asChild size="lg" className="rounded-xl gap-2 w-full sm:w-auto">
+                                <Link href="/contact">
+                                    Contact ExperienceIQ
+                                    <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </Button>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     );
