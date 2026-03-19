@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { LogOut, Menu, X, Sparkles, ShieldAlert } from 'lucide-react';
+import { LogOut, Menu, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
@@ -95,23 +95,8 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
                         ? "-translate-x-full lg:translate-x-0"
                         : "translate-x-0"
                 )}
+
             >
-                {/* Logo — always visible */}
-                <div className="p-6 border-b border-sidebar-border">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-gold flex items-center justify-center">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-display text-lg font-semibold text-sidebar-foreground">
-                                GuestCare
-                            </span>
-                            <span className="text-xs text-sidebar-foreground/60">
-                                Service Recovery
-                            </span>
-                        </div>
-                    </Link>
-                </div>
 
                 {/* Loading state — inline, no full-screen takeover */}
                 {isLoading ? (
