@@ -1,4 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v6.0.0";
+const CACHE_NAME = "experience-iq-pages-v6.0.1";
 
 const STATIC_PAGES = [
   "/",
@@ -10,8 +10,12 @@ const STATIC_PAGES = [
   "/staff/my-performance",
   "/admin",
   "/admin/properties",
-  "/admin/users",
+  "/admin/collaborators",
+  "/admin/invitations",
+  "/admin/staff-verification",
+  "/admin/insights",
   "/admin/create-roster",
+  "/owner",
 ];
 
 // ─── Safe Cache Helper ────────────────────────────────────────────────────────
