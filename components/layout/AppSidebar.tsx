@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { LogOut, Menu, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { NAV_LINKS } from '@/constants';
 import Link from 'next/link';
@@ -50,14 +50,7 @@ function SidebarSkeleton() {
 export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwner }: AppSidebarProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
     const pathname = usePathname();
-    const [isCollapsed, setIsCollapsed] = useState(sidebarOpen ?? false);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setMounted(true);
-    }, []);
-
+    const [isOpen, setIsOpen] = useState(sidebarOpen ?? false);
 
     if (!role) return null;
 
@@ -80,20 +73,19 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
         <>
             {/* Mobile toggle */}
             <Button
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                onClick={() => setIsOpen(prev => !prev)}
                 variant="ghost"
                 className="fixed top-4 left-4 z-51 lg:hidden p-2 rounded-lg bg-primary text-primary-foreground shadow-lg"
             >
-                {isCollapsed ? <X className="h-5 w-5 text-primary" /> : <Menu className="h-5 w-5 text-primary" />}
+                {isOpen ? <X className="h-11 w-11 text-foreground" /> : <Menu className="h-11 w-11 text-foreground" />}
             </Button>
 
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar transition-all duration-300 flex flex-col",
-                    !mounted || !isCollapsed
-                        ? "-translate-x-full lg:translate-x-0"
-                        : "translate-x-0"
+                    "fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar transition-transform duration-300 flex flex-col",
+                    isOpen ? "translate-x-0" : "-translate-x-full",
+                    "lg:translate-x-0"
                 )}
 
             >
@@ -159,7 +151,7 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
                                         <Link
                                             key={link.href}
                                             href={link.href}
-                                            onClick={() => setIsCollapsed(false)}
+                                            onClick={() => setIsOpen(prev => !prev)}
                                             className={cn(
                                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                                                 isActive
@@ -206,10 +198,10 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
             </aside>
 
             {/* Overlay for mobile */}
-            {isCollapsed && (
+            {isOpen && (
                 <div
                     className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-                    onClick={() => setIsCollapsed(false)}
+                    onClick={() => setIsOpen(false)}
                 />
             )}
         </>

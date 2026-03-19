@@ -1,6 +1,6 @@
-const CACHE_NAME = "experience-iq-pages-v4.0.1";
+const CACHE_NAME = "experience-iq-pages-v6.0.0";
 
-const pagesToCache = [
+const STATIC_PAGES = [
   "/",
   "/guest",
   "/guest/add-issue",
@@ -14,244 +14,269 @@ const pagesToCache = [
   "/admin/create-roster",
 ];
 
-// npm i @serwist/next
+// ─── Safe Cache Helper ────────────────────────────────────────────────────────
+// Skips 206 Partial, opaque (0), and error responses so cache.put() never throws.
+async function safeCachePut(cache, request, response) {
+  if (!response) return;
 
-// Install: cache pages and essential assets including offline page
+  // Skip range / partial-content responses (causes TypeError on cache.put)
+  if (response.status === 206) return;
+
+  // Skip opaque cross-origin responses (status 0)
+  if (response.status === 0) return;
+
+  // Skip any non-success response
+  if (!response.ok) return;
+
+  // Skip if the original request was a range request
+  if (request.headers && request.headers.get("range")) return;
+
+  try {
+    await cache.put(request, response);
+  } catch (err) {
+    // Silently swallow — e.g. QuotaExceededError or remaining edge cases
+    console.warn("[SW] cache.put skipped:", request.url, "—", err.message);
+  }
+}
+
+// ─── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
-  console.log("[ServiceWorker] Install");
+  console.log("[SW] Install — cache:", CACHE_NAME);
+
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => {
-        console.log("[ServiceWorker] Caching pages and assets");
-        return cache.addAll(pagesToCache);
-      })
-      .catch((error) => {
-        console.error("[ServiceWorker] Cache failed:", error);
-      }),
-  );
-  self.skipWaiting();
-});
-
-// Activate: remove old caches
-self.addEventListener("activate", (event) => {
-  console.log("[ServiceWorker] Activate");
-  event.waitUntil(
-    caches.keys().then((keyList) =>
-      Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("[ServiceWorker] Removing old cache", key);
-            return caches.delete(key);
+      .then(async (cache) => {
+        // Cache pages one-by-one so a single failure doesn't abort everything
+        for (const page of STATIC_PAGES) {
+          try {
+            await cache.add(page);
+          } catch (err) {
+            console.warn("[SW] Failed to pre-cache:", page, err.message);
           }
-        }),
-      ),
-    ),
+        }
+      })
+      .then(() => self.skipWaiting()),
   );
-  self.clients.claim();
 });
 
-// Fetch: Network-first strategy for HTML, cache-first for assets
+// ─── Activate ─────────────────────────────────────────────────────────────────
+self.addEventListener("activate", (event) => {
+  console.log("[SW] Activate — clearing old caches");
+
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) {
+              console.log("[SW] Deleting old cache:", key);
+              return caches.delete(key);
+            }
+          }),
+        ),
+      )
+      .then(() => self.clients.claim()),
+  );
+});
+
+// ─── Fetch ────────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
 
-  // Only handle requests from the same origin
-  if (url.origin !== self.location.origin) {
+  // Only intercept same-origin GET requests
+  if (request.method !== "GET") return;
+
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
     return;
   }
 
-  // Skip non-GET requests
-  if (event.request.method !== "GET") {
+  if (url.origin !== self.location.origin) return;
+
+  // Never intercept Next.js internals, HMR, or Vercel infra
+  if (
+    url.pathname.startsWith("/_next/webpack-hmr") ||
+    url.pathname.startsWith("/_vercel") ||
+    url.pathname.startsWith("/api/")
+  ) {
     return;
   }
+
+  // Skip range requests entirely — let the browser handle them natively
+  if (request.headers.get("range")) return;
+
+  const isHTMLRequest =
+    request.headers.get("accept")?.includes("text/html") ||
+    STATIC_PAGES.some(
+      (p) => url.pathname === p || url.pathname.startsWith(p + "/"),
+    );
+
+  const isStaticAsset =
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/static/") ||
+    /\.(js|css|woff2?|ttf|otf|ico|png|jpg|jpeg|svg|webp|gif)$/.test(
+      url.pathname,
+    );
 
   event.respondWith(
     (async () => {
-      try {
-        // Network-first for HTML pages
-        if (
-          event.request.headers.get("accept")?.includes("text/html") ||
-          url.pathname.startsWith("/guest") ||
-          url.pathname.startsWith("/staff") ||
-          url.pathname.startsWith("/admin")
-        ) {
-          try {
-            const networkResponse = await fetch(event.request);
-            // Update cache with fresh response
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (error) {
-            console.log(
-              "[ServiceWorker] Network failed, checking cache:",
-              url.pathname,
-            );
+      // ── HTML pages: Network-first, fall back to cache ──────────────────────
+      if (isHTMLRequest) {
+        try {
+          const networkResponse = await fetch(request);
 
-            // Network failed, try cache
-            const cachedResponse = await caches.match(event.request);
-            if (cachedResponse) {
-              console.log(
-                "[ServiceWorker] Serving from cache (offline):",
-                url.pathname,
-              );
-              return cachedResponse;
-            }
-
-            // No cache available, return offline page
-            console.log("[ServiceWorker] No cache, serving offline page");
-            const offlineResponse = await caches.match("/offline.html");
-            if (offlineResponse) {
-              return offlineResponse;
-            }
-
-            // If offline page isn't cached (shouldn't happen), return basic error
-            return new Response(
-              `<!DOCTYPE html>
-              <html>
-                <head>
-                  <title>Offline</title>
-                  <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <style>
-                    body {
-                      font-family: system-ui, sans-serif;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      min-height: 100vh;
-                      margin: 0;
-                      background: #f5f5f5;
-                      text-align: center;
-                      padding: 20px;
-                    }
-                    h1 { color: #333; }
-                    p { color: #666; }
-                  </style>
-                </head>
-                <body>
-                  <div>
-                    <h1>You're Offline</h1>
-                    <p>Please check your internet connection and try again.</p>
-                    <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
-                      Retry
-                    </button>
-                  </div>
-                </body>
-              </html>`,
-              {
-                status: 503,
-                statusText: "Service Unavailable",
-                headers: new Headers({
-                  "Content-Type": "text/html",
-                }),
-              },
-            );
-          }
-        }
-
-        // Cache-first for static assets (images, icons, fonts)
-        const cachedResponse = await caches.match(event.request);
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // Not in cache, fetch from network
-        const networkResponse = await fetch(event.request);
-
-        // Cache successful responses for future use
-        if (networkResponse.ok) {
+          // Only cache clean 200 responses
           const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, networkResponse.clone());
+          await safeCachePut(cache, request, networkResponse.clone());
+
+          return networkResponse;
+        } catch {
+          console.log(
+            "[SW] Network failed for HTML, trying cache:",
+            url.pathname,
+          );
+
+          const cached = await caches.match(request);
+          if (cached) return cached;
+
+          // Last resort: serve the root cached page
+          const fallback = await caches.match("/");
+          if (fallback) return fallback;
+
+          return buildOfflineResponse();
         }
+      }
 
-        return networkResponse;
-      } catch (error) {
-        console.error("[ServiceWorker] Fetch failed:", error);
+      // ── Static assets: Cache-first, fall back to network ──────────────────
+      if (isStaticAsset) {
+        const cached = await caches.match(request);
+        if (cached) return cached;
 
-        // Return cached version if available
-        const cachedResponse = await caches.match(event.request);
-        if (cachedResponse) {
-          return cachedResponse;
+        try {
+          const networkResponse = await fetch(request);
+          const cache = await caches.open(CACHE_NAME);
+          await safeCachePut(cache, request, networkResponse.clone());
+          return networkResponse;
+        } catch (err) {
+          console.warn(
+            "[SW] Static asset fetch failed:",
+            url.pathname,
+            err.message,
+          );
+          return new Response("Asset unavailable offline", { status: 503 });
         }
+      }
 
-        // For HTML requests, return offline page
-        if (event.request.headers.get("accept")?.includes("text/html")) {
-          const offlineResponse = await caches.match(OFFLINE_URL);
-          if (offlineResponse) {
-            return offlineResponse;
-          }
-        }
-
-        // Last resort error response
-        return new Response("Network error", {
-          status: 408,
-          statusText: "Request Timeout",
-        });
+      // ── Everything else: Network-only ─────────────────────────────────────
+      try {
+        return await fetch(request);
+      } catch {
+        return new Response("Network error", { status: 503 });
       }
     })(),
   );
 });
 
-// Push notifications
-self.addEventListener("push", function (event) {
-  console.log("[ServiceWorker] Push received");
+// ─── Offline HTML fallback ────────────────────────────────────────────────────
+function buildOfflineResponse() {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline — ExperienceIQ</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: system-ui, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0f172a;
+        color: #f8fafc;
+        text-align: center;
+        padding: 24px;
+      }
+      h1 { font-size: 1.5rem; margin-bottom: 8px; }
+      p  { color: #94a3b8; margin-bottom: 24px; }
+      button {
+        padding: 10px 24px;
+        background: #f59e0b;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>You're offline</h1>
+      <p>Check your connection and try again.</p>
+      <button onclick="window.location.reload()">Retry</button>
+    </div>
+  </body>
+</html>`;
 
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || "New notification from ExperienceIQ",
+  return new Response(html, {
+    status: 503,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+// ─── Push Notifications ───────────────────────────────────────────────────────
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  const data = event.data.json();
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "ExperienceIQ", {
+      body: data.body || "You have a new notification.",
       icon: "/pwa-icon-192.png",
       badge: "/favicon-96x96.png",
       vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: data.id || "1",
-        url: data.url || "/",
-      },
-      actions: [
-        {
-          action: "open",
-          title: "View Details",
-        },
-        {
-          action: "close",
-          title: "Dismiss",
-        },
-      ],
       tag: data.tag || "default",
       requireInteraction: data.requireInteraction || false,
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.title || "ExperienceIQ", options),
-    );
-  }
+      data: {
+        url: data.url || "/",
+        dateOfArrival: Date.now(),
+        primaryKey: data.id || "1",
+      },
+      actions: [
+        { action: "open", title: "View Details" },
+        { action: "close", title: "Dismiss" },
+      ],
+    }),
+  );
 });
 
-// Notification click
-self.addEventListener("notificationclick", function (event) {
-  console.log("[ServiceWorker] Notification click received");
-
+// ─── Notification Click ───────────────────────────────────────────────────────
+self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const urlToOpen =
     event.notification.data?.url ||
     (self.location.hostname === "localhost"
       ? "http://localhost:3000"
-      : "https://experience-iq.vercel.app");
+      : "https://experienceiqplatform.com");
 
   event.waitUntil(
     clients
-      .matchAll({ type: "window", includeUnhandled: true })
+      .matchAll({ type: "window", includeUncontrolled: true })
       .then((windowClients) => {
-        // Check if there's already a window open
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
+        for (const client of windowClients) {
           if (client.url === urlToOpen && "focus" in client) {
             return client.focus();
           }
         }
-        // No window open, open a new one
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }
@@ -259,41 +284,31 @@ self.addEventListener("notificationclick", function (event) {
   );
 });
 
-// Background sync (for offline form submissions)
+// ─── Background Sync ──────────────────────────────────────────────────────────
 self.addEventListener("sync", (event) => {
-  console.log("[ServiceWorker] Background sync:", event.tag);
-
   if (event.tag === "sync-issues") {
-    event.waitUntil(
-      // Sync pending issue submissions
-      syncPendingIssues(),
-    );
+    event.waitUntil(syncPendingIssues());
   }
 });
 
-// Helper function for syncing (you can implement this based on your needs)
 async function syncPendingIssues() {
-  // This would handle syncing any pending issue submissions
-  // that were made while offline
-  console.log("[ServiceWorker] Syncing pending issues...");
-  // Implementation depends on your IndexedDB or localStorage structure
+  console.log("[SW] Syncing pending issues...");
+  // Implement IndexedDB read + POST to your API here when ready
 }
 
-// Message handler for manual cache updates
+// ─── Message Handler ──────────────────────────────────────────────────────────
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+  if (!event.data) return;
+
+  if (event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 
-  if (event.data && event.data.type === "CLEAR_CACHE") {
+  if (event.data.type === "CLEAR_CACHE") {
     event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            return caches.delete(cacheName);
-          }),
-        );
-      }),
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
     );
   }
 });
