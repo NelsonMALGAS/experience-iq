@@ -82,15 +82,15 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
             <Button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 variant="ghost"
-                className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-primary text-primary-foreground shadow-lg"
+                className="fixed top-4 left-4 z-51 lg:hidden p-2 rounded-lg bg-primary text-primary-foreground shadow-lg"
             >
-                {isCollapsed ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isCollapsed ? <X className="h-5 w-5 text-primary" /> : <Menu className="h-5 w-5 text-primary" />}
             </Button>
 
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar transition-all duration-300 flex flex-col",
+                    "fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar transition-all duration-300 flex flex-col",
                     !mounted || !isCollapsed
                         ? "-translate-x-full lg:translate-x-0"
                         : "translate-x-0"
