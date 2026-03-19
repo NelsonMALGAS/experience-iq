@@ -32,7 +32,7 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NODE_ENV === "production"
-      ? "https://experience-iq.vercel.app"
+      ? "https://experienceiqplatform.com"
       : "http://localhost:3000"
   ),
   title: "ExperienceIQ – Hospitality Service Management",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: "ExperienceIQ – Hospitality Service Management",
     description:
       "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time.",
-    url: "https://experience-iq.vercel.app",
+    url: "https://experienceiqplatform.com",
     siteName: "ExperienceIQ",
     images: [
       {
