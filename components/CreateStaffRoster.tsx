@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { addShiftToRoster, createRoster, removeShiftFromRoster } from '@/app/actions/rosterActions';
 import Link from 'next/link';
 import { fetchRosterByMonthYear } from '@/app/actions/roster';
+import { ShiftNotesPopover } from './ShiftNotesPopover';
 
 type AdminCreateProps = {
     role: Role
@@ -197,6 +198,12 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
         }
     };
 
+    // In AdminCreateRosterPage
+    const handleNotesUpdated = (shiftId: string, notes: string) => {
+        setShifts(prev =>
+            prev.map(s => s.id === shiftId ? { ...s, notes: notes.trim() || undefined } : s)
+        );
+    };
 
     // Remove shift - now using server action
     const removeShift = async (shiftId: string) => {
@@ -253,12 +260,19 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
     };
 
     // Add new staff member (admin only)
-    const addStaffMember = () => {
+    const addStaffMember = (disabled = true) => {
         if (!uid) {
             toast.error('Access Denied', {
                 description: 'Only administrators can add staff members.',
             });
             return;
+        }
+
+        if (disabled) {
+            toast.error('Action Disabled', {
+                description: 'Staff members are automatically added when they are verified',
+            });
+            return
         }
 
         if (newStaffData.name && newStaffData.email && newStaffData.department && newStaffData.role) {
@@ -722,6 +736,8 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                         rangeEnd={rangeEnd}
                                         selectedTemplate={selectedTemplate}
                                         setSelectedTemplate={setSelectedTemplate}
+                                        rosterId={rosterId}
+                                        onNotesUpdated={handleNotesUpdated}
                                     />
 
                                     {/* Mobile Quick Add Panel */}
@@ -802,14 +818,23 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                                                         <Clock className="w-3 h-3" />
                                                                         {shift.startTime} - {shift.endTime}
                                                                     </div>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="destructive"
-                                                                        className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 h-6 w-6 sm:h-7 sm:w-7 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                        onClick={() => removeShift(shift.id)}
-                                                                    >
-                                                                        <Trash2 className="w-3 h-3" />
-                                                                    </Button>
+                                                                    <div className="flex items-center justify-between mt-2">
+                                                                        <ShiftNotesPopover
+                                                                            rosterId={rosterId}
+                                                                            shiftId={shift.id}
+                                                                            existingNotes={shift.notes}
+                                                                            onNotesUpdated={handleNotesUpdated}
+                                                                        />
+
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="destructive"
+                                                                            className="h-6 w-6 sm:h-7 sm:w-7 p-0 md:absolute md:top-2 md:right-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                            onClick={() => removeShift(shift.id)}
+                                                                        >
+                                                                            <Trash2 className="w-3 h-3" />
+                                                                        </Button>
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>

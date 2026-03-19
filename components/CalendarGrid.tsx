@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { CalendarGridProps } from "@/types";
 import { Trash2, Clock } from "lucide-react";
+import { ShiftNotesPopover } from "./ShiftNotesPopover";
 
 
 const CalendarGrid = (props: CalendarGridProps) => {
@@ -27,6 +28,8 @@ const CalendarGrid = (props: CalendarGridProps) => {
         isDateInRange,
         selectedTemplate,
         setSelectedTemplate,
+        rosterId,
+        onNotesUpdated
     } = props;
 
     const draggedToNewCell = useRef(false);
@@ -189,12 +192,23 @@ const CalendarGrid = (props: CalendarGridProps) => {
                                                         return firstWord.length <= 2 ? name.slice(0, 7) : firstWord;
                                                     })()}
                                                 </span>
-                                                <Trash2 className="w-4 h-4 sm:w-3 sm:h-3 opacity-0 group-hover:opacity-100 shrink-0 text-red-300"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        removeShift(shift.id);
-                                                    }}
-                                                />
+
+                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                    <ShiftNotesPopover
+                                                        rosterId={rosterId}
+                                                        shiftId={shift.id}
+                                                        existingNotes={shift.notes}
+                                                        onNotesUpdated={onNotesUpdated}
+                                                    />
+                                                    <Trash2
+                                                        className="w-4 h-4 sm:w-3 sm:h-3 opacity-0 group-hover:opacity-100 text-red-300"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeShift(shift.id);
+                                                        }}
+                                                    />
+                                                </div>
+
                                             </div>
                                         );
                                     })}

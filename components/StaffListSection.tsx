@@ -103,7 +103,7 @@ export const StaffListSection = ({
                                 <Button variant="outline" onClick={() => setIsAddStaffDialogOpen(false)}>
                                     Cancel
                                 </Button>
-                                <Button onClick={addStaffMember}>Add Staff</Button>
+                                <Button onClick={addStaffMember} disabled={true} className="cursor-not-allowed">Add Staff</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

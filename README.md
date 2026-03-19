@@ -264,7 +264,7 @@ The platform is live and available for evaluation:
 |---|---|
 | Admin | admin@gmail.com / 123456789 |
 | Staff | staff@gmail.com / 123456789 |
-| Guest | Property Code: `JVBHTG` · Rooms: 101, 102, 103 |
+| Guest | Property Code: `QC2K7P` · Rooms: 101, 102, 103 , 104 |
 
 > **Note:** Please log out between role switches. The platform uses session-based authentication.
 
