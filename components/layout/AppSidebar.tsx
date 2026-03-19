@@ -9,6 +9,7 @@ import Link from 'next/link';
 import useCurrentUser from '@/hooks/useCurrentUser';
 import { Role } from '@/types';
 import { ProfileInfo } from './ProfileInfo';
+import { useUserStore } from '@/store/useUserStore';
 
 type AppSidebarProps = {
     sidebarOpen: boolean
@@ -49,6 +50,8 @@ function SidebarSkeleton() {
 
 export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwner }: AppSidebarProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
+
+    const { currentUser: user } = useUserStore()
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(sidebarOpen ?? false);
 
@@ -98,12 +101,12 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
                         {/* User Info */}
                         <div className="p-4 mx-4 mt-4 rounded-xl bg-sidebar-accent">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary font-semibold">
+                                <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary font-semibold mt-14">
                                     <ProfileInfo />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-sidebar-foreground truncate">
-                                        {currentUser?.displayName}
+                                        {currentUser?.displayName || user?.displayName}
                                     </p>
                                     <div className="flex items-center gap-1">
                                         <p className="text-xs text-sidebar-foreground/60 capitalize">
