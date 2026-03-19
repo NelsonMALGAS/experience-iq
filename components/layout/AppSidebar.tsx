@@ -99,9 +99,9 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
                 ) : (
                     <>
                         {/* User Info */}
-                        <div className="p-4 mx-4 mt-4 rounded-xl bg-sidebar-accent">
+                        <div className="p-4 mx-4 mt-20 rounded-xl bg-sidebar-accent">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary font-semibold mt-20">
+                                <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary font-semibold">
                                     <ProfileInfo />
                                 </div>
                                 <div className="flex-1 min-w-0">
