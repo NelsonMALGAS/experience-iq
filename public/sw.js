@@ -1,4 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v4.0.0";
+const CACHE_NAME = "experience-iq-pages-v4.0.1";
 
 const pagesToCache = [
   "/",
@@ -13,6 +13,8 @@ const pagesToCache = [
   "/admin/users",
   "/admin/create-roster",
 ];
+
+// npm i @serwist/next
 
 // Install: cache pages and essential assets including offline page
 self.addEventListener("install", (event) => {

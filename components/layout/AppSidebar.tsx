@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { LogOut, Menu, X, Sparkles, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { NAV_LINKS } from '@/constants';
 import Link from 'next/link';
@@ -50,7 +50,14 @@ function SidebarSkeleton() {
 export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwner }: AppSidebarProps) {
     const { currentUser, loading, handleSignOut } = useCurrentUser()
     const pathname = usePathname();
-    const [isCollapsed, setIsCollapsed] = useState(sidebarOpen);
+    const [isCollapsed, setIsCollapsed] = useState(sidebarOpen ?? false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
+
 
     if (!role) return null;
 
@@ -83,8 +90,10 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300 flex flex-col",
-                    isCollapsed ? "w-64 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-64"
+                    "fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar transition-all duration-300 flex flex-col",
+                    !mounted || !isCollapsed
+                        ? "-translate-x-full lg:translate-x-0"
+                        : "translate-x-0"
                 )}
             >
                 {/* Logo — always visible */}
