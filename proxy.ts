@@ -4,6 +4,7 @@ export const proxy = (req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
   const isProtected =
+    pathname.startsWith("/owner") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/staff") ||
     pathname.startsWith("/guest") ||
@@ -21,6 +22,7 @@ export const proxy = (req: NextRequest) => {
 
 export const config = {
   matcher: [
+    "/owner/:path*",
     "/admin/:path*",
     "/staff/:path*",
     "/guest/:path*",
