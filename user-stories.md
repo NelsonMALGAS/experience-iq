@@ -132,6 +132,89 @@ This document defines the **Minimum Viable Product (MVP)** user stories for the 
 
 ---
 
+
+# 💳 Subscription & Billing User Stories (Paystack)
+
+## 🧑‍💼 Owner (Primary Account Holder)
+
+### Subscription Management
+
+* [x] As an **owner**, I want to subscribe to a paid plan, so that I can access the platform for my properties.
+* [x] As an **owner**, I want to choose between different pricing plans, so that I can select what best fits my business needs.
+* [x] As an **owner**, I want my subscription status to control platform access, so that unpaid accounts cannot use the system.
+
+### Payment Processing
+
+* [x] As an **owner**, I want to pay securely using Paystack, so that transactions are safe and reliable.
+* [x] As the **system**, I want to verify payments via Paystack webhooks, so that subscription status is always accurate and cannot be tampered with client-side.
+* [x] As an **owner**, I want to receive confirmation after a successful payment, so that I know my subscription is active.
+
+### Subscription Lifecycle
+
+* [x] As an **owner**, I want my subscription to automatically renew, so that I maintain uninterrupted access.
+* [x] As an **owner**, I want to cancel my subscription, so that I can stop future billing.
+* [x] As the **system**, I want to restrict access when a subscription expires or fails, so that only paying customers can use the platform.
+
+---
+
+# 🏢 Multi-Property & Ownership User Stories
+
+## Ownership & Governance
+
+* [x] As an **owner**, I want to be the only entity responsible for billing, so that financial control is centralized.
+* [x] As an **owner**, I want to manage multiple properties under one subscription, so that I can operate at scale.
+* [x] As an **owner**, I want to grant admins access to specific properties, so that management responsibilities can be delegated.
+
+---
+
+# 👥 Admin Collaboration User Stories
+
+## Invitations & Access Control
+
+* [x] As an **admin**, I want to invite other admins to collaborate on a property, so that management can be shared.
+* [x] As the **system**, I want invitations to expire after a set period, so that unused invites do not remain valid indefinitely.
+* [x] As an **admin**, I want to revoke collaborator access, so that I maintain control over who can manage my properties.
+
+## Access Restrictions
+
+* [x] As a **collaborator admin**, I want to access only the properties I was invited to, so that data isolation is maintained.
+* [x] As a **collaborator admin**, I must not access billing or subscription data, so that financial governance remains with the owner.
+
+---
+
+# 🔔 Billing & System Notifications
+
+* [x] As an **owner**, I want to receive notifications when a payment succeeds or fails, so that I can take action if needed.
+* [x] As an **owner**, I want to be alerted before my subscription expires, so that I can renew in time.
+* [ ] As an **admin**, I want to be notified if the platform access is restricted due to billing issues, so that I understand system limitations.
+
+---
+
+# 🔐 Billing Security & Compliance
+
+* [x] As the **system**, I must process all payments server-side, so that sensitive payment data is never exposed to the client.
+* [x] As the **system**, I must validate all Paystack webhook signatures, so that only legitimate payment events are processed.
+* [x] As the **system**, I must log all billing-related events, so that financial activity is auditable.
+
+---
+
+# 🚫 Access Control Based on Subscription
+
+* [x] As the **system**, I must block all platform access if the subscription is inactive, so that only paying customers can use the system.
+* [x] As an **admin**, I want to see a clear “Subscription Required” state if billing is inactive, so that I understand why access is restricted.
+* [x] As a **staff member**, I want restricted access if the subscription is inactive, so that system rules are consistently enforced.
+
+---
+
+# 📊 Billing & Insights 
+
+* [ ] As an **owner**, I want to view billing history, so that I can track past payments.
+* [ ] As an **owner**, I want to download invoices, so that I can maintain financial records.
+* [ ] As an **owner**, I want to see usage insights (e.g., number of issues, properties), so that I can understand platform value.
+
+---
+
+
 ## 🔄 MVP Scope Clarification
 
 The MVP **includes**:
@@ -141,6 +224,11 @@ The MVP **includes**:
 * [x] Server-side enforcement of verification rules
 * [x] Restricted dashboard states for unverified users
 * [x] Prevention of sensitive data fetching until verification
+* [x] Subscription-based access control
+* [x] Paystack payment integration (secure + webhook validated)
+* [x] Owner-level billing and governance
+* [x] Multi-property ownership model
+* [x] Admin collaboration with scoped access
 
 ---
 
@@ -182,7 +270,7 @@ The MVP includes:
 
 **Version:** 1.2
 **Scope:** MVP
-**Status:** Ready for Development
+**Status:** Ready for Production
 
 ---
 
