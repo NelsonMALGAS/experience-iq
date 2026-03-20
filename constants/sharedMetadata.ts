@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const baseUrl =
   process.env.NODE_ENV === "production"
-    ? "https://experienceiqplatform.com/"
+    ? "https://experienceiqplatform.com"
     : "http://localhost:3000";
 
 export const baseKeywords = [
