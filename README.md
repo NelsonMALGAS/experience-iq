@@ -11,7 +11,7 @@ Built for hotel groups, resorts, and multi-property operators who demand operati
 
 <br />
 
-[![Live Platform](https://img.shields.io/badge/Live%20Platform-experience--iq.vercel.app-0f172a?style=for-the-badge&logo=vercel&logoColor=white)](https://experience-iq.vercel.app)
+[![Live Platform](https://img.shields.io/badge/Live%20Platform-experienceiqplatform.com-0f172a?style=for-the-badge&logo=vercel&logoColor=white)](https://experienceiqplatform.com)
 &nbsp;
 ![Status](https://img.shields.io/badge/Status-Production-22c55e?style=for-the-badge)
 &nbsp;
@@ -258,7 +258,7 @@ Hospitality operators using ExperienceIQ can expect to:
 
 The platform is live and available for evaluation:
 
-**[https://experience-iq.vercel.app](https://experience-iq.vercel.app)**
+**[https://experienceiqplatform.com](https://experienceiqplatform.com)**
 
 | Role | Credentials |
 |---|---|

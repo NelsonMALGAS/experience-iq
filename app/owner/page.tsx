@@ -13,10 +13,53 @@ import { getOwnerCollaborators } from "../admin-invite-actions/owner";
 import { SubscriptionDetailsPopover } from "@/components/admins/SuscriptionDetailsPopover";
 import { DisableCollaboratorButton, RevokeCollaboratorButton, VerifyCollaboratorButton } from "@/components/admins/OwnerActionButtons";
 import { getBillingIntervalByPriceId } from "@/lib/plans";
+import { getInitials } from "@/helpers";
+import { Metadata } from "next";
+import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 
-function getInitials(name: string) {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-}
+
+export const metadata: Metadata = {
+    title: "Owner Dashboard – ExperienceIQ",
+    description:
+        "Centralised control for platform owners. Manage subscriptions, billing, and governance across all properties while maintaining full oversight of the ExperienceIQ system.",
+    keywords: [
+        ...baseKeywords,
+        "owner dashboard",
+        "subscription management",
+        "billing control",
+        "platform governance",
+        "saas management",
+        "multi-property billing",
+        "hospitality platform owner",
+    ],
+    ...sharedMetadata,
+    openGraph: {
+        title: "Owner Dashboard – ExperienceIQ",
+        description:
+            "Manage subscriptions, billing, and platform governance across all properties from a single interface.",
+        url: `${baseUrl}/owner`,
+        siteName: "ExperienceIQ",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "ExperienceIQ Owner Dashboard",
+            },
+        ],
+        locale: "en_US",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Owner Dashboard – ExperienceIQ",
+        description:
+            "Centralised billing and governance for ExperienceIQ platform owners.",
+        images: ["/og-image.png", "/twitter-card.png"],
+        creator: "@ExperienceIQ",
+    },
+};
+
 
 const OwnerPage = async () => {
     const cookieStore = await cookies();
@@ -30,8 +73,6 @@ const OwnerPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />;
     }
 
-    // ── Owner guard — only main admins with active subscriptions ──────────
-    // isOwner is derived server-side from Firestore — never trusted from client
     if (!isOwner) {
         redirect("/admin");
     }
