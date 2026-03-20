@@ -41,7 +41,7 @@ This document defines the **Minimum Viable Product (MVP)** user stories for the 
 ### Accountability & Communication
 
 * [x] As a **staff member**, I want my actions on an issue to be logged, so that accountability is maintained.
-* [ ] As a **staff member**, I want to receive real-time notifications when an issue is assigned to me, so that I do not miss critical tasks.
+* [x] As a **staff member**, I want to receive real-time notifications when an issue is assigned to me, so that I do not miss critical tasks.
 
 ---
 
@@ -53,7 +53,7 @@ This document defines the **Minimum Viable Product (MVP)** user stories for the 
 
 * [x] As a **admin**, I want to log in securely, so that only authorized users can access internal dashboards.
 * [x] As an **admin**, I want to view all active issues for my property or properties, so that I have full operational visibility.
-* [ ] As an **admin**, I want to filter issues by category, department, priority, and status, so that I can identify problem areas quickly.
+* [x] As an **admin**, I want to filter issues by category, department, priority, and status, so that I can identify problem areas quickly.
 * [x] As an **admin**, I want to see how long issues have been open, so that I can monitor SLA compliance.
 
 ### SLA & Performance Management
@@ -65,14 +65,14 @@ This document defines the **Minimum Viable Product (MVP)** user stories for the 
 ### Analytics & Reporting
 
 * [x] As an **admin**, I want to view basic analytics (issue counts, resolution times, SLA compliance), so that I can make data-driven decisions.
-* [ ] As an **admin**, I want to view issue trends over time, so that I can proactively prevent recurring problems.
+* [x] As an **admin**, I want to view issue trends over time, so that I can proactively prevent recurring problems.
 * [x] As an **admin**, I want to compare performance across multiple properties, so that I can identify top-performing and underperforming locations.
 
 ---
 
 ## 🔔 Notification User Stories
 
-* [ ] As a **staff member**, I want to receive real-time notifications when new issues are created or assigned to me, so that I can respond immediately.
+* [x] As a **staff member**, I want to receive real-time notifications when new issues are created or assigned to me, so that I can respond immediately.
 * [ ] As an **admin**, I want to receive alerts when SLAs are breached, so that corrective action can be taken.
 * [ ] As a **guest**, I want to receive a notification when my issue is resolved, so that I know it was handled.
 
@@ -152,9 +152,9 @@ The MVP includes:
 * [ ] QR-based guest issue submission
 * [x] Real-time issue visibility for staff
 * [x] Issue assignment and status tracking
-* [ ] SLA monitoring and escalation
+* [x] SLA monitoring and escalation
 * [x] Admin dashboards and analytics
-* [ ] Secure role-based access control
+* [x] Secure role-based access control
 
 ---
 
