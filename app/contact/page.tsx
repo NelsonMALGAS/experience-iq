@@ -187,7 +187,7 @@ const ContactPage = () => {
                 <div className="max-w-6xl mx-auto px-4">
                     <p className="text-center text-sm text-muted-foreground">
                         Looking for technical documentation?{" "}
-                        <Link href="#" className="text-primary hover:underline font-medium">
+                        <Link href="/contact" className="text-primary hover:underline font-medium">
                             Visit our Help Center
                         </Link>
                     </p>

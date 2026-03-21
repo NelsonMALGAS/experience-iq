@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Send, Loader2 } from "lucide-react";
 import emailjs from "@emailjs/browser"
+import Link from "next/link";
 
 export default function ContactForm() {
     const [formData, setFormData] = useState({
@@ -56,7 +57,7 @@ export default function ContactForm() {
             return false;
         }
         if (!formData.propertyName.trim()) {
-            toast.error("Please enter your property name");
+            toast.error("Please enter your company/property name");
             return false;
         }
         if (!formData.subject.trim()) {
@@ -170,7 +171,7 @@ export default function ContactForm() {
                     {/* Property Name */}
                     <div className="space-y-2">
                         <Label htmlFor="propertyName">
-                            Property Name <span className="text-destructive">*</span>
+                            Company/Property Name <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="propertyName"
@@ -255,9 +256,9 @@ export default function ContactForm() {
 
                     <p className="text-xs text-muted-foreground text-center">
                         By submitting this form, you agree to our{" "}
-                        <a href="/policy" className="text-primary hover:underline">
+                        <Link href="/policy" className="text-primary hover:underline">
                             Privacy Policy
-                        </a>
+                        </Link>
                     </p>
                 </form>
             </CardContent>

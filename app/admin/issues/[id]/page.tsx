@@ -94,8 +94,6 @@ export async function generateMetadata(
     }
 }
 
-
-
 const IssueDetailsPage = async ({
     params,
 }: IssueDetailsPageProps) => {
@@ -112,7 +110,7 @@ const IssueDetailsPage = async ({
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, role: UserRole } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "admin"}`);
 
@@ -140,7 +138,7 @@ const IssueDetailsPage = async ({
                     <IssueContentSkeleton />
                 </div>
             }>
-                <IssueContent id={id} />
+                <IssueContent id={id} uid={uid} role={UserRole} />
             </Suspense>
         </div>
     );

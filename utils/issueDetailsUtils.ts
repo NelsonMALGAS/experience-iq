@@ -63,7 +63,7 @@ export const getPriorityConfig = (priority: Issue["priority"]) => {
     high: {
       label: "High",
       variant: "destructive" as const,
-      className: "bg-orange-100 text-orange-700 border-orange-300",
+      className: "bg-orange-50 text-orange-900 border-orange-300",
       color: "text-orange-600",
       bgColor: "bg-orange-100",
     },
