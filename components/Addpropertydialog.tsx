@@ -23,7 +23,6 @@ import { createProperty } from "@/app/optimised-actions";
 import { getPlanByPriceId } from "@/lib/plans";
 
 
-
 type FormDataTypes = {
     name: string,
     location: string,
@@ -83,6 +82,19 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     };
 
     const updateRoom = (index: number, field: keyof Room, value: string) => {
+        if (field === "roomNumber") {
+            const trimmedValue = value.trim();
+
+            const isDuplicate = formData.rooms.some((room, i) =>
+                i !== index && room.roomNumber.trim() === trimmedValue
+            );
+
+            if (isDuplicate) {
+                toast.error("🚨 Error", { description: `Room number ${trimmedValue} already exists` });
+                return;
+            }
+        }
+
         setFormData((prev) => ({
             ...prev,
             rooms: prev.rooms.map((room, i) =>
@@ -98,6 +110,12 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
         }));
     };
 
+    const hasDuplicateRooms = () => {
+        const roomNumbers = formData.rooms.map(r => r.roomNumber.trim());
+        const unique = new Set(roomNumbers);
+        return unique.size !== roomNumbers.length;
+    };
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -106,6 +124,11 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                 description: "Please subscribe to a plan before creating a property.",
                 duration: 10000
             });
+            return;
+        }
+
+        if (hasDuplicateRooms()) {
+            toast.error("Duplicate room numbers are not allowed.");
             return;
         }
 
@@ -118,8 +141,17 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
             return
         }
 
+        const cleanedRooms = formData.rooms.map(room => ({
+            ...room,
+            roomNumber: room.roomNumber.trim()
+        }));
+
         startTransition(async () => {
-            const result = await createProperty({ ...formData, code: generateRandomCode(6, 6, ""), });
+            const result = await createProperty({
+                ...formData,
+                rooms: cleanedRooms,
+                code: generateRandomCode(6, 6, ""),
+            });
 
             if (result.success) {
                 toast.success(result.message);
