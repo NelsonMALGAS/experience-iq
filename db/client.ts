@@ -8,7 +8,6 @@ import type { FirebaseStorage } from "firebase/storage";
 import type { Analytics } from "firebase/analytics";
 import type { Messaging } from "firebase/messaging";
 
-// ✅ OPTIMIZATION 1: Lazy load Firebase services only when needed
 // Instead of importing all services upfront, we'll create getter functions
 
 const firebaseConfig = {
@@ -26,7 +25,7 @@ const app: FirebaseApp = !getApps().length
   ? initializeApp(firebaseConfig)
   : getApp();
 
-// ✅ OPTIMIZATION 2: Lazy-loaded Auth (~15KB saved by not importing upfront)
+// Lazy-load Auth
 let _auth: Auth | null = null;
 let _googleAuthProvider: GoogleAuthProviderType | null = null;
 
@@ -49,7 +48,7 @@ export const getGoogleAuthProvider =
     return _googleAuthProvider!;
   };
 
-// ✅ OPTIMIZATION 3: Lazy-loaded Firestore (~20KB saved)
+//Lazy-load Firestore
 let _db: Firestore | null = null;
 
 export const getFirestoreInstance = async (): Promise<Firestore> => {
@@ -61,7 +60,7 @@ export const getFirestoreInstance = async (): Promise<Firestore> => {
   return _db;
 };
 
-// ✅ OPTIMIZATION 4: Lazy-loaded Storage (~10KB saved)
+// Lazy-load Storage
 let _storage: FirebaseStorage | null = null;
 
 export const getStorageInstance = async (): Promise<FirebaseStorage> => {
@@ -73,7 +72,7 @@ export const getStorageInstance = async (): Promise<FirebaseStorage> => {
   return _storage;
 };
 
-// ✅ OPTIMIZATION 5: Analytics - only in production, lazy-loaded (~8KB saved)
+//  Analytics - only in production, lazy-load
 let analyticsInstance: Analytics | null = null;
 
 export const getAnalyticsSafe = async (): Promise<Analytics | null> => {
@@ -95,7 +94,7 @@ export const getAnalyticsSafe = async (): Promise<Analytics | null> => {
   }
 };
 
-// ✅ OPTIMIZATION 6: Messaging - lazy-loaded (~12KB saved)
+//  Messaging - lazy-load
 let messagingInstance: Messaging | null = null;
 
 export const getMessagingSafe = async (): Promise<Messaging | null> => {
@@ -118,7 +117,7 @@ export const getMessagingSafe = async (): Promise<Messaging | null> => {
 // Export app for rare cases where it's needed directly
 export { app };
 
-// ✅ OPTIMIZATION 7: Legacy exports (backwards compatibility)
+//Legacy exports (backwards compatibility)
 // These will throw errors to guide developers to use the new API
 type NeverAccessibleProxy<T> = {
   [K in keyof T]: never;
