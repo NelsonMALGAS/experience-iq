@@ -59,7 +59,7 @@ export const PRICE_PLANS: PricePlan[] = [
       "Ideal for small hotels or boutique properties starting with digital guest experience management.",
     info: [
       "1 property included",
-      "Up to 50 staff accounts",
+      "Up to 75 staff accounts",
       "Real-time guest issue reporting",
       "SLA tracking",
       "Admin dashboard",
@@ -84,7 +84,7 @@ export const PRICE_PLANS: PricePlan[] = [
     },
     limits: {
       propertyLimit: 1,
-      staffLimit: 50,
+      staffLimit: 75,
     },
   },
   {
@@ -94,7 +94,7 @@ export const PRICE_PLANS: PricePlan[] = [
       "Perfect for medium-sized hotels and resorts managing multiple properties.",
     info: [
       "Up to 3 properties",
-      "Up to 150 staff accounts",
+      "Up to 225 staff accounts",
       "Advanced SLA escalation rules",
       "Staff performance analytics",
       "Monthly roster management",
@@ -119,7 +119,7 @@ export const PRICE_PLANS: PricePlan[] = [
     },
     limits: {
       propertyLimit: 3,
-      staffLimit: 150,
+      staffLimit: 225,
     },
   },
   {
@@ -129,7 +129,7 @@ export const PRICE_PLANS: PricePlan[] = [
       "Designed for growing hospitality groups managing multiple properties and larger teams.",
     info: [
       "Up to 6 properties",
-      "Up to 300 staff accounts",
+      "Up to 450 staff accounts",
       "Multi-property analytics",
       "Cross-property performance comparisons",
       "Custom SLA rules",
@@ -155,7 +155,7 @@ export const PRICE_PLANS: PricePlan[] = [
     },
     limits: {
       propertyLimit: 6,
-      staffLimit: 300,
+      staffLimit: 450,
     },
   },
   {
@@ -165,7 +165,7 @@ export const PRICE_PLANS: PricePlan[] = [
       "Built for large hospitality groups managing multiple properties, offering high capacity, advanced integrations, and enterprise-grade operational oversight.",
     info: [
       "Up to 12 properties",
-      "Up to 600 staff accounts",
+      "Up to 900 staff accounts",
       "Dedicated account manager",
       "White-label branding (optional)",
       "API integrations",
@@ -191,7 +191,7 @@ export const PRICE_PLANS: PricePlan[] = [
     },
     limits: {
       propertyLimit: 12,
-      staffLimit: 600,
+      staffLimit: 900,
     },
   },
 ];
