@@ -99,8 +99,6 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     const PriorityIcon = currentPriority.icon;
     const assignedStaff = staffMembers?.find(s => s.id === optimisticAssignee);
 
-
-
     const handleImageError = (index: number) => {
         setImageError(prev => new Set([...prev, index]));
     };

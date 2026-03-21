@@ -3,15 +3,21 @@ import { NotFoundState } from "../issueDetails/ErrorStates";
 import { formatFullDate, formatRelativeTime, generateTimeline, getPriorityConfig, getStatusConfig } from "@/utils/issueDetailsUtils";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Calendar, CheckCircle2, Clock, Info, MoreVertical, Tag, User } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { AlertCircle, Calendar, Clock, Info, Tag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { ImageGallery } from "../issueDetails/Imagegallery";
 import { Timeline } from "../issueDetails/Timeline";
 import { MetadataCard } from "../issueDetails/MetadataCard";
+import IssueDropdownMenu from "../issues/IssueDropdownMenu";
+import { Role } from "@/types";
 
-const IssueContent = async ({ id }: { id: string; }) => {
+type IssueContentProps = {
+    id: string,
+    uid: string
+    role: Role
+}
+
+const IssueContent = async ({ id, uid, role }: IssueContentProps) => {
     const issue = await fetchIssueById(id);
 
     if (!issue) {
@@ -53,27 +59,8 @@ const IssueContent = async ({ id }: { id: string; }) => {
                     </div>
 
                     {/* Actions Dropdown */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="shrink-0 h-9 w-9">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                                <Clock className="h-4 w-4 mr-2" />
-                                Mark as In Progress
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Mark as Resolved
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <User className="h-4 w-4 mr-2" />
-                                Reassign Issue
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <IssueDropdownMenu issue={issue} currentUserId={uid} role={role} />
+
                 </div>
 
                 {/* Quick Info Bar */}
