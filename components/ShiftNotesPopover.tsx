@@ -19,6 +19,8 @@ type ShiftNotesPopoverProps = {
     onNotesUpdated: (shiftId: string, notes: string) => void;
 }
 
+const MAX_LENGTH: number = 30;
+
 export function ShiftNotesPopover({
     rosterId,
     shiftId,
@@ -64,14 +66,38 @@ export function ShiftNotesPopover({
             </PopoverTrigger>
             <PopoverContent className="w-64 p-3" side="top">
                 <p className="text-xs font-medium mb-2">Shift Notes</p>
-                <Textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Add a note for this shift..."
-                    className="text-xs resize-none"
-                    rows={3}
-                    autoFocus
-                />
+                <div className="space-y-1">
+                    <Textarea
+                        value={notes}
+                        onChange={(e) => {
+                            const value = e.target.value;
+
+                            // Extra safety (handles paste edge cases)
+                            if (value.length <= MAX_LENGTH) {
+                                setNotes(value);
+                            }
+                        }}
+                        placeholder="Add a note for this shift..."
+                        className="text-xs resize-none"
+                        maxLength={MAX_LENGTH}
+                        rows={3}
+                        autoFocus
+                    />
+
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">
+                            Max {MAX_LENGTH} characters
+                        </span>
+                        <span
+                            className={`${notes.length >= MAX_LENGTH
+                                ? "text-red-500 font-medium"
+                                : "text-muted-foreground"
+                                }`}
+                        >
+                            {notes.length}/{MAX_LENGTH}
+                        </span>
+                    </div>
+                </div>
                 <div className="flex gap-2 mt-2">
                     <Button
                         size="sm"
