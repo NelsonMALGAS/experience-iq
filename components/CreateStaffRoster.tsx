@@ -321,7 +321,8 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                     setTimeout(() => setShowSuccess(false), 3000);
 
                     toast.success('Success', {
-                        description: 'Roster created successfully. You can now add shifts!',
+                        description: 'Roster created successfully. Please refresh & add shifts!',
+                        duration: 5000
                     });
                 } else {
                     toast.error('Error', {
@@ -359,7 +360,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
         toast.info('Info', {
             description: 'Copy previous month feature coming soon.',
         });
-        // API call would go here
+        // API call will go here
     };
 
     // Export roster

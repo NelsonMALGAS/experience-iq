@@ -59,8 +59,6 @@ export const metadata: Metadata = {
     },
 }
 
-
-
 const StaffDashboard = async () => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;

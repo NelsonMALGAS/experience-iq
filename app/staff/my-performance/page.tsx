@@ -1,6 +1,7 @@
 import { getStaffPerformance } from "@/app/optimised-actions";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Unverified from "@/components/Unverified";
@@ -13,8 +14,6 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-
-
 
 export const metadata: Metadata = {
     title: "Performance – ExperienceIQ",
@@ -57,7 +56,7 @@ const MyPerformance = async () => {
 
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
-    const role: Role = "admin"
+    const role: Role = "staff"
 
     if (!session) redirect(`/login?role=${role}`);
 
@@ -65,13 +64,17 @@ const MyPerformance = async () => {
 
     if (!decoded) redirect(`/login?role=${role}`)
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, adminId } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`)
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
+    }
+
+    if (!subscription || !adminId || !subscription.hasAccess) {
+        return <SubscriptionBanner type="staff" />
     }
 
     const performance = await getStaffPerformance(uid)

@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import RosterCreatorSkeleton from "@/components/skeletons/RosterCreatorSkeleton";
 import RosterCreator from "@/components/sections/RosterCreator";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 
 
 export const metadata: Metadata = {
@@ -65,13 +66,17 @@ const RosterPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData } = verificationResult;
+    const { uid, isVerified, canAccessData, subscription } = verificationResult;
     const userRole = role || "admin";
 
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={userRole} uid={uid} isOwner={undefined} />;
+    }
+
+    if (!subscription || !subscription.hasAccess) {
+        return <SubscriptionBanner type="admin" />;
     }
 
     // 🚀 INSTANT shell with streaming content

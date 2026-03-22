@@ -14,7 +14,7 @@ import { CheckCircle2, Clock, Users } from "lucide-react";
 import { getAdminStaff, getUnverifiedAdminStaff } from "@/app/optimised-actions";
 import { EmptyState, SectionHeader } from "@/components/staff/Verification";
 import { RefreshButton } from "@/components/layout/RefreshButton";
-
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 
 
 export const metadata: Metadata = {
@@ -58,7 +58,6 @@ export const metadata: Metadata = {
     },
 };
 
-
 const StaffVerificationPage = async () => {
     const cookieStore = await cookies();
     const session = cookieStore?.get("_SESSION_")?.value;
@@ -70,12 +69,16 @@ const StaffVerificationPage = async () => {
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, adminId, inheritedFrom, isOwner } = verificationResult;
+    const { uid, isVerified, canAccessData, adminId, inheritedFrom, isOwner, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
+    }
+
+    if (!subscription || !subscription.hasAccess) {
+        return <SubscriptionBanner type="admin" />;
     }
 
     // ── Fetch both lists in parallel ─────────────────────────────────────────

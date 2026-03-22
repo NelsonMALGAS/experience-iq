@@ -13,6 +13,7 @@ import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import { Suspense } from "react";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
 import { PropertiesClient } from "@/components/properties/PropertiesClient";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 
 export const metadata: Metadata = {
     title: "Properties – ExperienceIQ",
@@ -73,6 +74,10 @@ const PropertiesPage = async () => {
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
+    }
+
+    if (!subscription || !subscription.hasAccess) {
+        return <SubscriptionBanner type="admin" />;
     }
 
     // ✅ USER IS VERIFIED - Fetch properties with live statistics
