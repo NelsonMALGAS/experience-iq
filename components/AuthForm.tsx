@@ -167,7 +167,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         setFormErrors(validate(updatedData));
     };
 
-    // ✅ FIXED: Email/Password login and signup now redirect to onboarding
+    //  Email/Password login and signup now redirect to onboarding
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const errors = validate(formData);
@@ -229,13 +229,23 @@ const AuthForm = ({ role }: AuthFormType) => {
                 toast.error(validation.error || "Invalid room code");
                 return;
             }
-
             const auth = await getAuthInstance();
-            const result = await signInAnonymously(auth);
-            await createSession(result.user, "guest", "other");
+
+            //  Reuse existing user
+            let user = auth.currentUser;
+
+            if (!user) {
+                const result = await signInAnonymously(auth);
+                user = result.user;
+            }
+
+            await createSession(user, "guest", "other");
+
+            // save the user.uid to localStorage for the device
+            localStorage.setItem("guestId", user.uid);
 
             setGuestSession({
-                uid: result.user.uid,
+                uid: user.uid,
                 role: "guest",
                 propertyId: validation.property.id,
                 propertyName: validation.property.name,

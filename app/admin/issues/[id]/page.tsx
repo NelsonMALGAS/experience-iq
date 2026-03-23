@@ -62,7 +62,7 @@ export async function generateMetadata(
             openGraph: {
                 title,
                 description,
-                url: `${baseUrl}/staff/issues/${id}`,
+                url: `${baseUrl}/admin/issues/${id}`,
                 siteName: "ExperienceIQ",
                 images: [
                     {

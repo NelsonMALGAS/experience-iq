@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Property, UserSubscription } from "@/types";
@@ -9,6 +9,8 @@ import { AddPropertyDialog } from "@/components/Addpropertydialog";
 import CopyPropertyCode from "@/components/CopyPropertyCode";
 import { PropertyDetailsPopover } from "@/components/properties/PropertyDetailsPopover";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface PropertiesClientProps {
     uid: string;
@@ -181,6 +183,13 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                         </div>
                                     </div>
                                 </CardContent>
+                                <CardFooter className="px-6 pb-6 pt-0">
+                                    <Button asChild variant="outline" className="w-full">
+                                        <Link href={`/admin/properties/${property.id}`}>
+                                            View Property
+                                        </Link>
+                                    </Button>
+                                </CardFooter>
                             </Card>
                         );
                     })}
