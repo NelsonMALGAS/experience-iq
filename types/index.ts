@@ -27,6 +27,9 @@ export interface Room {
   id: string;
   roomNumber: string;
   status: "available" | "occupied" | "maintenance";
+  currentGuestName?: string | null;
+  checkInDate?: Date | null;
+  checkOutDate?: Date | null;
   createdAt: Date;
 }
 export interface Property {
@@ -410,3 +413,25 @@ export type AdminPermissions = {
   manageCollaborators: boolean;
   viewAnalytics: boolean;
 };
+
+export interface CollaboratorAccess {
+  accessId: string;
+  propertyId: string;
+  propertyName: string;
+  permissions: AdminPermissions;
+  grantedAt: Date;
+}
+
+export interface GroupedCollaborator {
+  adminId: string;
+  displayName: string;
+  email: string;
+  accesses: CollaboratorAccess[];
+}
+
+export interface PendingInvite {
+  id: string;
+  invitedAdminEmail: string;
+  propertyName: string;
+  expiresAt: Date;
+}

@@ -114,23 +114,34 @@ const InsightsPage = async () => {
                     <div className="space-y-6 sm:space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8">
 
                         {/* ===== HEADER ===== */}
-                        <div className="flex flex-col gap-4 sm:gap-6">
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
-                                            ExperienceIQ Intelligence
-                                        </h1>
+                        <div className="flex flex-col gap-4 sm:gap-5 lg:gap-6">
+
+                            {/* Top Row */}
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+
+                                {/* Left Side */}
+                                <div className="space-y-2">
+                                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground leading-tight">
+                                        ExperienceIQ Intelligence
+                                    </h1>
+
+                                    <div className="flex flex-wrap items-center gap-2">
                                         <Badge className="bg-green-100 text-green-800 border-green-200">
                                             Live Data
                                         </Badge>
                                     </div>
+                                </div>
+
+                                {/* Right Side (Button) */}
+                                <div className="flex justify-start sm:justify-end">
                                     <RefreshButton />
                                 </div>
-                                <p className="text-sm sm:text-base text-muted-foreground">
-                                    Real-time guest satisfaction insights and operational intelligence
-                                </p>
                             </div>
+
+                            {/* Subtitle */}
+                            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">
+                                Real-time guest satisfaction insights and operational intelligence
+                            </p>
                         </div>
 
                         {/* ===== KPI CARDS ===== */}
@@ -299,7 +310,7 @@ const InsightsPage = async () => {
                                                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                             <MapPin className="h-3 w-3 shrink-0" />
-                                                            <span className="truncate">
+                                                            <span className="text-sm wrap-break-word">
                                                                 {alert.propertyName} · {alert.propertyLocation}
                                                             </span>
                                                         </div>

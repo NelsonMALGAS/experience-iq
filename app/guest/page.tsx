@@ -90,7 +90,7 @@ async function GuestDashboard() {
 
     return (
         <Suspense fallback={<span>Loading Guest Dashboard...</span>}>
-            <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-background to-background dark:from-slate-950/20 dark:via-background dark:to-background">
+            <div className="min-h-screen bg-linear-to-b from-slate-50/50 via-background to-background dark:from-slate-950/20 dark:via-background dark:to-background">
                 {/* Main Container */}
                 <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-8">
 
@@ -104,7 +104,7 @@ async function GuestDashboard() {
                     {totalIssues > 0 && (
                         <section className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <div className="h-1 w-12 bg-gradient-to-r from-primary to-primary/40 rounded-full" />
+                                <div className="h-1 w-12 bg-linear-to-r from-primary to-primary/40 rounded-full" />
                                 <h2 className="text-lg font-semibold text-foreground">Overview</h2>
                             </div>
 
@@ -112,7 +112,7 @@ async function GuestDashboard() {
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                                 {/* Total Issues */}
                                 <Card className="group relative overflow-hidden border-slate-200/60 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 hover:shadow-md">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-900/20 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-linear-to-br from-slate-50/50 to-transparent dark:from-slate-900/20 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <CardHeader className="pb-3 pt-5">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -130,8 +130,8 @@ async function GuestDashboard() {
                                 </Card>
 
                                 {/* Open Issues */}
-                                <Card className="group relative overflow-hidden border-red-200/60 dark:border-red-900/40 bg-gradient-to-br from-red-50/30 to-transparent dark:from-red-950/10 dark:to-transparent hover:border-red-300 dark:hover:border-red-800 transition-all duration-300 hover:shadow-md">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Card className="group relative overflow-hidden border-red-200/60 dark:border-red-900/40 bg-linear-to-br from-red-50/30 to-transparent dark:from-red-950/10 dark:to-transparent hover:border-red-300 dark:hover:border-red-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-linear-to-br from-red-50/50 to-transparent dark:from-red-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <CardHeader className="pb-3 pt-5">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wide">
@@ -149,8 +149,8 @@ async function GuestDashboard() {
                                 </Card>
 
                                 {/* In Progress Issues */}
-                                <Card className="group relative overflow-hidden border-blue-200/60 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-950/10 dark:to-transparent hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-300 hover:shadow-md">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Card className="group relative overflow-hidden border-blue-200/60 dark:border-blue-900/40 bg-linear-to-br from-blue-50/30 to-transparent dark:from-blue-950/10 dark:to-transparent hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-linear-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <CardHeader className="pb-3 pt-5">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-xs font-medium text-blue-700 dark:text-blue-400 uppercase tracking-wide">
@@ -168,8 +168,8 @@ async function GuestDashboard() {
                                 </Card>
 
                                 {/* Resolved Issues */}
-                                <Card className="group relative overflow-hidden border-green-200/60 dark:border-green-900/40 bg-gradient-to-br from-green-50/30 to-transparent dark:from-green-950/10 dark:to-transparent hover:border-green-300 dark:hover:border-green-800 transition-all duration-300 hover:shadow-md">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Card className="group relative overflow-hidden border-green-200/60 dark:border-green-900/40 bg-linear-to-br from-green-50/30 to-transparent dark:from-green-950/10 dark:to-transparent hover:border-green-300 dark:hover:border-green-800 transition-all duration-300 hover:shadow-md">
+                                    <div className="absolute inset-0 bg-linear-to-br from-green-50/50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <CardHeader className="pb-3 pt-5">
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">
@@ -194,7 +194,7 @@ async function GuestDashboard() {
                         <section>
                             <details className="group">
                                 <summary className="cursor-pointer list-none">
-                                    <Card className="border-blue-200/60 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/40 to-slate-50/20 dark:from-blue-950/20 dark:to-slate-950/10 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-200">
+                                    <Card className="border-blue-200/60 dark:border-blue-900/40 bg-linear-to-br from-blue-50/40 to-slate-50/20 dark:from-blue-950/20 dark:to-slate-950/10 hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-200">
                                         <CardContent className="py-4 px-5">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -243,13 +243,13 @@ async function GuestDashboard() {
                     <section className="space-y-4">
                         {totalIssues === 0 ? (
                             /* ===== EMPTY STATE - Welcoming & Encouraging ===== */
-                            <Card className="border-dashed border-2 border-muted-foreground/20 bg-gradient-to-b from-muted/30 to-background">
+                            <Card className="border-dashed border-2 border-muted-foreground/20 bg-linear-to-b from-muted/30 to-background">
                                 <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-6">
                                     <div className="relative mb-6">
                                         {/* Decorative background circle */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full blur-2xl scale-150" />
+                                        <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-primary/5 rounded-full blur-2xl scale-150" />
                                         {/* Icon container */}
-                                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50 shadow-sm">
+                                        <div className="relative p-6 rounded-2xl bg-linear-to-br from-muted/80 to-muted/40 border border-border/50 shadow-sm">
                                             <Sparkles className="w-12 h-12 sm:w-14 sm:h-14 text-primary/70" />
                                         </div>
                                     </div>
@@ -289,7 +289,7 @@ async function GuestDashboard() {
                             /* ===== ISSUES LIST - Clean & Organized ===== */
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-1 w-12 bg-gradient-to-r from-primary to-primary/40 rounded-full" />
+                                    <div className="h-1 w-12 bg-linear-to-r from-primary to-primary/40 rounded-full" />
                                     <h2 className="text-lg font-semibold text-foreground">Your Requests</h2>
                                 </div>
 

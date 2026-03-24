@@ -26,6 +26,19 @@ export type PropertyWithStats = Property & {
   avgResolutionTime: number; // in hours
 };
 
+function timestampToDate(
+  ts: { seconds: number; nanoseconds: number } | null | undefined | Date,
+): Date | null {
+  if (!ts) return null;
+  if (ts instanceof Date) return ts;
+  if ("seconds" in ts && typeof ts.seconds === "number") {
+    return new Date(
+      ts.seconds * 1000 + Math.floor((ts.nanoseconds || 0) / 1000000),
+    );
+  }
+  return null;
+}
+
 /**
  * Fetch all properties for the logged-in admin, enriched with live statistics derived from related issues.
  *
@@ -75,7 +88,13 @@ export async function fetchPropertiesWithStats(
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
         rooms: (data.rooms || []).map((room: Room) => ({
           ...room,
-          createdAt: toDate(room.createdAt) || room.createdAt || null,
+          createdAt: timestampToDate(room.createdAt) || room.createdAt || null,
+          checkInDate: room.checkInDate
+            ? timestampToDate(room.checkInDate)
+            : null,
+          checkOutDate: room.checkOutDate
+            ? timestampToDate(room.checkOutDate)
+            : null,
         })),
         createdAt: toDate(data.createdAt),
         avgResolutionTime: data.avgResolutionTime,
@@ -154,6 +173,114 @@ export async function fetchPropertiesWithStats(
       tags: { operation: "fetchPropertiesWithStats" },
     });
     console.error("Error fetching properties with stats:", error);
+    throw error;
+  }
+}
+
+export async function fetchPropertyByIdWithStats(
+  propertyId: string,
+): Promise<{ property: PropertyWithStats | null; issues: Issue[] }> {
+  try {
+    if (!db) throw new Error("Firestore not initialized");
+    if (!propertyId) throw new Error("Property ID is required");
+
+    const propertyRef = db.collection("properties").doc(propertyId);
+
+    const [propertySnap, allIssues] = await Promise.all([
+      propertyRef.get(),
+      fetchAllIssues(),
+    ]);
+
+    if (!propertySnap.exists) {
+      return { property: null, issues: [] };
+    }
+
+    const data = propertySnap.data()!;
+
+    const property: Property = {
+      id: propertySnap.id,
+      ownerId: data.ownerId,
+      name: data.name || "Unnamed Property",
+      location: data.location || "Unknown Location",
+      code: data.code || propertySnap.id.substring(0, 6).toUpperCase(),
+      rooms: (data.rooms || []).map((room: Room) => ({
+        ...room,
+        createdAt: timestampToDate(room.createdAt) || room.createdAt || null,
+        checkInDate: room.checkInDate
+          ? timestampToDate(room.checkInDate)
+          : null,
+        checkOutDate: room.checkOutDate
+          ? timestampToDate(room.checkOutDate)
+          : null,
+      })),
+      createdAt: toDate(data.createdAt),
+      avgResolutionTime: data.avgResolutionTime,
+      openIssues: data.openIssues,
+      resolvedIssues: data.resolvedIssues,
+      totalIssues: data.totalIssues,
+    };
+
+    // Initialize stats
+    const stats: PropertyStats = {
+      totalIssues: 0,
+      openIssues: 0,
+      resolvedIssues: 0,
+      totalResolutionTime: 0,
+    };
+
+    // Filter issues for this property only
+    const propertyIssues = allIssues.filter(
+      (issue: Issue) => issue.propertyId === propertyId,
+    );
+
+    // Aggregate stats
+    propertyIssues.forEach((issue: Issue) => {
+      stats.totalIssues += 1;
+
+      if (issue.status === "resolved") {
+        stats.resolvedIssues += 1;
+
+        if (issue.resolvedAt && issue.createdAt) {
+          const createdAt = toDate(issue.createdAt).getTime();
+          const resolvedAt = toDate(issue.resolvedAt).getTime();
+          const resolutionTime = resolvedAt - createdAt;
+
+          if (resolutionTime > 0) {
+            stats.totalResolutionTime += resolutionTime;
+          }
+        }
+      } else {
+        stats.openIssues += 1;
+      }
+    });
+
+    const avgResolutionTime =
+      stats.resolvedIssues > 0
+        ? Math.round(
+            (stats.totalResolutionTime /
+              stats.resolvedIssues /
+              (1000 * 60 * 60)) *
+              10,
+          ) / 10
+        : 0;
+
+    const propertyWithStats: PropertyWithStats = {
+      ...property,
+      totalIssues: stats.totalIssues,
+      openIssues: stats.openIssues,
+      resolvedIssues: stats.resolvedIssues,
+      avgResolutionTime,
+    };
+
+    return {
+      property: propertyWithStats,
+      issues: propertyIssues,
+    };
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { operation: "fetchPropertyByIdWithStats" },
+    });
+    console.error("Error fetching property by ID:", error);
     throw error;
   }
 }

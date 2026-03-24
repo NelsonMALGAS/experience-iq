@@ -42,7 +42,7 @@ interface Data {
 
 
 const AuthForm = ({ role }: AuthFormType) => {
-    const { handleRegister, handleLogin, createSession } = useCurrentUser();
+    const { handleRegister, handleLogin, handlePasswordReset, createSession } = useCurrentUser();
     const router = useRouter();
     const searchParams = useSearchParams();
     const qrRef = useRef<HTMLCanvasElement | null>(null);
@@ -118,6 +118,31 @@ const AuthForm = ({ role }: AuthFormType) => {
         return errors;
     };
 
+
+
+    const handleResetPassword = async () => {
+        if (!formData.email) {
+            toast.error("Please enter your email first");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            await handlePasswordReset(formData.email);
+
+            toast.success("Password reset email sent", {
+                description: "Check your inbox to reset your password",
+            });
+        } catch (error) {
+            toast.error("Failed to send reset email", {
+                description: error instanceof Error ? error.message : "Please try again",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Google Sign-In redirects to onboarding for staff/admin
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
@@ -167,7 +192,7 @@ const AuthForm = ({ role }: AuthFormType) => {
         setFormErrors(validate(updatedData));
     };
 
-    // ✅ FIXED: Email/Password login and signup now redirect to onboarding
+    //  Email/Password login and signup now redirect to onboarding
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const errors = validate(formData);
@@ -229,13 +254,23 @@ const AuthForm = ({ role }: AuthFormType) => {
                 toast.error(validation.error || "Invalid room code");
                 return;
             }
-
             const auth = await getAuthInstance();
-            const result = await signInAnonymously(auth);
-            await createSession(result.user, "guest", "other");
+
+            //  Reuse existing user
+            let user = auth.currentUser;
+
+            if (!user) {
+                const result = await signInAnonymously(auth);
+                user = result.user;
+            }
+
+            await createSession(user, "guest", "other");
+
+            // save the user.uid to localStorage for the device
+            localStorage.setItem("guestId", user.uid);
 
             setGuestSession({
-                uid: result.user.uid,
+                uid: user.uid,
                 role: "guest",
                 propertyId: validation.property.id,
                 propertyName: validation.property.name,
@@ -422,9 +457,21 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                     )}
                                                 </button>
                                             </div>
+
                                             {formErrors?.password && (
                                                 <p className="text-sm text-red-500">{formErrors.password}</p>
                                             )}
+
+                                            <div className="flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleResetPassword}
+                                                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                                                    disabled={isLoading}
+                                                >
+                                                    Forgot password?
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <Button type="submit" className="w-full" disabled={isLoading}>

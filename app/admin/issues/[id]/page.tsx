@@ -16,6 +16,7 @@ import { Suspense } from "react"
 import { IssueHeaderSkeleton } from "@/components/skeletons/IssueHeaderSkeleton"
 import IssueContent from "@/components/sections/IssueContent"
 import { IssueContentSkeleton } from "@/components/skeletons/IssueContentSkeleton"
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner"
 
 export async function generateMetadata(
     { params }: IssueDetailsPageProps,
@@ -61,7 +62,7 @@ export async function generateMetadata(
             openGraph: {
                 title,
                 description,
-                url: `${baseUrl}/staff/issues/${id}`,
+                url: `${baseUrl}/admin/issues/${id}`,
                 siteName: "ExperienceIQ",
                 images: [
                     {
@@ -110,12 +111,16 @@ const IssueDetailsPage = async ({
     if (!decoded) redirect(`/login?role=${role}`);
 
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, role: UserRole } = verificationResult;
+    const { uid, isVerified, canAccessData, role: UserRole, subscription } = verificationResult;
 
     if (!uid) redirect(`/login?role=${role || "admin"}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
+    }
+
+    if (!subscription || !subscription.hasAccess) {
+        return <SubscriptionBanner type="admin" />;
     }
 
     const goBackUrl = role === "admin" ? "/admin" : "/staff/issues";

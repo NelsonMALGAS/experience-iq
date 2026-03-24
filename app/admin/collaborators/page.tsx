@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { AdminPermissions, Role } from "@/types";
+import { GroupedCollaborator, PendingInvite, Role } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
@@ -18,7 +18,7 @@ import { InviteAdminForm } from "@/components/admins/InviteAdminForm";
 import { RevokeAccessButton } from "@/components/admins/RevokeAccessButton";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
-import { PERMISSION_LABELS } from "@/constants";
+import { getActivePermissionLabels, getInitials } from "@/helpers";
 
 
 export const metadata: Metadata = {
@@ -52,39 +52,6 @@ export const metadata: Metadata = {
         creator: "@ExperienceIQ",
     },
 };
-
-
-interface CollaboratorAccess {
-    accessId: string;
-    propertyId: string;
-    propertyName: string;
-    permissions: AdminPermissions;
-    grantedAt: Date;
-}
-
-interface GroupedCollaborator {
-    adminId: string;
-    displayName: string;
-    email: string;
-    accesses: CollaboratorAccess[];
-}
-
-interface PendingInvite {
-    id: string;
-    invitedAdminEmail: string;
-    propertyName: string;
-    expiresAt: Date;
-}
-
-function getInitials(name: string) {
-    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-}
-
-function getActivePermissionLabels(permissions: AdminPermissions): string[] {
-    return (Object.keys(permissions) as (keyof AdminPermissions)[])
-        .filter((k) => permissions[k])
-        .map((k) => PERMISSION_LABELS[k]);
-}
 
 
 const CollaboratorsPage = async () => {

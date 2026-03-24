@@ -60,6 +60,7 @@ export const PRICE_PLANS: PricePlan[] = [
     info: [
       "1 property included",
       "Up to 75 staff accounts",
+      "1,000 guests/month included",
       "Real-time guest issue reporting",
       "SLA tracking",
       "Admin dashboard",
@@ -95,6 +96,7 @@ export const PRICE_PLANS: PricePlan[] = [
     info: [
       "Up to 3 properties",
       "Up to 225 staff accounts",
+      "5,000 guests/month included.",
       "Advanced SLA escalation rules",
       "Staff performance analytics",
       "Monthly roster management",
@@ -130,6 +132,7 @@ export const PRICE_PLANS: PricePlan[] = [
     info: [
       "Up to 6 properties",
       "Up to 450 staff accounts",
+      "10,000 guests/month included.",
       "Multi-property analytics",
       "Cross-property performance comparisons",
       "Custom SLA rules",
@@ -166,6 +169,7 @@ export const PRICE_PLANS: PricePlan[] = [
     info: [
       "Up to 12 properties",
       "Up to 900 staff accounts",
+      "20,000 guests/month included",
       "Dedicated account manager",
       "White-label branding (optional)",
       "API integrations",

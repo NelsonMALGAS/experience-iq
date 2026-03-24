@@ -18,7 +18,7 @@ export const createDefaultIssue = (guestSession: {
     priority: "medium",
 
     guestId: guestSession.uid,
-    guestName: "Guest",
+    guestName: "Anonymous Guest",
     roomNumber: guestSession.roomNumber,
 
     propertyId: guestSession.propertyId,
