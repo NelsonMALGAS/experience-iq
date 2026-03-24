@@ -167,8 +167,6 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
             )
             : 0;
 
-    console.log(room, 'ROOM')
-
     return (
         <>
             <div
