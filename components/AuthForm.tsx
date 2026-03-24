@@ -42,7 +42,7 @@ interface Data {
 
 
 const AuthForm = ({ role }: AuthFormType) => {
-    const { handleRegister, handleLogin, createSession } = useCurrentUser();
+    const { handleRegister, handleLogin, handlePasswordReset, createSession } = useCurrentUser();
     const router = useRouter();
     const searchParams = useSearchParams();
     const qrRef = useRef<HTMLCanvasElement | null>(null);
@@ -116,6 +116,31 @@ const AuthForm = ({ role }: AuthFormType) => {
         }
 
         return errors;
+    };
+
+
+
+    const handleResetPassword = async () => {
+        if (!formData.email) {
+            toast.error("Please enter your email first");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            await handlePasswordReset(formData.email);
+
+            toast.success("Password reset email sent", {
+                description: "Check your inbox to reset your password",
+            });
+        } catch (error) {
+            toast.error("Failed to send reset email", {
+                description: error instanceof Error ? error.message : "Please try again",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Google Sign-In redirects to onboarding for staff/admin
@@ -432,9 +457,21 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                     )}
                                                 </button>
                                             </div>
+
                                             {formErrors?.password && (
                                                 <p className="text-sm text-red-500">{formErrors.password}</p>
                                             )}
+
+                                            <div className="flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleResetPassword}
+                                                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                                                    disabled={isLoading}
+                                                >
+                                                    Forgot password?
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <Button type="submit" className="w-full" disabled={isLoading}>
