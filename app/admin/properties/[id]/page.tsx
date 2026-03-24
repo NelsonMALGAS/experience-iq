@@ -2,7 +2,16 @@ import { fetchPropertyByIdWithStats } from "@/app/optimised-actions/properties";
 import BackButton from "@/components/BackButton";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
-import { FileSearch } from "lucide-react";
+import {
+    FileSearch,
+    BedDouble,
+    AlertTriangle,
+    CheckCircle2,
+    CircleDot,
+    Layers,
+} from "lucide-react";
+
+import { RoomsSection } from "@/components/properties/room/RoomsSection";
 
 export type PropertyDetailsPageProps = {
     params: Promise<{ id: string }>;
@@ -14,7 +23,7 @@ export async function generateMetadata(
     const { id } = await params;
 
     try {
-        const { property } = await fetchPropertyByIdWithStats(id)
+        const { property } = await fetchPropertyByIdWithStats(id);
 
         if (!property) {
             return {
@@ -27,7 +36,7 @@ export async function generateMetadata(
                     "property management",
                     "property reassignment",
                     "administrative controls",
-                    "property analytics"
+                    "property analytics",
                 ],
             };
         }
@@ -47,7 +56,6 @@ export async function generateMetadata(
                 "check-in check-out",
                 "admin dashboard",
             ],
-
             openGraph: {
                 title,
                 description,
@@ -64,7 +72,6 @@ export async function generateMetadata(
                 locale: "en_US",
                 type: "website",
             },
-
             twitter: {
                 card: "summary_large_image",
                 title,
@@ -84,44 +91,88 @@ export async function generateMetadata(
     }
 }
 
+
+type StatCardProps = {
+    label: string;
+    value: number | string;
+    icon: React.ReactNode;
+    accent?: "default" | "blue" | "emerald" | "red" | "amber";
+};
+
+
+const accentMap: Record<NonNullable<StatCardProps["accent"]>, string> = {
+    default: "bg-muted text-muted-foreground",
+    blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    red: "bg-red-500/10 text-red-600 dark:text-red-400",
+    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+};
+
+function StatCard({ label, value, icon, accent = "default" }: StatCardProps) {
+    return (
+        <div className="rounded-xl border bg-card p-5 space-y-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-medium">{label}</p>
+                <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${accentMap[accent]}`}>
+                    {icon}
+                </div>
+            </div>
+            <p className="text-3xl font-bold tracking-tight text-foreground">{value}</p>
+        </div>
+    );
+}
+
+// ─── Room Summary Pills ───────────────────────────────────────────────────────
+
+function RoomSummaryPills({ rooms }: { rooms: { status: string }[] }) {
+    const available = rooms.filter((r) => r.status === "available").length;
+    const occupied = rooms.filter((r) => r.status === "occupied").length;
+    const maintenance = rooms.filter((r) => r.status === "maintenance").length;
+
+    return (
+        <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                {available} Available
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                {occupied} Occupied
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                {maintenance} Maintenance
+            </span>
+        </div>
+    );
+}
+
+
 const PropertyDetailsPage = async ({ params }: PropertyDetailsPageProps) => {
-
     const { id } = await params;
-
-    const { property, issues } = await fetchPropertyByIdWithStats(id)
-
+    const { property, issues } = await fetchPropertyByIdWithStats(id);
 
     if (!property) {
         return (
             <div className="flex items-center justify-center min-h-[60vh] px-6 mt-24 animate-fade-in">
                 <div className="w-full max-w-md rounded-2xl border bg-card text-card-foreground shadow-sm p-8 text-center space-y-5">
-
-                    {/* Icon */}
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                         <FileSearch className="h-6 w-6 text-muted-foreground" />
                     </div>
-
-                    {/* Text */}
                     <div className="space-y-1">
                         <h2 className="text-xl font-semibold tracking-tight text-foreground">
                             Property Not Found
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            We couldn’t find a property with this ID.
+                            We couldn&apos;t find a property with this ID.
                         </p>
                     </div>
-
-                    {/* Property ID */}
                     <div className="text-xs text-muted-foreground border rounded-md px-3 py-2 bg-muted/40 font-mono">
                         {id}
                     </div>
-
-                    {/* Actions */}
                     <div className="flex justify-center">
                         <BackButton label="Back to Properties" />
                     </div>
-
-                    {/* Hint */}
                     <p className="text-xs text-muted-foreground">
                         Please check the ID or navigate back to the dashboard.
                     </p>
@@ -130,105 +181,144 @@ const PropertyDetailsPage = async ({ params }: PropertyDetailsPageProps) => {
         );
     }
 
-    return (
-        <div className="p-6 space-y-8 mt-24 animate-fade-in">
-            {/* Header */}
-            <div className="flex flex-col gap-4">
+    const totalRooms = property.rooms.length;
+    const availableRooms = property.rooms.filter((r) => r.status === "available").length;
+    const occupancyRate =
+        totalRooms > 0
+            ? Math.round(
+                (property.rooms.filter((r) => r.status === "occupied").length / totalRooms) * 100
+            )
+            : 0;
 
-                {/* Top row */}
+
+
+    return (
+        <div className="p-6 space-y-8 mt-24 animate-fade-in max-w-screen-2xl mx-auto">
+
+            {/* ── Header ── */}
+            <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <BackButton label="Back to Properties" />
-
-                    {/* Optional subtle ID on the right */}
                     <span className="text-xs text-muted-foreground font-mono hidden sm:block">
-                        {id?.slice(5)}...
+                        {id?.slice(0, 8)}…
                     </span>
                 </div>
 
-                {/* Title */}
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        {property.name}
-                    </h1>
-                    <p className="text-sm text-muted-foreground sm:hidden">
-                        Property ID: <span className="font-mono">{id}</span>
-                    </p>
-                </div>
-            </div>
-
-            {/* Property Overview */}
-            <div className="rounded-2xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
-                <h2 className="text-lg font-semibold">Overview</h2>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                     <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Location</p>
-                        <p className="font-medium">
-                            {property.location || "—"}
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                                {property.name}
+                            </h1>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            {property.location || "No location set"} · {totalRooms} rooms
                         </p>
                     </div>
 
-                    <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Rooms</p>
-                        <p className="font-medium">
-                            {property.rooms.length ?? "—"}
-                        </p>
+                    {/* Occupancy pill */}
+                    <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+                        <span className="text-muted-foreground">Occupancy</span>
+                        <span className="font-semibold text-foreground">{occupancyRate}%</span>
                     </div>
-
                 </div>
             </div>
 
-            {/* Stats (Simple Visual Cards) */}
+            {/* ── Stats ── */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Total Issues
-                    </p>
-                    <p className="text-2xl font-bold">
-                        {issues?.length || 0}
-                    </p>
-                </div>
+                <StatCard
+                    label="Total Issues"
+                    value={issues?.length || 0}
+                    icon={<Layers className="h-4 w-4" />}
+                    accent="default"
+                />
+                <StatCard
+                    label="Open Issues"
+                    value={issues?.filter((i) => i.status === "open").length || 0}
+                    icon={<CircleDot className="h-4 w-4" />}
+                    accent="blue"
+                />
+                <StatCard
+                    label="Resolved"
+                    value={issues?.filter((i) => i.status === "resolved").length || 0}
+                    icon={<CheckCircle2 className="h-4 w-4" />}
+                    accent="emerald"
+                />
+                <StatCard
+                    label="Critical Priority"
+                    value={issues?.filter((i) => i.priority === "critical").length || 0}
+                    icon={<AlertTriangle className="h-4 w-4" />}
+                    accent="red"
+                />
+            </div>
 
-                <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Open Issues
-                    </p>
-                    <p className="text-2xl font-bold">
-                        {issues?.filter(i => i.status === "open").length || 0}
-                    </p>
-                </div>
-
-                <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Resolved
-                    </p>
-                    <p className="text-2xl font-bold">
-                        {issues?.filter(i => i.status === "resolved").length || 0}
-                    </p>
-                </div>
-
-                <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Critical Priority
-                    </p>
-                    <p className="text-2xl font-bold">
-                        {issues?.filter(i => i.priority === "critical").length || 0}
-                    </p>
+            {/* ── Property Overview ── */}
+            <div className="rounded-2xl border bg-card shadow-sm p-6 space-y-4">
+                <h2 className="text-base font-semibold">Property Overview</h2>
+                <div className="grid gap-6 sm:grid-cols-3">
+                    <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Location</p>
+                        <p className="font-medium text-sm">{property.location || "—"}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Rooms</p>
+                        <p className="font-medium text-sm">{totalRooms}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Available Now</p>
+                        <p className="font-medium text-sm">{availableRooms}</p>
+                    </div>
                 </div>
             </div>
 
-            {/* Issues Section */}
+            {/* ── Rooms Management ── */}
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-base font-semibold flex items-center gap-2">
+                            <BedDouble className="h-4 w-4 text-muted-foreground" />
+                            Rooms Management
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            Manage check-ins, check-outs and maintenance across all rooms.
+                        </p>
+                    </div>
+                    {totalRooms > 0 && (
+                        <RoomSummaryPills rooms={property.rooms} />
+                    )}
+                </div>
+
+                {totalRooms === 0 ? (
+                    <div className="rounded-xl border bg-muted/20 p-10 text-center text-sm text-muted-foreground">
+                        No rooms have been added to this property yet.
+                    </div>
+                ) : (
+
+                    <RoomsSection
+                        rooms={property.rooms}
+                        propertyId={property.id}
+                    />
+
+                )}
+            </div>
+
+            {/* ── Issues Section ── */}
             <div className="rounded-2xl border bg-card shadow-sm">
-                <div className="p-6 border-b">
-                    <h2 className="text-lg font-semibold">Recent Issues</h2>
-                    <p className="text-sm text-muted-foreground">
-                        A quick overview of reported issues
-                    </p>
+                <div className="p-6 border-b flex items-center justify-between">
+                    <div>
+                        <h2 className="text-base font-semibold">Recent Issues</h2>
+                        <p className="text-sm text-muted-foreground">
+                            A quick overview of reported issues
+                        </p>
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground bg-muted rounded-full px-2.5 py-1">
+                        {issues?.length || 0} total
+                    </span>
                 </div>
 
                 <div className="divide-y">
-                    {issues?.length === 0 && (
-                        <div className="p-6 text-sm text-muted-foreground">
+                    {(!issues || issues.length === 0) && (
+                        <div className="p-8 text-sm text-muted-foreground text-center">
                             No issues found for this property.
                         </div>
                     )}
@@ -236,16 +326,22 @@ const PropertyDetailsPage = async ({ params }: PropertyDetailsPageProps) => {
                     {issues?.map((issue) => (
                         <div
                             key={issue.id}
-                            className="p-6 flex flex-col gap-3 hover:bg-muted/40 transition-colors"
+                            className="p-5 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
                         >
-                            <div className="flex items-center justify-between gap-4">
-                                <h3 className="font-medium text-foreground">
+                            <div className="flex items-start justify-between gap-4">
+                                <h3 className="font-medium text-sm text-foreground leading-snug">
                                     {issue.title}
                                 </h3>
-
-                                <span className="text-xs px-2 py-1 rounded-md border bg-muted text-muted-foreground">
-                                    {issue.status}
-                                </span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {issue.priority === "critical" && (
+                                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 border border-red-500/20 dark:text-red-400 font-medium">
+                                            Critical
+                                        </span>
+                                    )}
+                                    <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
+                                        {issue.status}
+                                    </span>
+                                </div>
                             </div>
 
                             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -253,22 +349,16 @@ const PropertyDetailsPage = async ({ params }: PropertyDetailsPageProps) => {
                             </p>
 
                             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                                <span>
-                                    Room: {issue.roomNumber || "—"}
-                                </span>
-                                <span>
-                                    Guest: {issue.guestName || "Anonymous"}
-                                </span>
-                                <span>
-                                    Priority: {issue.priority}
-                                </span>
+                                <span>Room: {issue.roomNumber || "—"}</span>
+                                <span>Guest: {issue.guestName || "Anonymous"}</span>
+                                <span>Priority: {issue.priority}</span>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default PropertyDetailsPage
+export default PropertyDetailsPage;

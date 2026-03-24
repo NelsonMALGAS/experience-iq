@@ -27,6 +27,9 @@ export interface Room {
   id: string;
   roomNumber: string;
   status: "available" | "occupied" | "maintenance";
+  currentGuestName?: string | null;
+  checkInDate?: Date | null;
+  checkOutDate?: Date | null;
   createdAt: Date;
 }
 export interface Property {

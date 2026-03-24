@@ -26,6 +26,19 @@ export type PropertyWithStats = Property & {
   avgResolutionTime: number; // in hours
 };
 
+function timestampToDate(
+  ts: { seconds: number; nanoseconds: number } | null | undefined | Date,
+): Date | null {
+  if (!ts) return null;
+  if (ts instanceof Date) return ts;
+  if ("seconds" in ts && typeof ts.seconds === "number") {
+    return new Date(
+      ts.seconds * 1000 + Math.floor((ts.nanoseconds || 0) / 1000000),
+    );
+  }
+  return null;
+}
+
 /**
  * Fetch all properties for the logged-in admin, enriched with live statistics derived from related issues.
  *
@@ -75,7 +88,13 @@ export async function fetchPropertiesWithStats(
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
         rooms: (data.rooms || []).map((room: Room) => ({
           ...room,
-          createdAt: toDate(room.createdAt) || room.createdAt || null,
+          createdAt: timestampToDate(room.createdAt) || room.createdAt || null,
+          checkInDate: room.checkInDate
+            ? timestampToDate(room.checkInDate)
+            : null,
+          checkOutDate: room.checkOutDate
+            ? timestampToDate(room.checkOutDate)
+            : null,
         })),
         createdAt: toDate(data.createdAt),
         avgResolutionTime: data.avgResolutionTime,
@@ -186,7 +205,13 @@ export async function fetchPropertyByIdWithStats(
       code: data.code || propertySnap.id.substring(0, 6).toUpperCase(),
       rooms: (data.rooms || []).map((room: Room) => ({
         ...room,
-        createdAt: toDate(room.createdAt) || room.createdAt || null,
+        createdAt: timestampToDate(room.createdAt) || room.createdAt || null,
+        checkInDate: room.checkInDate
+          ? timestampToDate(room.checkInDate)
+          : null,
+        checkOutDate: room.checkOutDate
+          ? timestampToDate(room.checkOutDate)
+          : null,
       })),
       createdAt: toDate(data.createdAt),
       avgResolutionTime: data.avgResolutionTime,
