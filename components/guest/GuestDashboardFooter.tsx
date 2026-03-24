@@ -17,11 +17,11 @@ export default function GuestDashboardFooter() {
     return (
         <div className="relative">
             {/* Decorative gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent rounded-2xl blur-2xl -z-10" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-primary/3 to-transparent rounded-2xl blur-2xl -z-10" />
 
-            <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-lg">
+            <Card className="relative overflow-hidden border-primary/20 bg-linear-to-br from-primary/5 via-background to-background shadow-lg">
                 {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]" />
+                <div className="absolute inset-0 bg-grid-slate-100 mask-[linear-gradient(0deg,transparent,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:mask-[linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]" />
 
                 <CardContent className="relative pt-8 pb-8 px-6 sm:px-8">
                     <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -29,9 +29,9 @@ export default function GuestDashboardFooter() {
                         <div className="shrink-0">
                             <div className="relative">
                                 {/* Animated background glow */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl blur-xl animate-pulse" />
+                                <div className="absolute inset-0 bg-linear-to-br from-primary/30 to-primary/10 rounded-2xl blur-xl animate-pulse" />
                                 {/* Icon container */}
-                                <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center shadow-lg">
+                                <div className="relative w-16 h-16 rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center shadow-lg">
                                     <Shield className="w-8 h-8 text-primary" />
                                 </div>
                             </div>
@@ -41,7 +41,7 @@ export default function GuestDashboardFooter() {
                         <div className="flex-1 space-y-4">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                    <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                                    <h3 className="text-xl sm:text-2xl font-bold bg-linear-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
                                         Unlock Full Access
                                     </h3>
                                     <Badge
@@ -84,7 +84,7 @@ export default function GuestDashboardFooter() {
                         <Button
                             onClick={handleSignUp}
                             size="lg"
-                            className="group gap-2 w-full lg:w-auto whitespace-nowrap shrink-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                            className="group gap-2 w-full lg:w-auto whitespace-nowrap shrink-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                         >
                             <span className="font-semibold">Create Account</span>
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />

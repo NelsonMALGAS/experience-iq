@@ -30,9 +30,11 @@ interface IssuesListProps {
     issues: Issue[];
 }
 
+type PriorityFilter = "all" | "low" | "medium" | "high" | "critical";
+
 export default function IssuesList({ issues }: IssuesListProps) {
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [priorityFilter, setPriorityFilter] = useState<string>('all');
+    const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
     const [expandedIssue, setExpandedIssue] = useState<string | null>(null);
 
     // Filter issues
@@ -52,7 +54,7 @@ export default function IssuesList({ issues }: IssuesListProps) {
     return (
         <div className="space-y-6">
             {/* Enhanced Filters Section */}
-            <div className="rounded-xl border border-border/60 bg-gradient-to-br from-muted/30 via-background to-muted/20 shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border/60 bg-linear-to-br from-muted/30 via-background to-muted/20 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b bg-muted/40 backdrop-blur-sm">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-primary/10">
@@ -95,7 +97,10 @@ export default function IssuesList({ issues }: IssuesListProps) {
                                 <div className="w-1 h-4 bg-primary/40 rounded-full" />
                                 Priority
                             </Label>
-                            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                            <Select
+                                value={priorityFilter}
+                                onValueChange={(value) => setPriorityFilter(value as PriorityFilter)}
+                            >
                                 <SelectTrigger
                                     id="priority-filter"
                                     className="w-full h-11 border-border/60 bg-background/50 hover:border-primary/40 transition-colors"
@@ -107,6 +112,7 @@ export default function IssuesList({ issues }: IssuesListProps) {
                                     <SelectItem value="low">Low</SelectItem>
                                     <SelectItem value="medium">Medium</SelectItem>
                                     <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="critical">Critical</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -144,11 +150,11 @@ export default function IssuesList({ issues }: IssuesListProps) {
 
             {/* Issues List */}
             {filteredIssues.length === 0 ? (
-                <Card className="border-dashed border-2 border-muted-foreground/20 bg-gradient-to-br from-muted/20 to-background">
+                <Card className="border-dashed border-2 border-muted-foreground/20 bg-linear-to-br from-muted/20 to-background">
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <div className="relative mb-5">
-                            <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/20 rounded-full blur-2xl scale-150" />
-                            <div className="relative p-5 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/30 border border-border/50">
+                            <div className="absolute inset-0 bg-linear-to-br from-muted/50 to-muted/20 rounded-full blur-2xl scale-150" />
+                            <div className="relative p-5 rounded-2xl bg-linear-to-br from-muted/60 to-muted/30 border border-border/50">
                                 <AlertCircle className="w-10 h-10 text-muted-foreground/70" />
                             </div>
                         </div>
@@ -195,15 +201,15 @@ export default function IssuesList({ issues }: IssuesListProps) {
                                     onClick={() => toggleIssue(issue.id)}
                                 >
                                     {/* Subtle gradient overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-background via-transparent to-muted/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                    <div className="absolute inset-0 bg-linear-to-br from-background via-transparent to-muted/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                                     {/* Status indicator line */}
                                     <div
                                         className={cn(
                                             "absolute left-0 top-0 bottom-0 w-1 transition-all duration-300",
-                                            issue.status === 'open' && "bg-gradient-to-b from-slate-400 to-slate-600",
-                                            issue.status === 'in_progress' && "bg-gradient-to-b from-blue-400 to-blue-600",
-                                            issue.status === 'resolved' && "bg-gradient-to-b from-green-400 to-green-600",
+                                            issue.status === 'open' && "bg-linear-to-b from-slate-400 to-slate-600",
+                                            issue.status === 'in_progress' && "bg-linear-to-b from-blue-400 to-blue-600",
+                                            issue.status === 'resolved' && "bg-linear-to-b from-green-400 to-green-600",
                                             isExpanded && "w-1.5"
                                         )}
                                     />
