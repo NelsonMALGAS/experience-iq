@@ -724,6 +724,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                             shiftTemplates={shiftTemplates}
                                             selectedDate={selectedDate}
                                             setSelectedTemplate={setSelectedTemplate}
+                                            selectedTemplate={selectedTemplate}
                                         />
                                     )}
                                 </div>
@@ -754,6 +755,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                     shiftTemplates={shiftTemplates}
                                     selectedDate={selectedDate}
                                     setSelectedTemplate={setSelectedTemplate}
+                                    selectedTemplate={selectedTemplate}
                                 />
                             </Card>
                         )}
