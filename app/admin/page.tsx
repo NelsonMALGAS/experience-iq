@@ -67,10 +67,19 @@ const AdminDashboard = async () => {
 
     // ✅ Auth check is ONLY thing that blocks
     const verificationResult = await requireVerifiedUser(session, role);
-    const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom, isOwner } = verificationResult;
+    const {
+        uid,
+        isVerified,
+        canAccessData,
+        subscription,
+        adminId,
+        adminType,
+        inheritedFrom,
+        isOwner
+    } = verificationResult;
 
 
-    // 🚫 Unverified state (this is fast because no data fetching)
+    // 🚫 Unverified state 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />
     }
@@ -79,7 +88,7 @@ const AdminDashboard = async () => {
         return <SubscriptionBanner type="admin" />
     }
 
-    // 🚀 CRITICAL OPTIMIZATION: Return INSTANT shell, stream data sections
+    // Return INSTANT shell, stream data sections
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
             <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
