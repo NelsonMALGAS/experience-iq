@@ -30,6 +30,7 @@ import { addShiftToRoster, createRoster, removeShiftFromRoster } from '@/app/act
 import Link from 'next/link';
 import { fetchRosterByMonthYear } from '@/app/actions/roster';
 import { ShiftNotesPopover } from './ShiftNotesPopover';
+import RefreshAlert from './RefreshAlert';
 
 type AdminCreateProps = {
     role: Role
@@ -64,6 +65,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [rosterId, setRosterId] = useState<string | undefined>(existingRosterId);
+    const [showRefreshNudge, setShowRefreshNudge] = useState(false);
     const [newStaffData, setNewStaffData] = useState<NewStaffType>({
         name: '',
         email: '',
@@ -188,6 +190,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                 toast.error('Error', { description: result.message });
             } else {
                 toast.success('Success', { description: 'Shift added successfully.' });
+                setShowRefreshNudge(true);
             }
         } catch (error) {
             console.error("Error adding shift:", error);
@@ -521,6 +524,8 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                         </AlertDescription>
                     </Alert>
                 )}
+
+                {showRefreshNudge && <RefreshAlert setShowRefreshNudge={setShowRefreshNudge} />}
 
                 {/* Header */}
                 <Card>
