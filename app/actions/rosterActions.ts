@@ -140,7 +140,7 @@ export async function addShiftToRoster(
     });
 
     // Revalidate the roster page
-    revalidatePath("/admin/roster");
+    revalidatePath("/admin/create-roster");
 
     return {
       success: true,
