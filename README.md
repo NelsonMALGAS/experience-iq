@@ -7,7 +7,7 @@
 ### Guest Experience & Service Recovery Platform
 
 **Real-time issue management and service recovery for enterprise hospitality.**  
-Built for hotel groups, resorts, and multi-property operators who demand operational excellence.
+Built for <strong>hotel</strong> groups, resorts, and multi-property operators who demand operational excellence.
 
 <br />
 
