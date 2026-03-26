@@ -34,8 +34,8 @@ const Header = () => {
                         />
                     </div>
 
-                    <span className="hidden md:block text-lg font-semibold tracking-tight">
-                        Experience<span className="text-primary">IQ</span>
+                    <span className="hidden md:block text-lg font-semibold tracking-tight" aria-label="ExperienceIQ">
+                        Experience<span className="text-primary" aria-hidden="true">IQ</span>
                     </span>
                 </div>
 

@@ -35,9 +35,8 @@ export const metadata: Metadata = {
       ? "https://experienceiqplatform.com"
       : "http://localhost:3000"
   ),
-  title: "ExperienceIQ – Hospitality Service Management",
-  description:
-    "ExperienceIQ helps hotels and resorts monitor, manage, and resolve guest issues in real time. Improve staff accountability, service quality, and guest satisfaction.",
+  title: "ExperienceIQ — Real-Time Guest Issue Resolution",
+  description: "ExperienceIQ empowers hospitality teams to resolve guest issues in real time.",
   keywords: [
     "hospitality",
     "hotel management",
