@@ -51,6 +51,112 @@ export type PricePlan = {
   };
 };
 
+export const sections = [
+  {
+    id: "acceptance",
+    title: "1. Acceptance of Terms",
+    content: `By accessing or using ExperienceIQ ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Platform. These Terms apply to all users, including guests, staff members, administrators, and property owners.`,
+  },
+  {
+    id: "description",
+    title: "2. Description of Service",
+    content: `ExperienceIQ is a real-time guest experience and service recovery platform designed for hospitality operators. The Platform enables guests to report issues, staff to manage and resolve those issues, and administrators to monitor operations across one or more properties. Features include QR-based issue reporting, SLA tracking, staff roster management, analytics dashboards, and multi-property administration.`,
+  },
+  {
+    id: "roles",
+    title: "3. User Roles & Access",
+    content: `The Platform operates under a role-based access model:
+
+• Guests may report issues and track resolution status without creating an account, using a property-specific QR code or access code.
+• Staff members must register and be verified by an administrator before gaining operational access. Staff access is scoped to their assigned administrator's properties.
+• Administrators manage staff, properties, and issue operations. Administrators may invite verified collaborator admins with scoped, property-level access only.
+• Property Owners hold governance authority over billing, subscriptions, and access provisioning. Owner credentials may not be shared or transferred.
+
+Access at each level is enforced server-side. Attempting to circumvent role restrictions is a material breach of these Terms.`,
+  },
+  {
+    id: "accounts",
+    title: "4. Account Registration & Security",
+    content: `You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorised use of your account. ExperienceIQ is not liable for any loss or damage arising from your failure to protect your credentials. Accounts may not be shared between individuals.`,
+  },
+  {
+    id: "acceptable-use",
+    title: "5. Acceptable Use",
+    content: `You agree not to:
+
+• Submit false, misleading, or fraudulent issue reports
+• Attempt to access accounts, data, or systems you are not authorised to access
+• Reverse engineer, decompile, or attempt to extract the Platform's source code
+• Use the Platform to transmit malware, spam, or harmful content
+• Interfere with or disrupt the integrity or performance of the Platform
+• Use automated tools to scrape, crawl, or extract data from the Platform without written authorisation
+• Circumvent any technical measures that control access to features or data
+
+ExperienceIQ reserves the right to suspend or terminate access for any user who violates these provisions.`,
+  },
+  {
+    id: "subscription",
+    title: "6. Subscription & Billing",
+    content: `Access to certain features of the Platform requires a paid subscription, managed by the property owner. Billing is processed through Paystack, a third-party payment provider. By subscribing, you authorise ExperienceIQ to charge your selected payment method on a recurring basis according to your chosen plan.
+
+Subscription state is the source of truth for platform access. ExperienceIQ reserves the right to suspend access if payment fails or a subscription lapses. Refunds are not provided for partial billing periods unless required by applicable law.
+
+All payment data is handled server-side via Paystack and is never stored or exposed by the ExperienceIQ Platform.`,
+  },
+  {
+    id: "data",
+    title: "7. Data & Privacy",
+    content: `ExperienceIQ collects and processes operational data — including issue reports, staff activity, and usage analytics — to deliver and improve the Platform. By using the Platform, you consent to this processing.
+
+Guest issue data is scoped to the relevant property and accessible only to that property's authorised administrators and staff. ExperienceIQ does not sell user data to third parties.
+
+For full details on data handling, please review our Privacy Policy.`,
+  },
+  {
+    id: "ip",
+    title: "8. Intellectual Property",
+    content: `All content, software, design, trademarks, and technology comprising the ExperienceIQ Platform are the exclusive property of ExperienceIQ and are protected by applicable intellectual property laws. These Terms do not grant you any ownership rights in the Platform.
+
+You retain ownership of any data you submit to the Platform. By submitting data, you grant ExperienceIQ a limited, non-exclusive licence to process that data solely for the purpose of providing the service.`,
+  },
+  {
+    id: "availability",
+    title: "9. Service Availability",
+    content: `ExperienceIQ aims to maintain high availability but does not guarantee uninterrupted access. The Platform may be temporarily unavailable due to maintenance, updates, or circumstances beyond our control. We will endeavour to provide advance notice of planned downtime where possible.
+
+ExperienceIQ is not liable for any loss or inconvenience caused by Platform unavailability.`,
+  },
+  {
+    id: "liability",
+    title: "10. Limitation of Liability",
+    content: `To the maximum extent permitted by applicable law, ExperienceIQ and its affiliates, directors, employees, and service providers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the Platform.
+
+ExperienceIQ's total liability for any claim arising under these Terms shall not exceed the amount paid by you to ExperienceIQ in the three months preceding the claim.`,
+  },
+  {
+    id: "termination",
+    title: "11. Termination",
+    content: `ExperienceIQ reserves the right to suspend or terminate your access to the Platform at any time, with or without notice, for conduct that violates these Terms or is otherwise harmful to other users, ExperienceIQ, or third parties.
+
+You may terminate your account at any time by contacting us. Upon termination, your right to access the Platform ceases immediately. Provisions of these Terms that by their nature should survive termination — including intellectual property, limitation of liability, and governing law — will remain in effect.`,
+  },
+  {
+    id: "changes",
+    title: "12. Changes to These Terms",
+    content: `ExperienceIQ reserves the right to update these Terms at any time. We will notify users of material changes via the Platform or by email. Continued use of the Platform after changes are posted constitutes your acceptance of the revised Terms. We encourage you to review these Terms periodically.`,
+  },
+  {
+    id: "governing-law",
+    title: "13. Governing Law",
+    content: `These Terms are governed by and construed in accordance with the laws of the Republic of South Africa. Any disputes arising under these Terms shall be subject to the exclusive jurisdiction of the courts of South Africa.`,
+  },
+  {
+    id: "contact",
+    title: "14. Contact",
+    content: `If you have questions about these Terms or the Platform, please contact us via the Contact page or reach out to our support team directly through the Platform.`,
+  },
+];
+
 export const PRICE_PLANS: PricePlan[] = [
   {
     id: "starter",

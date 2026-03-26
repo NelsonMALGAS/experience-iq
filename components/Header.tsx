@@ -54,6 +54,10 @@ const Header = () => {
                     <Button asChild variant="ghost">
                         <Link href="/contact">Contact</Link>
                     </Button>
+
+                    <Button asChild variant="ghost">
+                        <Link href="/terms">Terms</Link>
+                    </Button>
                 </div>
 
                 {/* Actions */}
@@ -87,6 +91,9 @@ const Header = () => {
 
                                     <Button asChild variant="ghost" onClick={() => setOpen(false)}>
                                         <Link href="/contact">Contact</Link>
+                                    </Button>
+                                    <Button asChild variant="ghost" onClick={() => setOpen(false)}>
+                                        <Link href="/terms">Terms</Link>
                                     </Button>
 
                                     {!loading && !currentUser && (
