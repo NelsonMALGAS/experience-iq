@@ -192,10 +192,10 @@ Sensitive operations — including property access grants, admin invitations, an
 
 | Technology | Purpose |
 |---|---|
-| Next.js 14 (App Router) | Framework — SSR, streaming, server actions |
+| Next.js 16 (App Router) | Framework — SSR, streaming, server actions |
 | TypeScript | Type safety across the full stack |
 | Tailwind CSS | Utility-first styling |
-| shadcn/ui | Accessible, composable component library |
+| shadcn/ui & shadcn theme | Accessible, composable component library |
 | Lucide React | Icon system |
 | Zustand / React Context | Client-side state management |
 
