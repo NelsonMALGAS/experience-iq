@@ -85,8 +85,13 @@ export default function LandingPage() {
                         Service Recovery Platform
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold max-w-4xl mx-auto leading-tight">
-                        Transform Guest Experience with{" "}
+                    <h1
+                        className="text-4xl md:text-5xl lg:text-6xl font-bold max-w-4xl mx-auto leading-tight"
+                        aria-label="ExperienceIQ — Transform Guest Experience with Real-Time Issue Resolution"
+                    >
+                        <span aria-hidden="true">
+                            Experience<span className="text-primary">IQ</span>
+                        </span>{" "}— Transform Guest Experience with{" "}
                         <span className="text-primary">Real-Time</span> Issue Resolution
                     </h1>
 
