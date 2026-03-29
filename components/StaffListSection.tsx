@@ -45,7 +45,7 @@ export const StaffListSection = ({
                     </div>
                     <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="gap-2">
+                            <Button size="sm" variant="outline" className="gap-2 opacity-0 cursor-none">
                                 <Plus className="w-4 h-4" />
                                 Add
                             </Button>

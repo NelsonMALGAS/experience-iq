@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { STAFF_DEPARTMENTS } from "@/constants";
+import { ISSUE_CATEGORY_LABELS, STAFF_DEPARTMENTS } from "@/constants";
 import Image from "next/image";
 import { PropertySelect } from "./properties/PropertySelect";
 
@@ -317,8 +317,7 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                                     <SelectContent>
                                         {STAFF_DEPARTMENTS.map((dept) => (
                                             <SelectItem key={dept} value={dept}>
-                                                {dept.charAt(0).toUpperCase() +
-                                                    dept.slice(1)}
+                                                {ISSUE_CATEGORY_LABELS[dept]}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
