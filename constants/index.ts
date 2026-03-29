@@ -158,6 +158,35 @@ You may terminate your account at any time by contacting us. Upon termination, y
 
 export const PRICE_PLANS: PricePlan[] = [
   {
+    id: "test",
+    title: "Test Plan",
+    description:
+      "Development-only plan to verify the full payment & webhook flow with a real live charge.",
+    info: [
+      "Same webhook flow as paid plans",
+      "Triggers charge.success event",
+      "Triggers subscription.create event",
+      "Verifies live Paystack keys end-to-end",
+      "R5 — refundable from dashboard",
+    ],
+    pricing: {
+      monthly: {
+        price: 5,
+        priceId: "price_TEST_MONTHLY",
+        planCode: "PLN_xo9qgxdhnpgmdt4",
+      },
+      yearly: {
+        price: 5,
+        priceId: "price_TEST_YEARLY",
+        planCode: "PLN_xo9qgxdhnpgmdt4",
+      },
+    },
+    limits: {
+      propertyLimit: 1,
+      staffLimit: 1,
+    },
+  },
+  {
     id: "starter",
     title: "Starter Plan",
     description:
