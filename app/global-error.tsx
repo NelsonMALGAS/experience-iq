@@ -15,6 +15,7 @@ import {
   WifiOff,
   Lock
 } from "lucide-react";
+import "./globals.css";
 
 /**
  * SECURITY: Maps backend errors to safe, user-friendly messages

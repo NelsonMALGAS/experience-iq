@@ -247,9 +247,9 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                         <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs gap-1.5"
+                            className="h-7 text-xs gap-1.5 disabled:hover: cursor-not-allowed"
                             onClick={() => setShowCheckInModal(true)}
-                            disabled={isPending}
+                            disabled={isPending || room.status === "maintenance"}
                         >
                             <LogIn className="h-3 w-3" />
                             {isPending ? "Updating…" : "Check In"}

@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
 import { UploadButton } from "@/utils/uploadthing";
-import { STAFF_DEPARTMENTS } from "@/constants";
+import { ISSUE_CATEGORY_LABELS, STAFF_DEPARTMENTS } from "@/constants";
 
 
 const AddIssuePage = () => {
@@ -188,7 +188,7 @@ const AddIssuePage = () => {
                             <SelectContent>
                                 {STAFF_DEPARTMENTS.map((cat) => (
                                     <SelectItem key={cat} value={cat}>
-                                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                        {ISSUE_CATEGORY_LABELS[cat]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
