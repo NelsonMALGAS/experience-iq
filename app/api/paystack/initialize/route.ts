@@ -6,6 +6,10 @@ import { requireVerifiedUser } from "@/lib/verificationGuards";
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 
+if (!PAYSTACK_SECRET_KEY) {
+  throw new Error("PAYSTACK_SECRET_KEY environment variable is not set");
+}
+
 interface InitializeRequest {
   email: string;
   planId: string;
@@ -109,7 +113,7 @@ export async function POST(request: NextRequest) {
               },
             ],
           },
-          callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/verify`,
+          callback_url: `${process.env.NEXT_PUBLIC_URL}/payment/verify`,
         }),
       },
     );
