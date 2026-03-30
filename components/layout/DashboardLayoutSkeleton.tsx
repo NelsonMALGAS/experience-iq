@@ -34,7 +34,7 @@ const DashboardLayoutSkeleton = () => {
                 {/* Nav links */}
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     <Skeleton className="h-3 w-20 mx-3 mb-3" />
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
                             <Skeleton className="h-5 w-5 rounded shrink-0" />
                             <Skeleton className="h-4 w-24" />

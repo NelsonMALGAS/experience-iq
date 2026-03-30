@@ -11,8 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, ShieldCheck, Clock } from "lucide-react";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { formatDistanceToNow } from "date-fns";
+import { AppUser } from "@/types";
 
-export function ProfileInfo() {
+type ProfileInfoProps = {
+    user: AppUser | null
+}
+
+export function ProfileInfo({ user }: ProfileInfoProps) {
 
     const { currentUser } = useCurrentUser()
 
@@ -37,7 +42,7 @@ export function ProfileInfo() {
                     />
 
                     <p className="text-sm font-medium text-sidebar-foreground truncate">
-                        {currentUser?.displayName}
+                        {currentUser?.displayName || user?.displayName}
                     </p>
                 </Button>
             </PopoverTrigger>
@@ -56,7 +61,7 @@ export function ProfileInfo() {
 
                     <div className="min-w-0">
                         <p className="font-medium truncate">
-                            {currentUser?.displayName || "Guest"}
+                            {currentUser?.displayName || user?.displayName || "Guest"}
                         </p>
                         <p className="text-sm text-muted-foreground truncate">
                             {currentUser?.email}

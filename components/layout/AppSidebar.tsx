@@ -19,12 +19,14 @@ type AppSidebarProps = {
     isOwner: boolean | undefined
 }
 
-/** Lightweight skeleton that renders inside the sidebar column — no full-screen takeover */
+/** 
+ * Lightweight skeleton that renders inside the sidebar column — no full-screen takeover 
+ */
 function SidebarSkeleton() {
     return (
         <>
             {/* User info card */}
-            <div className="p-4 mx-4 mt-4 rounded-xl bg-sidebar-accent">
+            <div className="p-4 mx-4 mt-24 rounded-xl bg-sidebar-accent">
                 <div className="flex items-center gap-3">
                     <Skeleton className="w-10 h-10 rounded-full shrink-0" />
                     <div className="flex flex-col gap-1.5 flex-1 min-w-0">
@@ -102,7 +104,7 @@ export function AppSidebar({ sidebarOpen, role, isVerified, inheritedFrom, isOwn
                         <div className="p-4 mx-4 mt-20 rounded-xl bg-sidebar-accent">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary font-semibold">
-                                    <ProfileInfo />
+                                    <ProfileInfo user={user} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-sidebar-foreground truncate">
