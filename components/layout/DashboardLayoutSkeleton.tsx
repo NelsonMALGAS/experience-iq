@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react"
 
 const DashboardLayoutSkeleton = () => {
     return (
-        <div className="min-h-screen bg-background flex w-full mt-24">
+        <div className="min-h-screen bg-background flex w-full">
             {/* Sidebar Skeleton — mirrors exact AppSidebar structure */}
             <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 z-40 flex-col bg-sidebar">
 
