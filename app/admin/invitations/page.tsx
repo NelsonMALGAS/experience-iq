@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import Unverified from "@/components/Unverified";
 import { Building2, Mail, Clock } from "lucide-react";
 import { InvitationActionButtons } from "@/components/admins/InvitationActionButtons";
+import { AcceptAllInvitationsButton } from "@/components/admins/AcceptAllInvitationsButton";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
 
@@ -130,49 +131,61 @@ const InvitationsPage = async () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {invitations.map((inv) => (
-                                <Card key={inv.id} className="shadow-sm border border-border">
-                                    <CardContent className="p-5 space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                                                    <p className="text-sm font-semibold">{inv.propertyName}</p>
+                        <div className="space-y-4">
+                            {/* "Accept All" — only rendered when there are 2+ invitations */}
+                            {invitations.length > 1 && (
+                                <div className="flex justify-end">
+                                    <AcceptAllInvitationsButton
+                                        invitationIds={invitations.map((inv) => inv.id)}
+                                        acceptingAdminUid={uid}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {invitations.map((inv) => (
+                                    <Card key={inv.id} className="shadow-sm border border-border">
+                                        <CardContent className="p-5 space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                                                        <p className="text-sm font-semibold">{inv.propertyName}</p>
+                                                    </div>
+                                                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs shrink-0">
+                                                        Pending
+                                                    </Badge>
                                                 </div>
-                                                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs shrink-0">
-                                                    Pending
-                                                </Badge>
+                                                <p className="text-xs text-muted-foreground pl-6">
+                                                    Invited by {inviterNames[inv.invitedByAdminId]}
+                                                </p>
+                                                <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
+                                                    <Clock className="h-3 w-3" />
+                                                    <span>Expires {inv.expiresAt}</span>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-muted-foreground pl-6">
-                                                Invited by {inviterNames[inv.invitedByAdminId]}
-                                            </p>
-                                            <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
-                                                <Clock className="h-3 w-3" />
-                                                <span>Expires {inv.expiresAt}</span>
+
+                                            {/* Permissions summary */}
+                                            <div className="flex flex-wrap gap-1.5 pl-6">
+                                                {inv.permissions?.canManageIssues && (
+                                                    <Badge variant="outline" className="text-xs">Manage Issues</Badge>
+                                                )}
+                                                {inv.permissions?.canViewAnalytics && (
+                                                    <Badge variant="outline" className="text-xs">View Analytics</Badge>
+                                                )}
+                                                {inv.permissions?.canManageStaff && (
+                                                    <Badge variant="outline" className="text-xs">Manage Staff</Badge>
+                                                )}
                                             </div>
-                                        </div>
 
-                                        {/* Permissions summary */}
-                                        <div className="flex flex-wrap gap-1.5 pl-6">
-                                            {inv.permissions?.canManageIssues && (
-                                                <Badge variant="outline" className="text-xs">Manage Issues</Badge>
-                                            )}
-                                            {inv.permissions?.canViewAnalytics && (
-                                                <Badge variant="outline" className="text-xs">View Analytics</Badge>
-                                            )}
-                                            {inv.permissions?.canManageStaff && (
-                                                <Badge variant="outline" className="text-xs">Manage Staff</Badge>
-                                            )}
-                                        </div>
-
-                                        <InvitationActionButtons
-                                            invitationId={inv.id}
-                                            acceptingAdminUid={uid}
-                                        />
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                            <InvitationActionButtons
+                                                invitationId={inv.id}
+                                                acceptingAdminUid={uid}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
