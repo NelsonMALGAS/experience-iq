@@ -395,6 +395,7 @@ export async function acceptAdminInvitation(
 
         revalidatePath("/admin");
         revalidatePath("/admin/properties");
+        revalidatePath("/admin/invitations");
         return { success: true };
 
     } catch (error) {
