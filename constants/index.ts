@@ -638,7 +638,7 @@ export const DEFAULT_PERMISSIONS: AdminPermissions = {
   viewIssues: true,
   manageIssues: true,
   viewAnalytics: true,
-  manageStaff: false,
+  manageStaff: true,
   manageCollaborators: false,
 };
 
