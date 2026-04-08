@@ -303,6 +303,78 @@ export const PRICE_PLANS: PricePlan[] = [
       staffLimit: 900,
     },
   },
+  {
+    id: "elite",
+    title: "Elite Plan",
+    description:
+      "Tailored for large hospitality groups scaling operations across many properties with advanced operational needs.",
+    info: [
+      "Up to 25 properties",
+      "Up to 2000 staff accounts",
+      "50,000 guests/month included",
+      "Advanced multi-property analytics",
+      "Custom workflow automations",
+      "API integrations",
+      "Priority support",
+      "Dedicated success manager",
+    ],
+    pricing: {
+      monthly: {
+        price: 18000,
+        priceId: isDevelopment
+          ? "price_1T9xELGanontDcTuK8p4sWq1"
+          : "price_1R2kJH8LmN4pQ7XsT9vB3ZcE",
+        planCode: isDevelopment ? "PLN_z10t5yu6x0el15j" : "PLN_v0ohrn2qisbvy3h",
+      },
+      yearly: {
+        price: 172800,
+        priceId: isDevelopment
+          ? "price_1T9xFQGanontDcTuR2n8LmY7"
+          : "price_1R2kLZ3PnX8vT5YqC6bD9HsU",
+        planCode: isDevelopment ? "PLN_bw5sze73iiii7vl" : "PLN_6qp9jkh6fgfq6p7",
+      },
+    },
+    limits: {
+      propertyLimit: 25,
+      staffLimit: 2000,
+    },
+  },
+  {
+    id: "ultimate",
+    title: "Ultimate Plan",
+    description:
+      "Enterprise-grade solution for global hospitality brands operating at massive scale with complex infrastructure needs.",
+    info: [
+      "Up to 50 properties",
+      "Up to 5000 staff accounts",
+      "100,000 guests/month included",
+      "Global analytics dashboard",
+      "Custom integrations & webhooks",
+      "White-label capabilities",
+      "Dedicated infrastructure support",
+      "24/7 priority support",
+    ],
+    pricing: {
+      monthly: {
+        price: 32000,
+        priceId: isDevelopment
+          ? "price_1T9xHAGanontDcTuV6r9XcP2"
+          : "price_1R2kNQ5ZsM3vL8YpT0cX7BfD",
+        planCode: isDevelopment ? "PLN_9z3oupuqa4hujhr" : "PLN_2w8e8xletb4si2h",
+      },
+      yearly: {
+        price: 307200,
+        priceId: isDevelopment
+          ? "price_1T9xJMGanontDcTuZ4b2NfK8"
+          : "price_1R2kQW7TbX5mP9LsC3vH6YzR",
+        planCode: isDevelopment ? "PLN_96bgdaxoy97ek38" : "PLN_aumnivlbm06aomx",
+      },
+    },
+    limits: {
+      propertyLimit: 50,
+      staffLimit: 5000,
+    },
+  },
 ];
 
 export const NAV_LINKS: Record<"guest" | "staff" | "admin", NavLink[]> = {
@@ -662,35 +734,3 @@ export const years = Array.from(
   { length: 11 },
   (_, i) => new Date().getFullYear() + i,
 );
-
-/**
- *  {
-    id: "test",
-    title: "Test Plan",
-    description:
-      "Development-only plan to verify the full payment & webhook flow with a real live charge.",
-    info: [
-      "Same webhook flow as paid plans",
-      "Triggers charge.success event",
-      "Triggers subscription.create event",
-      "Verifies live Paystack keys end-to-end",
-      "R5 — refundable from dashboard",
-    ],
-    pricing: {
-      monthly: {
-        price: 5,
-        priceId: "price_TEST_MONTHLY",
-        planCode: "PLN_xo9qgxdhnpgmdt4",
-      },
-      yearly: {
-        price: 5,
-        priceId: "price_TEST_YEARLY",
-        planCode: "PLN_xo9qgxdhnpgmdt4",
-      },
-    },
-    limits: {
-      propertyLimit: 1,
-      staffLimit: 1,
-    },
-  },
- */
