@@ -4,13 +4,6 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AdminPermissions, Property } from "@/types";
@@ -18,6 +11,7 @@ import { DEFAULT_PERMISSIONS, PERMISSION_LABELS, PERMISSION_DESCRIPTIONS } from 
 import { inviteAdminToProperty } from "@/app/admin-invite-actions";
 import { Building2, ShieldCheck, CheckSquare, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
+import { AdminSelect } from "./AdminSelect";
 
 interface EligibleAdmin {
     uid: string;
@@ -153,20 +147,11 @@ export function InviteAdminForm({
             {/* ── Step 1: Select Admin ──────────────────────────────────────── */}
             <div className="space-y-2">
                 <Label className="text-sm font-semibold">Admin</Label>
-                <Select value={selectedAdminId} onValueChange={setSelectedAdminId}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a verified admin…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {eligibleAdmins.map((admin) => (
-                            <SelectItem key={admin.uid} value={admin.uid}>
-                                <div className="flex flex-col p-4">
-                                    <span className="font-medium">{admin.displayName}</span>
-                                </div>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <AdminSelect
+                    eligibleAdmins={eligibleAdmins}
+                    selectedAdminId={selectedAdminId}
+                    onValueChange={setSelectedAdminId}
+                />
             </div>
 
             <Separator />
