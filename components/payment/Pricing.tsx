@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, Check, Loader2, Building2, ArrowRight } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { AlertTriangle, Check, Loader2, Building2, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
     Card,
     CardContent,
@@ -26,11 +26,47 @@ type PricingProps = {
 export default function Pricing({ needsPayment, uid }: PricingProps) {
     const [billing, setBilling] = useState<BillingInterval>("monthly");
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+    const [showScrollTop, setShowScrollTop] = useState(false);
+    const [showScrollBottom, setShowScrollBottom] = useState(true);
     const { currentUser } = useCurrentUser();
+
+    const topRef = useRef<HTMLDivElement>(null);
+    const bottomRef = useRef<HTMLDivElement>(null);
 
     const yearlyDiscountLabel = useMemo(() => "Save 20%", []);
 
     const formatPrice = (price: number) => price.toLocaleString("en-ZA");
+
+    // Track scroll to show/hide buttons
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollY = window.scrollY;
+
+            // Show "scroll to top"
+            setShowScrollTop(scrollY > 300);
+
+            if (bottomRef.current) {
+                const rect = bottomRef.current.getBoundingClientRect();
+
+                // When CTA section is close to viewport → hide bottom button
+                const isNearCTA = rect.top <= window.innerHeight - 120;
+
+                setShowScrollBottom(!isNearCTA);
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        handleScroll();
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+
+    const scrollToTop = () =>
+        topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    const scrollToBottom = () =>
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
 
     const handleSubscribe = async (planId: string) => {
         if (!currentUser?.email || !currentUser?.uid) {
@@ -95,6 +131,9 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
         <div className="min-h-screen bg-background py-20 px-4">
             <div className="max-w-6xl mx-auto">
 
+                {/* Scroll anchor: top */}
+                <div ref={topRef} />
+
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
@@ -107,6 +146,20 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                             ? "Choose a plan to continue accessing all features."
                             : "Flexible pricing built for modern hospitality operations."}
                     </p>
+
+                    {/* Inline scroll hint — visible before the user scrolls at all */}
+                    {!showScrollTop && (
+                        <button
+                            onClick={scrollToBottom}
+                            className="mt-6 inline-flex flex-col items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group"
+                            aria-label="Scroll to see enterprise plan"
+                        >
+                            <span className="tracking-wide uppercase font-medium">
+                                Enterprise &amp; custom plans below
+                            </span>
+                            <ChevronDown className="h-4 w-4 animate-bounce group-hover:text-primary transition-colors" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Test Mode Alert */}
@@ -146,7 +199,7 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                 </div>
 
                 {/* Pricing Grid */}
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                     {PRICE_PLANS.map((plan) => {
                         const isPro = plan.id === "pro";
                         const currentPricing = plan.pricing[billing];
@@ -228,6 +281,8 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                         );
                     })}
                 </div>
+                {/* Scroll anchor: bottom */}
+                <div ref={bottomRef} />
 
                 {/* Custom / Enterprise CTA */}
                 <div className="mt-10 rounded-2xl border border-border bg-muted/40 px-6 py-8 sm:px-10 sm:py-10">
@@ -241,11 +296,11 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                         {/* Text */}
                         <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-semibold text-foreground">
-                                Managing more than 12 properties?
+                                Managing more than 50 properties?
                             </h3>
                             <p className="mt-1 text-sm text-muted-foreground leading-relaxed max-w-xl">
-                                Our standard plans go up to 12 properties. If your organisation
-                                needs more — whether it&apos;s 20, 50, or across multiple
+                                Our standard plans go up to 50 properties. If your organisation
+                                needs more — whether it&apos;s 60, 100, or across multiple
                                 regions — we&apos;ll build a plan around your exact footprint,
                                 team size, and billing preferences.
                             </p>
@@ -279,6 +334,63 @@ export default function Pricing({ needsPayment, uid }: PricingProps) {
                     </div>
                 </div>
 
+            </div>
+
+            {/* ── Floating scroll navigation ──────────────────────────────────────── */}
+            <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
+
+                {/* Scroll-to-bottom pill — visible until user nears the bottom */}
+                <div
+                    className={cn(
+                        "transition-all duration-300",
+                        showScrollBottom
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-0 translate-y-2 pointer-events-none"
+                    )}
+                >
+                    <button
+                        onClick={scrollToBottom}
+                        aria-label="Jump to enterprise plan"
+                        className={cn(
+                            "group flex items-center gap-2 h-9 rounded-full",
+                            "border border-border bg-background/90 backdrop-blur-sm",
+                            "pl-3.5 pr-2.5 shadow-md",
+                            "text-xs font-medium text-muted-foreground",
+                            "hover:border-primary/50 hover:text-foreground hover:bg-muted",
+                            "transition-colors duration-150"
+                        )}
+                    >
+                        <span className="hidden sm:inline">Enterprise plan</span>
+                        <span className="sm:hidden">More plans</span>
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-muted group-hover:bg-primary/10 transition-colors">
+                            <ChevronDown className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
+                        </span>
+                    </button>
+                </div>
+
+                {/* Scroll-to-top icon button — visible after user scrolls down */}
+                <div
+                    className={cn(
+                        "transition-all duration-300",
+                        showScrollTop
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-0 translate-y-2 pointer-events-none"
+                    )}
+                >
+                    <button
+                        onClick={scrollToTop}
+                        aria-label="Back to top"
+                        className={cn(
+                            "flex items-center justify-center w-9 h-9 rounded-full",
+                            "border border-border bg-background/90 backdrop-blur-sm shadow-md",
+                            "text-muted-foreground",
+                            "hover:border-primary/50 hover:text-foreground hover:bg-muted",
+                            "transition-colors duration-150"
+                        )}
+                    >
+                        <ChevronUp className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
         </div>
     );

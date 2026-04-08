@@ -181,8 +181,12 @@ export type SubscriptionStatus =
   | "incomplete"
   | "unpaid";
 
+export type SubscriptionType = "standard" | "custom";
+
 export type UserSubscription = {
   hasAccess: boolean;
+  type?: SubscriptionType;
+  customPlanId?: string;
   name?: string;
   status?: SubscriptionStatus;
   amount?: number;
