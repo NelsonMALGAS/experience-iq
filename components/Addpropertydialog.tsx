@@ -15,7 +15,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2, Trash } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Loader2, Trash, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { generateRandomCode } from "@/utils/staffDashboardUtils";
 import { Property, Room, UserSubscription } from "@/types";
@@ -36,6 +44,15 @@ type AddPropertyDialogProps = {
     subscription?: UserSubscription | null
 }
 
+// ── NEW: Bulk generation state type ──────────────────────────────────────────
+type BulkConfig = {
+    start: string;
+    end: string;
+    pattern: "sequential" | "floor-based";
+    skip: string;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function AddPropertyDialog({ uid, properties, subscription }: AddPropertyDialogProps) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -49,6 +66,15 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     const plan = getPlanByPriceId(subscription?.priceId)
 
     const disabled = plan ? properties.length >= plan.limits.propertyLimit : false
+
+    // ── NEW: Bulk config state ─────────────────────────────────────────────────
+    const [bulkConfig, setBulkConfig] = useState<BulkConfig>({
+        start: "",
+        end: "",
+        pattern: "sequential",
+        skip: "",
+    });
+    // ─────────────────────────────────────────────────────────────────────────
 
     const addRoom = () => {
 
@@ -116,6 +142,111 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
         return unique.size !== roomNumbers.length;
     };
 
+    // ── NEW: Bulk room generation logic ───────────────────────────────────────
+    const generateRoomsFromRange = () => {
+        const startNum = parseInt(bulkConfig.start, 10);
+        const endNum = parseInt(bulkConfig.end, 10);
+
+        // Validate inputs
+        if (!bulkConfig.start || !bulkConfig.end || isNaN(startNum) || isNaN(endNum)) {
+            toast.error("Invalid range", { description: "Start and End must be valid numbers." });
+            return;
+        }
+        if (startNum > endNum) {
+            toast.error("Invalid range", { description: "Start must be less than or equal to End." });
+            return;
+        }
+        if (endNum - startNum > 9999) {
+            toast.error("Range too large", { description: "Please generate no more than 10,000 rooms at a time." });
+            return;
+        }
+
+        // Parse skip numbers
+        const skipSet = new Set<number>(
+            bulkConfig.skip
+                .split(",")
+                .map(s => parseInt(s.trim(), 10))
+                .filter(n => !isNaN(n))
+        );
+
+        // Existing room numbers for duplicate detection
+        const existingNumbers = new Set(formData.rooms.map(r => r.roomNumber.trim()));
+
+        const generated: number[] = [];
+
+        if (bulkConfig.pattern === "sequential") {
+            // Simple increment from start → end
+            for (let i = startNum; i <= endNum; i++) {
+                generated.push(i);
+            }
+        } else {
+            // Floor-based: group by hundreds digit
+            // e.g. 101–109, then 201–209 based on the floor (hundreds) of start/end
+            const startFloor = Math.floor(startNum / 100);
+            const endFloor = Math.floor(endNum / 100);
+            const endRooms = endNum % 100;
+
+            for (let floor = startFloor; floor <= endFloor; floor++) {
+                const floorStart = floor === startFloor ? startNum : floor * 100 + 1;
+                const floorEnd = floor === endFloor ? endNum : floor * 100 + endRooms;
+
+                for (let room = floorStart; room <= floorEnd; room++) {
+                    generated.push(room);
+                }
+            }
+        }
+
+        // Filter out skipped and already-existing room numbers
+        let duplicateCount = 0;
+        const newRooms: Room[] = [];
+
+        for (const num of generated) {
+            if (skipSet.has(num)) continue;
+
+            const roomStr = String(num);
+            if (existingNumbers.has(roomStr)) {
+                duplicateCount++;
+                continue;
+            }
+
+            newRooms.push({
+                id: crypto.randomUUID(),
+                roomNumber: roomStr,
+                status: "available",
+                createdAt: new Date(),
+            });
+
+            // Track so within-batch duplicates are also caught
+            existingNumbers.add(roomStr);
+        }
+
+        if (newRooms.length === 0) {
+            toast.warning("No new rooms generated", {
+                description: "All rooms in this range already exist or were skipped.",
+            });
+            return;
+        }
+
+        // Append to existing rooms
+        setFormData(prev => ({
+            ...prev,
+            rooms: [...prev.rooms, ...newRooms],
+        }));
+
+        // Feedback
+        if (duplicateCount > 0) {
+            toast.success(`Generated ${newRooms.length} room${newRooms.length !== 1 ? "s" : ""}`, {
+                description: `${duplicateCount} duplicate${duplicateCount !== 1 ? "s" : ""} were skipped.`,
+            });
+        } else {
+            toast.success(`Generated ${newRooms.length} room${newRooms.length !== 1 ? "s" : ""} successfully.`);
+        }
+
+        // Reset bulk inputs after generation
+        setBulkConfig(prev => ({ ...prev, start: "", end: "", skip: "" }));
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,6 +287,9 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
             if (result.success) {
                 toast.success(result.message);
                 setFormData({ name: "", location: "", rooms: [], ownerId: uid });
+                // ── NEW: Reset bulk config on success ──────────────────────────
+                setBulkConfig({ start: "", end: "", pattern: "sequential", skip: "" });
+                // ───────────────────────────────────────────────────────────────
                 setOpen(false);
             } else {
                 toast.error(result.message);
@@ -231,6 +365,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     className="h-11 hover:disabled:cursor-not-allowed"
                                 />
                             </div>
+
                             {/* Rooms Section */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -248,15 +383,124 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     </Button>
                                 </div>
 
-                                {formData.rooms.length === 0 && (
+                                {/* ── NEW: Bulk Add Rooms section ─────────────────────────────── */}
+                                <div className="rounded-lg border border-dashed p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Wand2 className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm font-medium">Bulk Add Rooms</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="bulk-start" className="text-xs text-muted-foreground">
+                                                Start Room
+                                            </Label>
+                                            <Input
+                                                id="bulk-start"
+                                                type="number"
+                                                placeholder="e.g. 101"
+                                                value={bulkConfig.start}
+                                                onChange={(e) =>
+                                                    setBulkConfig(prev => ({ ...prev, start: e.target.value }))
+                                                }
+                                                disabled={isPending || disabled}
+                                                className="h-9"
+                                                min={1}
+                                            />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="bulk-end" className="text-xs text-muted-foreground">
+                                                End Room
+                                            </Label>
+                                            <Input
+                                                id="bulk-end"
+                                                type="number"
+                                                placeholder="e.g. 709"
+                                                value={bulkConfig.end}
+                                                onChange={(e) =>
+                                                    setBulkConfig(prev => ({ ...prev, end: e.target.value }))
+                                                }
+                                                disabled={isPending || disabled}
+                                                className="h-9"
+                                                min={1}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="bulk-pattern" className="text-xs text-muted-foreground">
+                                            Pattern
+                                        </Label>
+                                        <Select
+                                            value={bulkConfig.pattern}
+                                            onValueChange={(value) =>
+                                                setBulkConfig(prev => ({
+                                                    ...prev,
+                                                    pattern: value as BulkConfig["pattern"],
+                                                }))
+                                            }
+                                            disabled={isPending || disabled}
+                                        >
+                                            <SelectTrigger id="bulk-pattern" className="h-9">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="sequential">
+                                                    Sequential — 101, 102, 103…
+                                                </SelectItem>
+                                                <SelectItem value="floor-based">
+                                                    Floor-based — 101–109, 201–209…
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="bulk-skip" className="text-xs text-muted-foreground">
+                                            Skip Numbers{" "}
+                                            <span className="text-muted-foreground/60">(optional, comma-separated)</span>
+                                        </Label>
+                                        <Input
+                                            id="bulk-skip"
+                                            placeholder="e.g. 13, 666"
+                                            value={bulkConfig.skip}
+                                            onChange={(e) =>
+                                                setBulkConfig(prev => ({ ...prev, skip: e.target.value }))
+                                            }
+                                            disabled={isPending || disabled}
+                                            className="h-9"
+                                        />
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={generateRoomsFromRange}
+                                        disabled={isPending || disabled || !bulkConfig.start || !bulkConfig.end}
+                                        className="w-full"
+                                    >
+                                        <Wand2 className="h-4 w-4 mr-2" />
+                                        Generate Rooms
+                                    </Button>
+                                </div>
+                                {/* ── END NEW ────────────────────────────────────────────────── */}
+
+                                <Separator />
+
+                                {formData.rooms.length === 0 ? (
                                     <p className="text-xs text-muted-foreground">
-                                        No rooms added yet. Click “Add Room” to add rooms for this property.
+                                        No rooms added yet. Use &quot;Bulk Add Rooms&quot; above or click &quot;Add Room&quot; to add rooms one by one.
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground">
+                                        {formData.rooms.length} room{formData.rooms.length !== 1 ? "s" : ""} added.
                                     </p>
                                 )}
 
                                 <div className="space-y-2">
                                     {formData.rooms.map((room, index) => (
-                                        <div key={index} className="flex items-center gap-2">
+                                        <div key={room.id} className="flex items-center gap-2">
                                             <Input
                                                 ref={index === formData.rooms.length - 1 ? lastRoomRef : null}
                                                 placeholder="Room Number"
