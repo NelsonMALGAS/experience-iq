@@ -113,18 +113,18 @@ export const StaffListSection = ({
                 {staffMembers.map(staff => {
                     const staffShifts = getShiftsForStaff(staff.id);
                     const isSelected = selectedStaff === staff.id;
+                    const property = staff.property || null
 
                     return (
                         <div
                             key={staff.id}
                             onClick={() => setSelectedStaff(isSelected ? '' : staff.id)}
-                            className={`
-                p-3 rounded-lg border-2 transition-all cursor-pointer
-                ${isSelected
+                            className={`p-3 rounded-lg border-2 transition-all cursor-pointer
+                            ${isSelected
                                     ? 'border-primary bg-primary/5'
                                     : 'border-transparent bg-muted/50 hover:bg-muted'
                                 }
-              `}
+                        `}
                         >
                             <div className="flex items-center gap-3">
                                 <div
@@ -142,7 +142,15 @@ export const StaffListSection = ({
                                     <div className="font-semibold text-sm truncate flex items-center gap-1.5">
                                         {staff.name}
                                     </div>
-                                    <div className="text-xs text-muted-foreground truncate">{staff.department}</div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                        {staff.department}
+                                    </div>
+
+                                    {property && (
+                                        <div className="text-[11px] text-muted-foreground/80 truncate">
+                                            {property.name}
+                                        </div>
+                                    )}
                                 </div>
                                 <Badge variant="secondary" className="font-mono text-xs shrink-0">
                                     {staffShifts.length}

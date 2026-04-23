@@ -733,6 +733,7 @@ export async function getAdminStaff(uid: string): Promise<StaffMember[]> {
         department: data.department || "other",
         role: data.role || "guest",
         adminId: data.adminId || null,
+        property: data.property[0] || null,
       };
     });
 
