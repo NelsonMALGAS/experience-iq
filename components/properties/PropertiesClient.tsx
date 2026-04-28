@@ -229,6 +229,7 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     className="h-7 w-7"
                                     onClick={prevPage}
                                     disabled={!hasPrev}
+                                    aria-label="Previous page"
                                 >
                                     <ChevronLeft className="h-3.5 w-3.5" />
                                 </Button>
@@ -243,6 +244,7 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     className="h-7 w-7"
                                     onClick={nextPage}
                                     disabled={!hasNext}
+                                    aria-label="Next page"
                                 >
                                     <ChevronRight className="h-3.5 w-3.5" />
                                 </Button>
@@ -252,6 +254,7 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     size="icon"
                                     className="h-7 w-7"
                                     onClick={reset}
+                                    aria-label="Reset pagination"
                                 >
                                     <RotateCcw className="h-3.5 w-3.5" />
                                 </Button>
