@@ -309,6 +309,7 @@ export interface StaffMember {
   isVerified: boolean;
   role: Role;
   adminId?: string | null;
+  property?: Property | null;
 }
 
 export interface Shift {

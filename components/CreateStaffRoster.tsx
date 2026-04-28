@@ -32,6 +32,7 @@ import { fetchRosterByMonthYear } from '@/app/actions/roster';
 import { ShiftNotesPopover } from './ShiftNotesPopover';
 import RefreshAlert from './RefreshAlert';
 
+
 type AdminCreateProps = {
     role: Role
     uid: string
@@ -872,7 +873,15 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                                         <div className="flex-1 min-w-0">
                                                             <CardTitle className="text-sm sm:text-base md:text-lg truncate">{staff.name}</CardTitle>
                                                             <CardDescription className="text-xs sm:text-sm">
-                                                                {staff.department} • {staffShifts.length} shift{staffShifts.length !== 1 ? 's' : ''} scheduled
+                                                                <div>
+                                                                    {staff.department} • {staffShifts.length} shift{staffShifts.length !== 1 ? 's' : ''} scheduled
+                                                                </div>
+
+                                                                {staff.property && (
+                                                                    <div className="text-[11px] text-muted-foreground/80 mt-0.5">
+                                                                        {staff.property.name}
+                                                                    </div>
+                                                                )}
                                                             </CardDescription>
                                                         </div>
                                                     </div>
