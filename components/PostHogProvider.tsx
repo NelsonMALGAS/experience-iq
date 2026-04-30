@@ -12,9 +12,7 @@ function PostHogPageView() {
 
     useEffect(() => {
         if (pathname && ph) {
-            let url = window.origin + pathname;
-            const search = searchParams.toString();
-            if (search) url += "?" + search;
+            const url = window.origin + pathname;
             ph.capture("$pageview", { $current_url: url });
         }
     }, [pathname, searchParams, ph]);
