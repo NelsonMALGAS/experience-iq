@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { STAFF_DEPARTMENTS } from "@/constants";
 import { setGuestSession, validateRoomCode } from "@/utils/guestAuthUtils";
 import { Alert, AlertDescription } from "./ui/alert";
+import { usePostHog } from "posthog-js/react";
 
 interface AuthFormType {
     role: Role;
@@ -46,6 +47,7 @@ const AuthForm = ({ role }: AuthFormType) => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const qrRef = useRef<HTMLCanvasElement | null>(null);
+    const posthog = usePostHog();
 
     const [mode, setMode] = useState<"login" | "signup">("login");
     const [formErrors, setFormErrors] = useState<Errors | undefined>();
@@ -154,6 +156,10 @@ const AuthForm = ({ role }: AuthFormType) => {
             const user = result?.user;
 
             await createSession(user, userRole, formData.department);
+            posthog.identify(user.uid, {
+                email: user.email,
+                role: userRole,
+            });
             const token = await user?.getIdToken(true);
             const { department } = formData;
 
