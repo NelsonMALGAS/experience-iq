@@ -21,13 +21,26 @@ function PostHogPageView() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-    if (typeof window !== "undefined" && !posthog.__loaded) {
-        posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+import posthog from "posthog-js";
+import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, Suspense, useRef } from "react";
+
+export function PostHogProvider({ children }: { children: React.ReactNode }) {
+    const didInit = useRef(false);
+
+    useEffect(() => {
+        if (didInit.current) return;
+        const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+        if (!key) return;
+
+        posthog.init(key, {
             api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
             capture_pageview: false,
             capture_pageleave: true,
         });
-    }
+        didInit.current = true;
+    }, []);
 
     return (
         <PHProvider client={posthog}>
