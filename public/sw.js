@@ -1,4 +1,4 @@
-const CACHE_NAME = "experience-iq-pages-v6.0.1";
+const CACHE_NAME = "experience-iq-pages-v6.1.1";
 
 const STATIC_PAGES = [
   "/",
