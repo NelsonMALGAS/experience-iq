@@ -11,6 +11,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/utils/core";
 import ClientProviders from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next"
+import { PostHogProvider } from "@/components/PostHogProvider"
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -130,24 +131,26 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${playfairDisplay.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <PostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
 
-          <Header />
-          <main className="container mx-auto px-4 md:px-8 min-h-[calc(100vh-4rem)]">
-            <NextSSRPlugin
-              routerConfig={extractRouterConfig(ourFileRouter)}
-            />
-            <ClientProviders>
-              {children}
-              <Analytics />
-            </ClientProviders>
-          </main>
-        </ThemeProvider>
+            <Header />
+            <main className="container mx-auto px-4 md:px-8 min-h-[calc(100vh-4rem)]">
+              <NextSSRPlugin
+                routerConfig={extractRouterConfig(ourFileRouter)}
+              />
+              <ClientProviders>
+                {children}
+                <Analytics />
+              </ClientProviders>
+            </main>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
