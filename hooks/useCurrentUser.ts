@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IssueCategory, Role } from "@/types";
 import { toast } from "sonner";
+import { usePostHog } from "posthog-js/react";
 
 /**
  * useCurrentUser hook for managing Firebase authentication and session handling.
@@ -37,6 +38,7 @@ const useCurrentUser = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const posthog = usePostHog();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,7 +95,10 @@ const useCurrentUser = () => {
       );
       const user = result.user;
       await createSession(user, role, department);
-
+      posthog.identify(user.uid, {
+        email: user.email,
+        role,
+      });
       toast.success("Registered successfully", {
         description: "🎉 Success",
       });
@@ -122,8 +127,13 @@ const useCurrentUser = () => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
+
       await createSession(user, role, department);
 
+      posthog.identify(user.uid, {
+        email: user.email,
+        role,
+      });
       toast.success("Logged in successfully", {
         description: "🎉 Success",
       });
@@ -173,6 +183,8 @@ const useCurrentUser = () => {
         method: "DELETE",
         credentials: "include",
       });
+
+      posthog.reset();
 
       toast.success("🎉 Success", {
         description: "Logged out successfully",
