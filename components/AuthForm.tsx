@@ -20,6 +20,7 @@ import { STAFF_DEPARTMENTS } from "@/constants";
 import { setGuestSession, validateRoomCode } from "@/utils/guestAuthUtils";
 import { Alert, AlertDescription } from "./ui/alert";
 import { usePostHog } from "posthog-js/react";
+import { formatIssueCategory } from "@/helpers/formatCategory";
 
 interface AuthFormType {
     role: Role;
@@ -573,7 +574,7 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                     <SelectContent>
                                                         {STAFF_DEPARTMENTS.map((dept) => (
                                                             <SelectItem key={dept} value={dept}>
-                                                                {dept}
+                                                                {formatIssueCategory(dept)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
