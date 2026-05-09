@@ -5,17 +5,13 @@ import { redirect } from "next/navigation";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { auth } from "@/db/server";
 import { Metadata } from "next";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Unverified from "@/components/Unverified";
-import { StaffCard } from "@/components/staff/StaffCard";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
-import { CheckCircle2, Clock, Users } from "lucide-react";
+import { Users, Clock, CheckCircle2 } from "lucide-react";
 import { getAdminStaff, getUnverifiedAdminStaff } from "@/app/optimised-actions";
-import { EmptyState, SectionHeader } from "@/components/staff/Verification";
 import { RefreshButton } from "@/components/layout/RefreshButton";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
-
+import { PaginatedStaffList } from "@/components/staff/PaginatedStaffList";
 
 export const metadata: Metadata = {
     title: "Staff Verification – ExperienceIQ",
@@ -81,7 +77,7 @@ const StaffVerificationPage = async () => {
         return <SubscriptionBanner type="admin" />;
     }
 
-    // ── Fetch both lists in parallel ─────────────────────────────────────────
+    // Fetch both lists in parallel — data stays server-side
     const [verifiedStaff, unverifiedStaff] = await Promise.all([
         getAdminStaff(uid),
         getUnverifiedAdminStaff(uid),
@@ -92,28 +88,23 @@ const StaffVerificationPage = async () => {
             <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8 pb-10">
 
+                    {/* ── Page header ──────────────────────────────────────── */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-
-                        {/* Title + description */}
                         <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                                    Staff Verification
-                                </h1>
-                            </div>
-
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                                Staff Verification
+                            </h1>
                             <p className="text-sm sm:text-base text-muted-foreground max-w-xl">
                                 Verify staff members before they can access the platform
                             </p>
                         </div>
 
-                        {/* Refresh Button */}
                         <div className="flex sm:items-center">
                             <RefreshButton />
                         </div>
-
                     </div>
 
+                    {/* ── Summary stats ────────────────────────────────────── */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
                             {
@@ -155,59 +146,25 @@ const StaffVerificationPage = async () => {
                         ))}
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between gap-2">
-                            <SectionHeader
-                                title="Awaiting Verification"
-                                count={unverifiedStaff.length}
-                                variant="pending"
-                            />
-                        </div>
-                        <Separator />
+                    {/* ── Paginated sections ───────────────────────────────── */}
+                    <PaginatedStaffList
+                        title="Awaiting Verification"
+                        count={unverifiedStaff.length}
+                        variant="pending"
+                        emptyMessage="No staff awaiting verification"
+                        emptyIcon="clock"
+                        staff={unverifiedStaff}
+                    />
 
-                        {unverifiedStaff.length === 0 ? (
-                            <EmptyState
-                                message="No staff awaiting verification"
-                                icon={Clock}
-                            />
-                        ) : (
-                            <ScrollArea className="h-auto max-h-120 pr-1">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                                    {unverifiedStaff.map((staff) => (
-                                        <StaffCard key={staff.id} staff={staff} />
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        )}
-                    </div>
+                    <PaginatedStaffList
+                        title="Verified Staff"
+                        count={verifiedStaff.length}
+                        variant="verified"
+                        emptyMessage="No verified staff yet"
+                        emptyIcon="checkCircle2"
+                        staff={verifiedStaff}
+                    />
 
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between gap-2">
-                            <SectionHeader
-                                title="Verified Staff"
-                                count={verifiedStaff.length}
-                                variant="verified"
-                            />
-                        </div>
-                        <Separator />
-
-                        {verifiedStaff.length === 0 ? (
-                            <EmptyState
-                                message="No verified staff yet"
-                                icon={CheckCircle2}
-                            />
-                        ) : (
-                            <ScrollArea className="h-auto max-h-120 pr-1">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                                    {verifiedStaff.map((staff) => (
-                                        <StaffCard key={staff.id} staff={staff} />
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        )}
-                    </div>
-
-                    {/* Bottom spacing */}
                     <div className="h-4 sm:h-0" />
                 </div>
             </DashboardLayout>

@@ -689,7 +689,7 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                 </Card>
 
                 {/* Main Content Grid */}
-                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] lg:gap-4 xl:gap-6">
+                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] lg:gap-4 xl:gap-6 lg:items-start">
                     {/* Mobile Staff Menu Button */}
                     <div className="lg:hidden">
                         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -704,34 +704,41 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                     )}
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="w-[85vw] sm:w-100 overflow-y-auto p-4 sm:p-6">
-                                <SheetHeader className="mb-4">
+                            <SheetContent
+                                side="left"
+                                className="w-[85vw] sm:w-100 p-0 flex flex-col h-dvh overflow-hidden"
+                            >
+                                <SheetHeader className="shrink-0 px-4 pt-6 pb-4 sm:px-6 border-b border-border">
                                     <SheetTitle className="text-lg sm:text-xl">Staff Management</SheetTitle>
                                     <SheetDescription className="text-xs sm:text-sm">
                                         Select staff and use quick shift templates
                                     </SheetDescription>
                                 </SheetHeader>
-                                <div className="space-y-4">
+                                <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                                     {/* Staff List in Sheet */}
-                                    <StaffListSection
-                                        staffMembers={staffMembers}
-                                        selectedStaff={selectedStaff}
-                                        setSelectedStaff={setSelectedStaff}
-                                        getShiftsForStaff={getShiftsForStaff}
-                                        isAddStaffDialogOpen={isAddStaffDialogOpen}
-                                        setIsAddStaffDialogOpen={setIsAddStaffDialogOpen}
-                                        newStaffData={newStaffData}
-                                        setNewStaffData={setNewStaffData}
-                                        addStaffMember={addStaffMember}
-                                    />
+                                    <div className="flex-1 min-h-0 overflow-hidden">
+                                        <StaffListSection
+                                            staffMembers={staffMembers}
+                                            selectedStaff={selectedStaff}
+                                            setSelectedStaff={setSelectedStaff}
+                                            getShiftsForStaff={getShiftsForStaff}
+                                            isAddStaffDialogOpen={isAddStaffDialogOpen}
+                                            setIsAddStaffDialogOpen={setIsAddStaffDialogOpen}
+                                            newStaffData={newStaffData}
+                                            setNewStaffData={setNewStaffData}
+                                            addStaffMember={addStaffMember}
+                                        />
+                                    </div>
                                     {/* Shift Templates in Sheet */}
                                     {selectedStaff && (
-                                        <ShiftTemplatesSection
-                                            shiftTemplates={shiftTemplates}
-                                            selectedDate={selectedDate}
-                                            setSelectedTemplate={setSelectedTemplate}
-                                            selectedTemplate={selectedTemplate}
-                                        />
+                                        <div className="shrink-0 max-h-[40dvh] flex flex-col overflow-hidden border-t border-border">
+                                            <ShiftTemplatesSection
+                                                shiftTemplates={shiftTemplates}
+                                                selectedDate={selectedDate}
+                                                setSelectedTemplate={setSelectedTemplate}
+                                                selectedTemplate={selectedTemplate}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             </SheetContent>
@@ -739,8 +746,9 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                     </div>
 
                     {/* Desktop Sidebar - Staff List */}
-                    <div className="hidden lg:block space-y-4">
-                        <Card className="sticky top-4">
+                    <div className="hidden lg:flex lg:flex-col lg:gap-4 sticky top-4 h-[calc(100vh-6rem)]">
+                        <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+
                             <StaffListSection
                                 staffMembers={staffMembers}
                                 selectedStaff={selectedStaff}
@@ -752,11 +760,12 @@ const AdminCreateRosterPage = ({ role, uid, staff, existingRosterId }: AdminCrea
                                 setNewStaffData={setNewStaffData}
                                 addStaffMember={addStaffMember}
                             />
+
                         </Card>
 
                         {/* Shift Templates */}
                         {selectedStaff && (
-                            <Card>
+                            <Card className="shrink-0 max-h-[35vh] flex flex-col overflow-hidden">
                                 <ShiftTemplatesSection
                                     shiftTemplates={shiftTemplates}
                                     selectedDate={selectedDate}
