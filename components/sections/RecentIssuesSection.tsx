@@ -2,8 +2,8 @@ import { getStaffUsers } from "@/app/optimised-actions";
 import { Role } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2, Clock } from "lucide-react";
-import { IssueCard } from "../issues/IssueCard";
 import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
+import RecentIssuesList from "./RecentIssuesList";
 
 type RecentIssuesSectionProps = { uid: string; role: Role, inheritedFrom: string | undefined }
 
@@ -36,18 +36,12 @@ const RecentIssuesSection = async ({ uid, role, inheritedFrom }: RecentIssuesSec
             </CardHeader>
             <CardContent className="px-6 pb-6">
                 {recentIssues.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {recentIssues.map((issue, index) => (
-                            <div key={issue.id} style={{ animationDelay: `${index * 50}ms` }}>
-                                <IssueCard
-                                    issue={issue}
-                                    staffMembers={staffUsers}
-                                    currentUserId={uid}
-                                    userRole={role}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    <RecentIssuesList
+                        issues={recentIssues}
+                        currentUserId={uid}
+                        staffMembers={staffUsers}
+                        userRole={role}
+                    />
                 ) : (
                     <div className="text-center py-16">
                         <CheckCircle2 className="h-16 w-16 mx-auto text-status-resolved mb-4" />
