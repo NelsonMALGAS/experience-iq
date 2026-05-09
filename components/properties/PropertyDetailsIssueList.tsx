@@ -16,6 +16,8 @@ const PRIORITY_COLORS: Record<string, string> = {
     low: "#1D9E75",
 }
 
+const PAGE_SIZE = 5
+
 const PropertyDetailsIssueList = ({ issues }: PropertyDetailsIssueListProps) => {
 
     const {
@@ -26,7 +28,7 @@ const PropertyDetailsIssueList = ({ issues }: PropertyDetailsIssueListProps) => 
         hasPrev,
         nextPage,
         prevPage,
-    } = usePagination(issues, 5)
+    } = usePagination(issues, PAGE_SIZE)
 
     if (!issues || issues.length === 0) {
         return (
@@ -46,7 +48,7 @@ const PropertyDetailsIssueList = ({ issues }: PropertyDetailsIssueListProps) => 
                 </span>
                 {totalPages > 1 && (
                     <span className="text-xs text-muted-foreground">
-                        Showing {(currentPage - 1) * 3 + 1}–{Math.min(currentPage * 3, issues.length)} of {issues.length}
+                        Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, issues.length)} of {issues.length}
                     </span>
                 )}
             </div>
