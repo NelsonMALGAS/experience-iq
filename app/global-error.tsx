@@ -292,7 +292,7 @@ export default function GlobalError({
                       Need assistance?
                     </p>
                     <a
-                      href="mailto:support@experienceiq.com"
+                      href="mailto:experienceiq.helpdesk@gmail.com"
                       className="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1"
                     >
                       Contact Support
