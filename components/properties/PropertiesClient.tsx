@@ -4,11 +4,19 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Property, UserSubscription } from "@/types";
-import { MapPin, Search, Building2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import {
+    MapPin,
+    Search,
+    Building2,
+    ChevronLeft,
+    ChevronRight,
+    RotateCcw,
+} from "lucide-react";
 import { AddPropertyDialog } from "@/components/Addpropertydialog";
 import CopyPropertyCode from "@/components/CopyPropertyCode";
 import { PropertyDetailsPopover } from "@/components/properties/PropertyDetailsPopover";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { EditPropertyDialog } from "@/components/properties/EditPropertyDialog";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import usePagination from "@/hooks/usePagination";
@@ -19,13 +27,43 @@ interface PropertiesClientProps {
     subscription: UserSubscription | null | undefined;
 }
 
-export const PropertiesClient = ({ uid, properties, subscription }: PropertiesClientProps) => {
+export const PropertiesClient = ({
+    uid,
+    properties,
+    subscription,
+}: PropertiesClientProps) => {
     const [searchInput, setSearchInput] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // ── Optimistic overrides: keyed by property id ───────────────────────────
+    const [optimisticOverrides, setOptimisticOverrides] = useState<
+        Record<string, Partial<Pick<Property, "name" | "location">>>
+    >({});
 
-    // Debounce: only update the actual search term 400ms after the user stops typing
+    // Merge server-provided properties with any optimistic client overrides
+    const mergedProperties = useMemo(
+        () =>
+            properties.map((p) =>
+                optimisticOverrides[p.id]
+                    ? { ...p, ...optimisticOverrides[p.id] }
+                    : p
+            ),
+        [properties, optimisticOverrides]
+    );
+
+    // Called by EditPropertyDialog on successful save
+    const handlePropertyUpdated = useCallback(
+        (updated: Pick<Property, "id" | "name" | "location">) => {
+            setOptimisticOverrides((prev) => ({
+                ...prev,
+                [updated.id]: { name: updated.name, location: updated.location },
+            }));
+        },
+        []
+    );
+
+    // Debounce search input
     useEffect(() => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
@@ -38,13 +76,12 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
         };
     }, [searchInput]);
 
-    // Filter properties by name using the debounced value
     const filteredProperties = useMemo(() => {
-        if (!debouncedSearch) return properties;
-        return properties.filter((p) =>
+        if (!debouncedSearch) return mergedProperties;
+        return mergedProperties.filter((p) =>
             p.name.toLowerCase().includes(debouncedSearch)
         );
-    }, [properties, debouncedSearch]);
+    }, [mergedProperties, debouncedSearch]);
 
     const {
         paginatedData,
@@ -55,8 +92,8 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
         nextPage,
         prevPage,
         reset,
-        totalPages
-    } = usePagination(filteredProperties, 6)
+        totalPages,
+    } = usePagination(filteredProperties, 6);
 
     useEffect(() => {
         reset();
@@ -70,7 +107,9 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-display font-bold text-foreground">Properties</h1>
+                    <h1 className="text-3xl font-display font-bold text-foreground">
+                        Properties
+                    </h1>
                     <p className="text-muted-foreground mt-1">
                         Manage and monitor all properties with live statistics
                     </p>
@@ -85,7 +124,6 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
                         />
-                        {/* Clear button */}
                         {searchInput && (
                             <button
                                 onClick={() => setSearchInput("")}
@@ -96,7 +134,11 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                             </button>
                         )}
                     </div>
-                    <AddPropertyDialog uid={uid} properties={properties} subscription={subscription} />
+                    <AddPropertyDialog
+                        uid={uid}
+                        properties={properties}
+                        subscription={subscription}
+                    />
                 </div>
             </div>
 
@@ -132,10 +174,11 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     className="group relative overflow-hidden border border-border bg-card transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-slide-up"
                                     style={{ animationDelay: `${index * 100}ms` }}
                                 >
-                                    {/* Header */}
+                                    {/* Card Header */}
                                     <div className="relative h-32 bg-linear-to-br from-primary/10 via-primary/5 to-transparent">
                                         <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent" />
                                         <CopyPropertyCode code={property.code} />
+
                                         <div className="absolute bottom-4 left-4 space-y-1">
                                             <h3 className="text-lg font-semibold text-card-foreground">
                                                 {property.name}
@@ -145,7 +188,15 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                                 {property.location}
                                             </p>
                                         </div>
-                                        <div className="absolute top-3 right-3">
+
+                                        {/* Top-right actions: details popover + edit button */}
+                                        <div className="absolute top-3 right-3 flex items-center gap-1">
+                                            {/* ── Edit Button ── */}
+                                            <EditPropertyDialog
+                                                property={property}
+                                                onSuccess={handlePropertyUpdated}
+                                            />
+                                            {/* ── Details Popover ── */}
                                             <PropertyDetailsPopover property={property} />
                                         </div>
                                     </div>
@@ -161,14 +212,14 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                             </div>
                                             <div
                                                 className={`rounded-lg p-3 text-center ${property.openIssues > 0
-                                                    ? "bg-destructive/10"
-                                                    : "bg-success/10"
+                                                        ? "bg-destructive/10"
+                                                        : "bg-success/10"
                                                     }`}
                                             >
                                                 <p
                                                     className={`text-2xl font-bold ${property.openIssues > 0
-                                                        ? "text-destructive"
-                                                        : "text-success"
+                                                            ? "text-destructive"
+                                                            : "text-success"
                                                         }`}
                                                 >
                                                     {property.openIssues}
@@ -185,7 +236,9 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
 
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Resolution Rate</span>
+                                                <span className="text-muted-foreground">
+                                                    Resolution Rate
+                                                </span>
                                                 <span className="font-medium text-foreground">
                                                     {resolutionRate}%
                                                 </span>
@@ -202,6 +255,7 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                             </div>
                                         </div>
                                     </CardContent>
+
                                     <CardFooter className="px-6 pb-6 pt-0">
                                         <Button asChild variant="outline" className="w-full">
                                             <Link href={`/admin/properties/${property.id}`}>
@@ -213,15 +267,18 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                             );
                         })}
                     </div>
+
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between mt-6">
-                            {/* Info */}
                             <p className="text-xs text-muted-foreground">
                                 Showing {(currentPage - 1) * itemsPerPage + 1}–
-                                {Math.min(currentPage * itemsPerPage, filteredProperties.length)} of {filteredProperties.length}
+                                {Math.min(
+                                    currentPage * itemsPerPage,
+                                    filteredProperties.length
+                                )}{" "}
+                                of {filteredProperties.length}
                             </p>
 
-                            {/* Controls */}
                             <div className="flex items-center gap-1">
                                 <Button
                                     variant="outline"
@@ -263,7 +320,6 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                     )}
                 </>
             ) : (
-                /* Empty State — shown for both no properties and no search results */
                 <Card className="border-dashed border-2">
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <div className="rounded-full bg-muted p-6 mb-4">
@@ -275,7 +331,8 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     No Properties Found
                                 </h3>
                                 <p className="text-muted-foreground text-center mb-6 max-w-md">
-                                    No properties match &ldquo;{debouncedSearch}&rdquo;. Try a different name.
+                                    No properties match &ldquo;{debouncedSearch}&rdquo;. Try a
+                                    different name.
                                 </p>
                                 <button
                                     aria-label="Clear search"
@@ -291,8 +348,8 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     No Properties Yet
                                 </h3>
                                 <p className="text-muted-foreground text-center mb-6 max-w-md">
-                                    Get started by adding your first property. Properties help you organize
-                                    and track issues across different locations.
+                                    Get started by adding your first property. Properties help you
+                                    organize and track issues across different locations.
                                 </p>
                                 <AddPropertyDialog
                                     uid={uid}
