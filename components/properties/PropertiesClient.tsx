@@ -278,6 +278,7 @@ export const PropertiesClient = ({ uid, properties, subscription }: PropertiesCl
                                     No properties match &ldquo;{debouncedSearch}&rdquo;. Try a different name.
                                 </p>
                                 <button
+                                    aria-label="Clear search"
                                     onClick={() => setSearchInput("")}
                                     className="text-sm text-primary underline underline-offset-4 hover:opacity-80 transition-opacity"
                                 >
