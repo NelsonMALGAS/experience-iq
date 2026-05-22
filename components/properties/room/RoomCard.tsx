@@ -307,6 +307,7 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                 >
                     <div className="relative w-full max-w-sm mx-4 rounded-2xl border bg-background shadow-xl p-6 space-y-5">
                         <button
+                            aria-label="Close dialog"
                             onClick={() => setShowCheckInModal(false)}
                             className="absolute right-4 top-4 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
                         >

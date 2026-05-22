@@ -68,7 +68,7 @@ const Home = async () => {
   const decoded = await auth?.verifySessionCookie(session, true);
 
   if (!decoded) {
-    redirect(`/login?role=""`);
+    redirect("/");
   }
 
   const role = decoded.role;
