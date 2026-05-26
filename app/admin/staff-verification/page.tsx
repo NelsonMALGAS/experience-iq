@@ -83,6 +83,30 @@ const StaffVerificationPage = async () => {
         getUnverifiedAdminStaff(uid),
     ]);
 
+    const stats = [
+        {
+            icon: Users,
+            label: "Total Staff",
+            value: verifiedStaff.length + unverifiedStaff.length,
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-100 dark:bg-blue-900/30",
+        },
+        {
+            icon: Clock,
+            label: "Awaiting Verification",
+            value: unverifiedStaff.length,
+            color: "text-yellow-600 dark:text-yellow-400",
+            bg: "bg-yellow-100 dark:bg-yellow-900/30",
+        },
+        {
+            icon: CheckCircle2,
+            label: "Verified",
+            value: verifiedStaff.length,
+            color: "text-green-600 dark:text-green-400",
+            bg: "bg-green-100 dark:bg-green-900/30",
+        },
+    ]
+
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
             <DashboardLayout role={role} uid={uid} isVerified={isVerified} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
@@ -106,29 +130,7 @@ const StaffVerificationPage = async () => {
 
                     {/* ── Summary stats ────────────────────────────────────── */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {[
-                            {
-                                icon: Users,
-                                label: "Total Staff",
-                                value: verifiedStaff.length + unverifiedStaff.length,
-                                color: "text-blue-600 dark:text-blue-400",
-                                bg: "bg-blue-100 dark:bg-blue-900/30",
-                            },
-                            {
-                                icon: Clock,
-                                label: "Awaiting Verification",
-                                value: unverifiedStaff.length,
-                                color: "text-yellow-600 dark:text-yellow-400",
-                                bg: "bg-yellow-100 dark:bg-yellow-900/30",
-                            },
-                            {
-                                icon: CheckCircle2,
-                                label: "Verified",
-                                value: verifiedStaff.length,
-                                color: "text-green-600 dark:text-green-400",
-                                bg: "bg-green-100 dark:bg-green-900/30",
-                            },
-                        ].map(({ icon: Icon, label, value, color, bg }) => (
+                        {stats.map(({ icon: Icon, label, value, color, bg }) => (
                             <div
                                 key={label}
                                 className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card shadow-sm"

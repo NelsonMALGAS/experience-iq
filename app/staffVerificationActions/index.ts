@@ -84,3 +84,25 @@ export const deleteStaffUser = async (staffId: string): Promise<void> => {
     console.error("Error deleting staff user:", error);
   }
 };
+
+export async function verifyAllStaffUsers(staffIds: string[]): Promise<void> {
+  if (!db) throw new Error("Firestore is unavailable — db is undefined.");
+  if (!staffIds.length) return;
+
+  // Firestore batches are capped at 500 ops — chunk to be safe
+  const BATCH_LIMIT = 500;
+
+  for (let i = 0; i < staffIds.length; i += BATCH_LIMIT) {
+    const chunk = staffIds.slice(i, i + BATCH_LIMIT);
+    const batch = db.batch();
+
+    for (const id of chunk) {
+      const ref = db.collection("users").doc(id);
+      batch.update(ref, { isVerified: true });
+    }
+
+    await batch.commit();
+  }
+
+  revalidatePath("/admin/staff-verification");
+}
