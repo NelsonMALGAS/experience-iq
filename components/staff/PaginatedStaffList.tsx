@@ -1,17 +1,29 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clock, CheckCircle2, LucideIcon } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Clock, CheckCircle2, LucideIcon, ShieldCheck, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { StaffCard } from "@/components/staff/StaffCard";
 import { EmptyState, SectionHeader } from "@/components/staff/Verification";
 import usePagination from "@/hooks/usePagination";
 import type { StaffMember } from "@/types";
+import { toast } from "sonner";
+import { verifyAllStaffUsers } from "@/app/staffVerificationActions";
 
 const ITEMS_PER_PAGE = 6;
 
-// Map a plain string → icon component entirely inside the client bundle.
-// This avoids passing a function reference across the server→client boundary.
 const ICON_MAP: Record<PaginatedStaffListProps["emptyIcon"], LucideIcon> = {
     clock: Clock,
     checkCircle2: CheckCircle2,
@@ -22,20 +34,21 @@ interface PaginatedStaffListProps {
     count: number;
     variant: "verified" | "pending";
     emptyMessage: string;
-    /** Use a plain string key instead of a component reference so Next.js can serialize the prop. */
     emptyIcon: "clock" | "checkCircle2";
     staff: StaffMember[];
 }
 
-export function PaginatedStaffList({
+export const PaginatedStaffList = ({
     title,
     count,
     variant,
     emptyMessage,
     emptyIcon,
     staff,
-}: PaginatedStaffListProps) {
+}: PaginatedStaffListProps) => {
     const Icon = ICON_MAP[emptyIcon];
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     const {
         paginatedData,
@@ -47,11 +60,82 @@ export function PaginatedStaffList({
         prevPage,
     } = usePagination(staff, ITEMS_PER_PAGE);
 
+    const handleVerifyAll = async () => {
+        try {
+            setIsVerifying(true);
+            await verifyAllStaffUsers(staff.map((s) => s.id));
+            toast.success(`${staff.length} staff members verified.`);
+        } catch (error) {
+            console.error("Failed to verify all staff:", error);
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setIsVerifying(false);
+            setDialogOpen(false);
+        }
+    };
+
+    const showVerifyAll = variant === "pending" && staff.length > 0;
+
     return (
         <div className="space-y-4">
-            {/* Section header */}
+            {/* Section header row */}
             <div className="flex items-center justify-between gap-2">
                 <SectionHeader title={title} count={count} variant={variant} />
+
+                {showVerifyAll && (
+                    <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={isVerifying}
+                                className="flex items-center gap-1.5 rounded-lg text-sm font-medium border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800 hover:border-green-400 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950/40 dark:hover:text-green-300 transition-colors"
+                            >
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Verify All
+                            </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Verify all staff members?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will verify all{" "}
+                                    <span className="font-semibold text-foreground">{staff.length}</span>{" "}
+                                    currently pending staff member{staff.length !== 1 ? "s" : ""}.
+                                    This action cannot be easily undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isVerifying}>
+                                    Cancel
+                                </AlertDialogCancel>
+
+                                {/* Use a plain Button so we can control the loading state ourselves */}
+                                <AlertDialogAction asChild>
+                                    <Button
+                                        onClick={handleVerifyAll}
+                                        disabled={isVerifying}
+                                        className="bg-green-600 hover:bg-green-700 text-white gap-1.5"
+                                    >
+                                        {isVerifying ? (
+                                            <>
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                Verifying...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ShieldCheck className="h-3.5 w-3.5" />
+                                                Verify All
+                                            </>
+                                        )}
+                                    </Button>
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
             </div>
 
             <Separator />
@@ -60,14 +144,12 @@ export function PaginatedStaffList({
                 <EmptyState message={emptyMessage} icon={Icon} />
             ) : (
                 <>
-                    {/* Card grid — no fixed scroll area; page scrolls naturally */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                         {paginatedData.map((member) => (
                             <StaffCard key={member.id} staff={member} />
                         ))}
                     </div>
 
-                    {/* Pagination controls — only shown when there is more than one page */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between gap-3 pt-2">
                             <Button
@@ -106,4 +188,4 @@ export function PaginatedStaffList({
             )}
         </div>
     );
-}
+};
