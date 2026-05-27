@@ -1,14 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Room } from "@/types";
 import { Button } from "@/components/ui/button";
-
-import {
-    checkInRoom,
-    checkOutRoom,
-    setRoomMaintenance,
-} from "@/app/actions/rooms";
+import { checkInRoom, checkOutRoom, setRoomMaintenance } from "@/app/actions/rooms";
 import { toast } from "sonner";
 import {
     BedDouble,
@@ -19,19 +14,11 @@ import {
     CalendarCheck,
     CalendarX,
     X,
+    AlertTriangle,
+    Clock,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-export interface SerializedRoom {
-    id: string;
-    roomNumber: string;
-    status: "available" | "occupied" | "maintenance";
-    currentGuestName?: string | null;
-    checkInDate?: string | null;
-    checkOutDate?: string | null;
-    createdAt: string | null;
-}
 
 type RoomCardProps = {
     room: Room & {
@@ -45,24 +32,87 @@ type RoomCardProps = {
 const statusConfig = {
     available: {
         label: "Available",
-        className:
-            "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
+        className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
         dot: "bg-emerald-500",
     },
     occupied: {
         label: "Occupied",
-        className:
-            "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
+        className: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
         dot: "bg-blue-500",
     },
     maintenance: {
         label: "Maintenance",
-        className:
-            "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+        className: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
         dot: "bg-amber-500",
     },
 };
 
+// Tiered urgency: how the card escalates visually past 1, 3, 7+ days overdue.
+type OverdueLevel = "warning" | "urgent" | "critical";
+
+interface OverdueInfo {
+    isOverdue: boolean;
+    daysOverdue: number;
+    level: OverdueLevel;
+}
+
+function getOverdueInfo(
+    status: Room["status"],
+    checkOutDate: Date | null | undefined
+): OverdueInfo {
+    const notOverdue: OverdueInfo = { isOverdue: false, daysOverdue: 0, level: "warning" };
+
+    if (status !== "occupied" || !checkOutDate) return notOverdue;
+
+    // Strip time from both sides so a same-day checkout is never falsely flagged.
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    const checkoutMidnight = new Date(checkOutDate);
+    checkoutMidnight.setHours(0, 0, 0, 0);
+
+    const diffMs = todayMidnight.getTime() - checkoutMidnight.getTime();
+    const daysOverdue = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysOverdue <= 0) return notOverdue;
+
+    const level: OverdueLevel =
+        daysOverdue >= 7 ? "critical" : daysOverdue >= 3 ? "urgent" : "warning";
+
+    return { isOverdue: true, daysOverdue, level };
+}
+
+const overdueStyles: Record<
+    OverdueLevel,
+    { card: string; badge: string; dot: string; banner: string; icon: string }
+> = {
+    warning: {
+        card: "border-orange-300 dark:border-orange-800",
+        badge: "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400",
+        dot: "bg-orange-500 animate-pulse",
+        banner: "bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-950/30 dark:border-orange-800 dark:text-orange-400",
+        icon: "text-orange-500",
+    },
+    urgent: {
+        card: "border-red-300 dark:border-red-800",
+        badge: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
+        dot: "bg-red-500 animate-pulse",
+        banner: "bg-red-50 border-red-200 text-red-700 dark:bg-red-950/30 dark:border-red-800 dark:text-red-400",
+        icon: "text-red-500",
+    },
+    critical: {
+        card: "border-red-500 dark:border-red-600 shadow-red-100 dark:shadow-red-950/50",
+        badge: "bg-red-600/10 text-red-700 border-red-600/30 dark:text-red-300",
+        dot: "bg-red-600 animate-ping",  // ping = most aggressive pulse for critical
+        banner: "bg-red-100 border-red-300 text-red-800 dark:bg-red-950/50 dark:border-red-700 dark:text-red-300",
+        icon: "text-red-600",
+    },
+};
+
+function overdueBannerText(daysOverdue: number): string {
+    if (daysOverdue === 1) return "Guest was due to check out yesterday.";
+    return `Guest was due to check out ${daysOverdue} days ago.`;
+}
 
 export function RoomCard({ room, propertyId }: RoomCardProps) {
     const [isPending, startTransition] = useTransition();
@@ -71,43 +121,31 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
     const [checkIn, setCheckIn] = useState("");
     const [checkOut, setCheckOut] = useState("");
 
+    const overdueInfo = useMemo(
+        () => getOverdueInfo(room.status, room.checkOutDate),
+        [room.status, room.checkOutDate]
+    );
+
     const config = statusConfig[room.status] ?? statusConfig.available;
+    const overdueStyle = overdueInfo.isOverdue ? overdueStyles[overdueInfo.level] : null;
 
     const today = new Date().toISOString().split("T")[0];
-
     const minCheckoutDate = checkIn
-        ? new Date(new Date(checkIn).getTime() + 86400000)
-            .toISOString()
-            .split("T")[0]
+        ? new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0]
         : "";
 
     function handleCheckIn() {
-        if (!guestName.trim()) {
-            toast.error("Please enter a guest name.");
-            return;
-        }
-
-        if (!checkIn || !checkOut) {
-            toast.error("Please select check-in and check-out dates.");
-            return;
-        }
+        if (!guestName.trim()) { toast.error("Please enter a guest name."); return; }
+        if (!checkIn || !checkOut) { toast.error("Please select check-in and check-out dates."); return; }
 
         const checkInDate = new Date(checkIn);
         const checkOutDate = new Date(checkOut);
         const todayDate = new Date(today);
 
-        if (checkInDate < todayDate) {
-            toast.error("Check-in date cannot be in the past.");
-            return;
-        }
+        if (checkInDate < todayDate) { toast.error("Check-in date cannot be in the past."); return; }
 
-        const diffInMs = checkOutDate.getTime() - checkInDate.getTime();
-        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-        if (diffInDays < 1) {
-            toast.error("Check-out must be at least 1 day after check-in.");
-            return;
-        }
+        const diffInDays = (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffInDays < 1) { toast.error("Check-out must be at least 1 day after check-in."); return; }
 
         startTransition(async () => {
             const result = await checkInRoom({
@@ -143,10 +181,7 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
 
     function handleMaintenance() {
         startTransition(async () => {
-            const result = await setRoomMaintenance({
-                propertyId,
-                roomId: room.id,
-            });
+            const result = await setRoomMaintenance({ propertyId, roomId: room.id });
             if (result.success) {
                 toast.success(`Room ${room.roomNumber} set to maintenance.`);
             } else {
@@ -157,14 +192,9 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
 
     const nights =
         checkIn && checkOut
-            ? Math.max(
-                0,
-                Math.ceil(
-                    (new Date(checkOut).getTime() -
-                        new Date(checkIn).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
-            )
+            ? Math.max(0, Math.ceil(
+                (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
+            ))
             : 0;
 
     return (
@@ -174,6 +204,7 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                     relative rounded-xl border bg-background p-4 space-y-4
                     transition-all duration-200
                     hover:shadow-md hover:border-foreground/20
+                    ${overdueStyle ? overdueStyle.card : ""}
                     ${isPending ? "opacity-60 pointer-events-none" : ""}
                 `}
             >
@@ -188,18 +219,43 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                         </p>
                     </div>
 
-                    {/* Status badge */}
-                    <span
-                        className={`
-                            inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5
-                            text-xs font-medium
-                            ${config.className}
-                        `}
-                    >
-                        <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
-                        {config.label}
-                    </span>
+                    {/* Status badge — replaced by overdue badge when applicable */}
+                    {overdueInfo.isOverdue ? (
+                        <span
+                            className={`
+                                inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5
+                                text-xs font-medium ${overdueStyle!.badge}
+                            `}
+                        >
+                            <span className={`h-1.5 w-1.5 rounded-full ${overdueStyle!.dot}`} />
+                            Overdue
+                        </span>
+                    ) : (
+                        <span
+                            className={`
+                                inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5
+                                text-xs font-medium ${config.className}
+                            `}
+                        >
+                            <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
+                            {config.label}
+                        </span>
+                    )}
                 </div>
+
+                {/* Overdue banner */}
+                {overdueInfo.isOverdue && overdueStyle && (
+                    <div
+                        className={`
+                            flex items-start gap-2 rounded-lg border px-3 py-2
+                            text-xs font-medium ${overdueStyle.banner}
+                        `}
+                        role="alert"
+                    >
+                        <AlertTriangle className={`h-3.5 w-3.5 mt-px shrink-0 ${overdueStyle.icon}`} />
+                        <span>{overdueBannerText(overdueInfo.daysOverdue)}</span>
+                    </div>
+                )}
 
                 {/* Guest info */}
                 <div className="space-y-1.5 text-sm text-muted-foreground">
@@ -216,28 +272,28 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                         <span>
                             {room.status === "occupied" && room.checkInDate
                                 ? new Date(room.checkInDate).toLocaleDateString("en-US", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric"
+                                    day: "2-digit", month: "short", year: "numeric",
                                 })
                                 : "—"}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <CalendarX className="h-3.5 w-3.5 shrink-0" />
-                        <span>
+                        <CalendarX className={`h-3.5 w-3.5 shrink-0 ${overdueInfo.isOverdue ? overdueStyle!.icon : ""}`} />
+                        <span className={overdueInfo.isOverdue ? `font-medium ${overdueStyle!.icon}` : ""}>
                             {room.status === "occupied" && room.checkOutDate
                                 ? new Date(room.checkOutDate).toLocaleDateString("en-US", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric"
+                                    day: "2-digit", month: "short", year: "numeric",
                                 })
                                 : "—"}
                         </span>
+                        {overdueInfo.isOverdue && (
+                            <span className={`ml-auto flex items-center gap-1 text-xs font-semibold ${overdueStyle!.icon}`}>
+                                <Clock className="h-3 w-3" />
+                                +{overdueInfo.daysOverdue}d
+                            </span>
+                        )}
                     </div>
                 </div>
-
-
 
                 <div className="border-t" />
 
@@ -259,13 +315,18 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                     {room.status === "occupied" && (
                         <Button
                             size="sm"
-                            variant="outline"
-                            className="h-7 text-xs gap-1.5"
+                            variant={overdueInfo.isOverdue ? "default" : "outline"}
+                            className={`h-7 text-xs gap-1.5 ${overdueInfo.isOverdue
+                                    ? overdueInfo.level === "critical"
+                                        ? "bg-red-600 hover:bg-red-700 text-white border-transparent"
+                                        : "bg-orange-500 hover:bg-orange-600 text-white border-transparent"
+                                    : ""
+                                }`}
                             onClick={handleCheckOut}
                             disabled={isPending}
                         >
                             <LogOut className="h-3 w-3" />
-                            {isPending ? "Updating…" : "Check Out"}
+                            {isPending ? "Updating…" : overdueInfo.isOverdue ? "Check Out Now" : "Check Out"}
                         </Button>
                     )}
 
@@ -297,13 +358,11 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                 </div>
             </div>
 
-            {/* Check-In Modal */}
+            {/* Check-In Modal — unchanged */}
             {showCheckInModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) setShowCheckInModal(false);
-                    }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowCheckInModal(false); }}
                 >
                     <div className="relative w-full max-w-sm mx-4 rounded-2xl border bg-background shadow-xl p-6 space-y-5">
                         <button
@@ -314,18 +373,12 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                             <X className="h-4 w-4" />
                         </button>
 
-                        <h3 className="text-base font-semibold">
-                            Check In — Room {room.roomNumber}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Enter guest details to check in.
-                        </p>
+                        <h3 className="text-base font-semibold">Check In — Room {room.roomNumber}</h3>
+                        <p className="text-sm text-muted-foreground">Enter guest details to check in.</p>
 
                         <div className="space-y-3">
                             <div className="space-y-1.5">
-                                <Label className="text-xs font-medium text-foreground">
-                                    Guest Name
-                                </Label>
+                                <Label className="text-xs font-medium text-foreground">Guest Name</Label>
                                 <Input
                                     type="text"
                                     value={guestName}
@@ -337,23 +390,16 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-medium text-foreground">
-                                        Check-In Date
-                                    </Label>
+                                    <Label className="text-xs font-medium text-foreground">Check-In Date</Label>
                                     <Input
                                         type="date"
                                         value={checkIn}
                                         min={today}
-                                        onChange={(e) => {
-                                            setCheckIn(e.target.value);
-                                            setCheckOut("");
-                                        }}
+                                        onChange={(e) => { setCheckIn(e.target.value); setCheckOut(""); }}
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-medium text-foreground">
-                                        Check-Out Date
-                                    </Label>
+                                    <Label className="text-xs font-medium text-foreground">Check-Out Date</Label>
                                     <Input
                                         type="date"
                                         value={checkOut}
@@ -365,9 +411,7 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
 
                                 {checkIn && checkOut && nights > 0 && (
                                     <div className="space-y-1 text-xs text-muted-foreground">
-                                        <p>
-                                            {checkIn} → {checkOut}
-                                        </p>
+                                        <p>{checkIn} → {checkOut}</p>
                                         <p className="font-medium text-foreground">
                                             {nights} night{nights > 1 ? "s" : ""}
                                         </p>
@@ -377,19 +421,10 @@ export function RoomCard({ room, propertyId }: RoomCardProps) {
                         </div>
 
                         <div className="flex justify-end gap-2 pt-1">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setShowCheckInModal(false)}
-                                disabled={isPending}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => setShowCheckInModal(false)} disabled={isPending}>
                                 Cancel
                             </Button>
-                            <Button
-                                size="sm"
-                                onClick={handleCheckIn}
-                                disabled={isPending}
-                            >
+                            <Button size="sm" onClick={handleCheckIn} disabled={isPending}>
                                 {isPending ? "Checking In…" : "Confirm Check In"}
                             </Button>
                         </div>

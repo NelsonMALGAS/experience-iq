@@ -119,7 +119,7 @@ const PaymentSuccess = async (props: {
                                 variant="outline"
                                 className="w-full border-2 hover:bg-accent"
                             >
-                                <Link href="#">
+                                <Link href="/owner">
                                     Manage Subscription
                                 </Link>
                             </Button>
