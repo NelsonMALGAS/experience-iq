@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import Footer from './Footer';
 import { Role } from '@/types';
 
-export default function LandingPage() {
+const LandingPage = () => {
     const router = useRouter();
 
     const handleRoleSelect = (role: Role) => {
@@ -99,6 +99,39 @@ export default function LandingPage() {
                         Empower your hospitality team to resolve guest issues before they become
                         complaints. Real-time tracking, SLA management, and insights.
                     </p>
+                    {/* Company Registration Info */}
+                    <div className="mt-8 flex justify-center">
+                        <Card className="w-full max-w-2xl shadow-sm border border-border/60 bg-background/80 backdrop-blur-sm">
+                            <CardContent className="px-6 py-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
+                                    <div className="py-3 md:py-0 md:px-6 first:md:pl-0 last:md:pr-0 text-center md:text-left">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                                            Business Name
+                                        </p>
+                                        <p className="text-sm font-bold text-foreground leading-snug">
+                                            EXPERIENCEIQ (PTY) LTD
+                                        </p>
+                                    </div>
+                                    <div className="py-3 md:py-0 md:px-6 text-center">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                                            Registration Number
+                                        </p>
+                                        <p className="text-sm font-bold text-foreground leading-snug">
+                                            2026/219858/07
+                                        </p>
+                                    </div>
+                                    <div className="py-3 md:py-0 md:px-6 first:md:pl-0 last:md:pr-0 text-center md:text-right">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                                            Enterprise Type
+                                        </p>
+                                        <p className="text-sm font-bold text-foreground leading-snug">
+                                            Private Company
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                     {/* Quick Role Buttons for Immediate Login */}
                     <div className="flex flex-wrap items-center justify-center gap-4 mt-12">
                         {roles.map((item) => (
@@ -239,3 +272,5 @@ export default function LandingPage() {
 
     );
 }
+
+export default LandingPage
