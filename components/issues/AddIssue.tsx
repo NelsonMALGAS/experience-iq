@@ -172,7 +172,7 @@ const AddIssuePage = () => {
                             placeholder="e.g. John Smith"
                         />
                         <p className="text-sm text-muted-foreground">
-                            You may leave this as Guest if you prefer to remain anonymous.
+                            You may leave this as Anonymous Guest if you prefer to remain anonymous.
                         </p>
                     </div>
 

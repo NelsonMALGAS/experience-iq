@@ -3,6 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 export const proxy = (req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
+  // Redirect any URL segment equal to the string "undefined"
+  const hasUndefinedSegment = pathname
+    .split("/")
+    .some((segment) => segment === "undefined");
+
+  if (hasUndefinedSegment) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   const isProtected =
     pathname.startsWith("/owner") ||
     pathname.startsWith("/admin") ||
