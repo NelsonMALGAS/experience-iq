@@ -1,12 +1,18 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState, useRef } from "react";
-import { QRCodeCanvas } from "qrcode.react"
+import { QRCodeCanvas } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QrCode, Shield, Eye, EyeOff, Lock } from "lucide-react";
+import { QrCode, Shield, Eye, EyeOff, Lock, LogIn } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { IssueCategory, Role } from "@/types";
 import { toast } from "sonner";
@@ -15,9 +21,21 @@ import { signInAnonymously, signInWithPopup } from "firebase/auth";
 import { getAuthInstance, getGoogleAuthProvider } from "@/db/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "./ui/select";
 import { STAFF_DEPARTMENTS } from "@/constants";
-import { setGuestSession, validateRoomCode } from "@/utils/guestAuthUtils";
+import {
+    setGuestSession,
+    validateRoomCode,
+    getGuestSession,
+    isGuestSessionValid,
+    clearGuestSession,
+} from "@/utils/guestAuthUtils";
 import { Alert, AlertDescription } from "./ui/alert";
 import { usePostHog } from "posthog-js/react";
 import { formatIssueCategory } from "@/helpers/formatCategory";
@@ -42,9 +60,9 @@ interface Data {
     department: IssueCategory;
 }
 
-
 const AuthForm = ({ role }: AuthFormType) => {
-    const { handleRegister, handleLogin, handlePasswordReset, createSession } = useCurrentUser();
+    const { handleRegister, handleLogin, handlePasswordReset, createSession } =
+        useCurrentUser();
     const router = useRouter();
     const searchParams = useSearchParams();
     const qrRef = useRef<HTMLCanvasElement | null>(null);
@@ -53,7 +71,6 @@ const AuthForm = ({ role }: AuthFormType) => {
     const [mode, setMode] = useState<"login" | "signup">("login");
     const [formErrors, setFormErrors] = useState<Errors | undefined>();
 
-    // Get role from URL or fallback to prop
     const urlRole = (searchParams.get("role") as Role) || role || "guest";
     const [userRole, setUserRole] = useState<Role>(urlRole);
 
@@ -68,6 +85,28 @@ const AuthForm = ({ role }: AuthFormType) => {
     const [isLoading, setIsLoading] = useState(false);
     const [qrCode, setQrCode] = useState("");
 
+    const [checkingSession, setCheckingSession] = useState(true);
+    const [returningGuest, setReturningGuest] = useState(false);
+
+    useEffect(() => {
+        if (userRole !== "guest") {
+            setCheckingSession(false);
+            return;
+        }
+
+        const existingSession = getGuestSession();
+
+        if (isGuestSessionValid(existingSession)) {
+            // Valid session found – redirect immediately, no form shown
+            setReturningGuest(true);
+            router.replace("/guest/add-issue");
+        } else {
+            // Stale / missing – clean up just in case
+            if (existingSession) clearGuestSession();
+            setCheckingSession(false);
+        }
+    }, [userRole, router]);
+
     // Sync userRole with URL parameter
     useEffect(() => {
         const currentUrlRole = searchParams.get("role") as Role;
@@ -76,43 +115,33 @@ const AuthForm = ({ role }: AuthFormType) => {
         }
     }, [searchParams, userRole]);
 
-    // Set department based on role
+    // Set default department based on role
     useEffect(() => {
-        if (userRole === "admin") {
-            setFormData((prev) => ({ ...prev, department: "other" }));
-        } else if (userRole === "guest") {
-            setFormData((prev) => ({ ...prev, department: "other" }));
-        } else if (userRole === "staff") {
-            setFormData((prev) => ({ ...prev, department: "other" }));
-        }
+        setFormData((prev) => ({ ...prev, department: "other" }));
     }, [userRole]);
 
     const validate = (data: Data) => {
         const errors: Errors = {};
         const { email, password, confirmPassword, name } = data;
 
-        // Email validation
         if (!email) {
             errors.email = "Please enter your email address.";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             errors.email = "Please enter a valid email (e.g. yourname@example.com).";
         }
 
-        // Password validation
         if (!password) {
             errors.password = "Please enter your password to continue.";
         } else if (password.length < 6) {
             errors.password = "Your password should be at least 6 characters long.";
         }
 
-        // Confirm password validation (signup only)
         if (mode === "signup") {
             if (!confirmPassword) {
                 errors.confirmPassword = "Please confirm your password.";
             } else if (password !== confirmPassword) {
                 errors.confirmPassword = "Passwords do not match.";
             }
-
             if (!name || name.length === 0) {
                 errors.name = "Name is required";
             }
@@ -121,46 +150,38 @@ const AuthForm = ({ role }: AuthFormType) => {
         return errors;
     };
 
-
-
     const handleResetPassword = async () => {
         if (!formData.email) {
             toast.error("Please enter your email first");
             return;
         }
-
         setIsLoading(true);
-
         try {
             await handlePasswordReset(formData.email);
-
             toast.success("Password reset email sent", {
                 description: "Check your inbox to reset your password",
             });
         } catch (error) {
             toast.error("Failed to send reset email", {
-                description: error instanceof Error ? error.message : "Please try again",
+                description:
+                    error instanceof Error ? error.message : "Please try again",
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Google Sign-In redirects to onboarding for staff/admin
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         try {
             const auth = await getAuthInstance();
             const googleAuthProvider = await getGoogleAuthProvider();
-
             const result = await signInWithPopup(auth, googleAuthProvider);
             const user = result?.user;
 
             await createSession(user, userRole, formData.department);
-            posthog.identify(user.uid, {
-                email: user.email,
-                role: userRole,
-            });
+            posthog.identify(user.uid, { email: user.email, role: userRole });
+
             const token = await user?.getIdToken(true);
             const { department } = formData;
 
@@ -175,7 +196,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                 description: "Logged in successfully",
             });
 
-            // ✅ FIXED: Redirect to onboarding for staff/admin
             if (userRole === "staff" || userRole === "admin") {
                 router.push(`/onboarding/${userRole}`);
             } else {
@@ -199,11 +219,9 @@ const AuthForm = ({ role }: AuthFormType) => {
         setFormErrors(validate(updatedData));
     };
 
-    //  Email/Password login and signup now redirect to onboarding
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const errors = validate(formData);
-
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
@@ -227,13 +245,12 @@ const AuthForm = ({ role }: AuthFormType) => {
                 await handleLogin(email, password, userRole, department);
             }
 
-            // ✅ FIXED: Redirect to onboarding after successful auth
             toast.success("🎉 Success", {
                 position: "top-center",
-                description: mode === "signup" ? "Account created successfully" : "Logged in successfully",
+                description:
+                    mode === "signup" ? "Account created successfully" : "Logged in successfully",
             });
 
-            // ✅ Redirect to onboarding for staff/admin
             if (userRole === "staff" || userRole === "admin") {
                 router.push(`/onboarding/${userRole}`);
             } else {
@@ -243,13 +260,17 @@ const AuthForm = ({ role }: AuthFormType) => {
             console.error("Auth error:", error);
             toast.error("🚨 Error", {
                 position: "top-center",
-                description: mode === "signup" ? "Failed to create account" : "Failed to login",
+                description:
+                    mode === "signup" ? "Failed to create account" : "Failed to login",
             });
         } finally {
             setIsLoading(false);
         }
     };
 
+    // ──────────────────────────────────────────
+    // QR / room-code login (first-time or after session cleared)
+    // ──────────────────────────────────────────
     const handleQRLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -261,9 +282,8 @@ const AuthForm = ({ role }: AuthFormType) => {
                 toast.error(validation.error || "Invalid room code");
                 return;
             }
-            const auth = await getAuthInstance();
 
-            //  Reuse existing user
+            const auth = await getAuthInstance();
             let user = auth.currentUser;
 
             if (!user) {
@@ -273,9 +293,7 @@ const AuthForm = ({ role }: AuthFormType) => {
 
             await createSession(user, "guest", "other");
 
-            // save the user.uid to localStorage for the device
-            localStorage.setItem("guestId", user.uid);
-
+            // Persist the full session (loginTimestamp added inside setGuestSession)
             setGuestSession({
                 uid: user.uid,
                 role: "guest",
@@ -287,7 +305,6 @@ const AuthForm = ({ role }: AuthFormType) => {
             });
 
             toast.success(`Welcome! Room ${validation.room.roomNumber}`);
-            // ✅ Guest goes directly to add-issue (no onboarding needed)
             router.push("/guest/add-issue");
         } catch (error) {
             if (error instanceof Error) {
@@ -301,15 +318,11 @@ const AuthForm = ({ role }: AuthFormType) => {
     };
 
     const handleTabChange = (value: string) => {
-        // Only allow tab changes for guest/staff roles
-        if (userRole === "admin") {
-            return; // Prevent tab changes for admin
-        }
+        if (userRole === "admin") return;
 
         const newRole = value as Role;
         setUserRole(newRole);
 
-        // Update URL
         const params = new URLSearchParams(searchParams.toString());
         params.set("role", newRole);
         router.replace(`/login?${params.toString()}`, { scroll: false });
@@ -317,10 +330,8 @@ const AuthForm = ({ role }: AuthFormType) => {
 
     const downloadQR = () => {
         if (!qrRef.current) return;
-
         const canvas = qrRef.current;
         const url = canvas.toDataURL("image/png");
-
         const link = document.createElement("a");
         link.href = url;
         link.download = `${qrCode}-qr.png`;
@@ -330,8 +341,25 @@ const AuthForm = ({ role }: AuthFormType) => {
     const inputErrorClass = (field: keyof Errors) =>
         formErrors?.[field] ? "border border-red-500 focus-visible:ring-red-500" : "";
 
-    // Determine if tabs should be disabled
     const tabsDisabled = userRole === "admin";
+
+    // ──────────────────────────────────────────
+    // While we're checking for an existing session,
+    // render nothing (or a minimal skeleton) to avoid flash.
+    // ──────────────────────────────────────────
+    if (checkingSession && userRole === "guest") {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <LogIn className="h-8 w-8 animate-pulse" />
+                    <p className="text-sm">Checking session…</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Redirect in progress – show nothing
+    if (returningGuest) return null;
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4 mb-8">
@@ -354,13 +382,12 @@ const AuthForm = ({ role }: AuthFormType) => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {/* Admin Role Alert */}
                         {userRole === "admin" && (
                             <Alert className="mb-4 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
                                 <Lock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
                                 <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm">
-                                    You are accessing the <strong>Admin Portal</strong>. Staff and Guest
-                                    access is restricted.
+                                    You are accessing the <strong>Admin Portal</strong>. Staff and
+                                    Guest access is restricted.
                                 </AlertDescription>
                             </Alert>
                         )}
@@ -391,9 +418,8 @@ const AuthForm = ({ role }: AuthFormType) => {
                                 </TabsTrigger>
                             </TabsList>
 
-                            {/* STAFF / ADMIN Content */}
+                            {/* ── STAFF / ADMIN ── */}
                             <TabsContent value="staff">
-                                {/* Toggle login/signup */}
                                 <div className="flex justify-center gap-4 mb-4">
                                     <Button
                                         variant={mode === "login" ? "default" : "outline"}
@@ -423,7 +449,6 @@ const AuthForm = ({ role }: AuthFormType) => {
 
                                 {mode === "login" ? (
                                     <form onSubmit={handleSubmit} className="space-y-4">
-                                        {/* Email */}
                                         <div className="flex flex-col gap-1">
                                             <Input
                                                 placeholder="Email"
@@ -439,7 +464,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             )}
                                         </div>
 
-                                        {/* Password */}
                                         <div className="flex flex-col gap-1">
                                             <div className="relative">
                                                 <Input
@@ -464,11 +488,9 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                     )}
                                                 </button>
                                             </div>
-
                                             {formErrors?.password && (
                                                 <p className="text-sm text-red-500">{formErrors.password}</p>
                                             )}
-
                                             <div className="flex justify-end">
                                                 <button
                                                     type="button"
@@ -487,7 +509,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                     </form>
                                 ) : (
                                     <form onSubmit={handleSubmit} className="space-y-4">
-                                        {/* Name */}
                                         <div className="flex flex-col gap-1">
                                             <Input
                                                 name="name"
@@ -502,7 +523,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             )}
                                         </div>
 
-                                        {/* Email */}
                                         <div className="flex flex-col gap-1">
                                             <Input
                                                 name="email"
@@ -518,7 +538,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             )}
                                         </div>
 
-                                        {/* Password */}
                                         <div className="flex flex-col gap-1">
                                             <Input
                                                 name="password"
@@ -534,7 +553,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             )}
                                         </div>
 
-                                        {/* Confirm Password */}
                                         <div className="flex flex-col gap-1">
                                             <Input
                                                 name="confirmPassword"
@@ -552,7 +570,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                             )}
                                         </div>
 
-                                        {/* Department Select (only for staff/admin) */}
                                         {(userRole === "staff" || userRole === "admin") && (
                                             <div className="flex flex-col gap-1">
                                                 <Label htmlFor="department" className="text-sm">
@@ -594,11 +611,10 @@ const AuthForm = ({ role }: AuthFormType) => {
                                 )}
                             </TabsContent>
 
-                            {/* GUEST Content */}
+                            {/* ── GUEST ── */}
                             <TabsContent value="guest">
                                 <form onSubmit={handleQRLogin} className="space-y-6">
                                     <div className="text-center p-6 border-2 border-dashed rounded-lg bg-primary/5 space-y-4">
-
                                         {qrCode ? (
                                             <>
                                                 <div className="flex justify-center">
@@ -612,7 +628,6 @@ const AuthForm = ({ role }: AuthFormType) => {
                                                         ref={qrRef}
                                                     />
                                                 </div>
-
                                                 <Button
                                                     type="button"
                                                     variant="outline"
@@ -634,18 +649,18 @@ const AuthForm = ({ role }: AuthFormType) => {
                                     </div>
 
                                     <div className="flex flex-col gap-2">
-                                        <Label htmlFor="roomCode" className="text-sm text-muted-foreground">
+                                        <Label
+                                            htmlFor="roomCode"
+                                            className="text-sm text-muted-foreground"
+                                        >
                                             Room Code{" "}
                                             <span className="font-mono">(PROPERTYCODE-ROOM)</span>
                                         </Label>
-
                                         <Input
                                             id="roomCode"
                                             placeholder="e.g. SUNSET12-305"
                                             value={qrCode}
-                                            onChange={(e) =>
-                                                setQrCode(e.target.value.toUpperCase())
-                                            }
+                                            onChange={(e) => setQrCode(e.target.value.toUpperCase())}
                                             maxLength={16}
                                             className="text-center text-lg tracking-widest font-mono"
                                             autoFocus

@@ -158,9 +158,10 @@ export interface GuestSession {
   role: "guest";
   propertyId: string;
   propertyName: string;
-  propertyLocation: string | null;
+  propertyLocation: string;
   roomId: string;
   roomNumber: string;
+  loginTimestamp: number; // epoch ms – added for expiry checks
 }
 
 /**

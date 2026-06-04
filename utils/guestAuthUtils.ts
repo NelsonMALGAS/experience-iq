@@ -2,6 +2,10 @@ import { db } from "@/db/client";
 import { collection, getDocs } from "firebase/firestore";
 import { Property, Room, GuestSession } from "@/types";
 
+export const GUEST_SESSION_KEY = "guestSession";
+export const GUEST_ID_KEY = "guestId";
+export const GUEST_SESSION_DURATION = 1000 * 60 * 60 * 24 * 3; // 3 days
+
 /**
  * Room code validation result
  */
@@ -86,46 +90,78 @@ export async function validateRoomCode(
 }
 
 /**
- * Store guest session in localStorage
+ * Persist guest session to localStorage, including a loginTimestamp
+ * so we can enforce the 7-day expiry on subsequent visits.
  */
-export function setGuestSession(session: GuestSession): void {
+export function setGuestSession(
+  data: Omit<GuestSession, "loginTimestamp">,
+): void {
   if (typeof window === "undefined") return;
 
-  try {
-    localStorage.setItem("guestSession", JSON.stringify(session));
-  } catch (error) {
-    console.error("Error storing guest session:", error);
-  }
+  const session: GuestSession = {
+    ...data,
+    loginTimestamp: Date.now(),
+  };
+
+  localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(session));
+  // Keep the legacy guestId key for any code that still reads it directly
+  localStorage.setItem(GUEST_ID_KEY, data.uid);
 }
 
 /**
- * Retrieve guest session from localStorage
+ * Read the guest session from localStorage.
+ * Returns null when running on the server or when no session exists.
  */
 export function getGuestSession(): GuestSession | null {
   if (typeof window === "undefined") return null;
 
-  try {
-    const sessionData = localStorage.getItem("guestSession");
-    if (!sessionData) return null;
+  const raw = localStorage.getItem(GUEST_SESSION_KEY);
+  if (!raw) return null;
 
-    return JSON.parse(sessionData) as GuestSession;
-  } catch (error) {
-    console.error("Error retrieving guest session:", error);
+  try {
+    const parsed = JSON.parse(raw) as Partial<GuestSession>;
+
+    // Backwards-compat: sessions written before this update won't have
+    // loginTimestamp.  Treat them as freshly created so existing guests
+    // aren't immediately kicked out.
+    if (!parsed.loginTimestamp) {
+      parsed.loginTimestamp = Date.now();
+      localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(parsed));
+    }
+
+    return parsed as GuestSession;
+  } catch {
     return null;
   }
 }
 
 /**
- * Clear guest session from localStorage
+ * Returns true when a non-expired, structurally complete session exists.
+ */
+export function isGuestSessionValid(
+  session: GuestSession | null = getGuestSession(),
+): boolean {
+  if (!session) return false;
+
+  const { uid, propertyId, roomId, loginTimestamp } = session;
+
+  // Must have all required fields
+  if (!uid || !propertyId || !roomId) return false;
+
+  // Must not be expired
+  if (Date.now() - loginTimestamp > GUEST_SESSION_DURATION) return false;
+
+  return true;
+}
+
+/**
+ * Wipe all guest session data from localStorage.
+ * Call this on logout, "Change Room", or "Check Out".
  */
 export function clearGuestSession(): void {
   if (typeof window === "undefined") return;
-
-  try {
-    localStorage.removeItem("guestSession");
-  } catch (error) {
-    console.error("Error clearing guest session:", error);
-  }
+  localStorage.removeItem(GUEST_SESSION_KEY);
+  localStorage.removeItem(GUEST_ID_KEY);
 }
 
 /**
