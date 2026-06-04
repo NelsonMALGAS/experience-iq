@@ -28,30 +28,39 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { UploadButton } from "@/utils/uploadthing";
 import { ISSUE_CATEGORY_LABELS, STAFF_DEPARTMENTS } from "@/constants";
-
+import { LogOut } from "lucide-react";
+import useGuestSession from "@/hooks/useGuestSession";
 
 const AddIssuePage = () => {
     const router = useRouter();
+    // ── Session guard: redirects to /login?role=guest if invalid/expired ──
+    const { session, loading, clearSession } = useGuestSession(true);
+
     const [issue, setIssue] = useState<Issue | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0)
+    const [uploadProgress, setUploadProgress] = useState(0);
 
-    // Load guest session
+    // Build the issue once we have a valid session
     useEffect(() => {
-        const storedSession = localStorage.getItem("guestSession");
+        if (loading || !session) return;
 
-        if (!storedSession) {
-            router.push("/login?role=guest");
-            return;
-        }
+        // Convert GuestSession → the shape createDefaultIssue expects
+        const legacyShape = {
+            uid: session.uid,
+            role: session.role,
+            propertyId: session.propertyId,
+            propertyName: session.propertyName,
+            propertyLocation: session.propertyLocation,
+            roomId: session.roomId,
+            roomNumber: session.roomNumber,
+        };
 
-        const session = JSON.parse(storedSession);
-        setIssue(createDefaultIssue(session));
-    }, [router]);
+        setIssue(createDefaultIssue(legacyShape));
+    }, [loading, session]);
 
-    if (!issue) return null;
+    if (loading || !issue) return null;
 
     const updateIssue = <K extends keyof Issue>(key: K, value: Issue[K]) => {
         setIssue((prev) =>
@@ -80,7 +89,6 @@ const AddIssuePage = () => {
         try {
             const issueRef = doc(db, "issues", issue.guestId);
 
-
             const newIssue = {
                 id: crypto.randomUUID(),
                 title: issue.title,
@@ -101,7 +109,7 @@ const AddIssuePage = () => {
                 resolvedAt: null,
                 isAnonymous: true,
                 images: imageUrls.length ? imageUrls : [],
-                read: issue.read ?? false
+                read: issue.read ?? false,
             };
 
             await setDoc(
@@ -115,7 +123,7 @@ const AddIssuePage = () => {
             );
 
             toast.success("Issue submitted successfully");
-            localStorage.removeItem("guestSession");
+            // Navigate to dashboard – session is preserved for the next visit
             router.push("/guest");
         } catch (error) {
             console.error(error);
@@ -129,30 +137,45 @@ const AddIssuePage = () => {
         <div className="min-h-screen bg-background flex justify-center px-4 py-24">
             <Card className="w-full max-w-xl border-border shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Report an Issue</CardTitle>
-                    <CardDescription>
-                        Room {issue.roomNumber} · We’ll notify staff immediately
-                    </CardDescription>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <CardTitle className="text-2xl">Report an Issue</CardTitle>
+                            <CardDescription>
+                                Room {issue.roomNumber} · We&apos;ll notify staff immediately
+                            </CardDescription>
+                        </div>
+                        {/* Change Room / logout button */}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive gap-1.5 shrink-0"
+                            onClick={() => clearSession({ signOut: true })}
+                            title="Change room or log out"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span className="hidden sm:inline text-xs">Change Room</span>
+                        </Button>
+                    </div>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
                     {/* Guest Name (Optional) */}
                     <div className="space-y-2">
                         <Label htmlFor="guestName">
-                            Guest Name <span className="text-muted-foreground">(optional)</span>
+                            Guest Name{" "}
+                            <span className="text-muted-foreground">(optional)</span>
                         </Label>
-
                         <Input
                             id="guestName"
                             value={issue.guestName}
                             onChange={(e) => updateIssue("guestName", e.target.value)}
                             placeholder="e.g. John Smith"
                         />
-
                         <p className="text-sm text-muted-foreground">
                             You may leave this as Guest if you prefer to remain anonymous.
                         </p>
                     </div>
+
                     <div className="space-y-2">
                         <Label>Issue Title</Label>
                         <Input
@@ -162,7 +185,6 @@ const AddIssuePage = () => {
                         />
                     </div>
 
-                    {/* Description */}
                     <div className="space-y-2">
                         <Label>Description</Label>
                         <Textarea
@@ -173,14 +195,11 @@ const AddIssuePage = () => {
                         />
                     </div>
 
-                    {/* Category */}
                     <div className="space-y-2">
                         <Label>Category</Label>
                         <Select
                             value={issue.category}
-                            onValueChange={(v) =>
-                                updateIssue("category", v as IssueCategory)
-                            }
+                            onValueChange={(v) => updateIssue("category", v as IssueCategory)}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
@@ -195,14 +214,11 @@ const AddIssuePage = () => {
                         </Select>
                     </div>
 
-                    {/* Priority */}
                     <div className="space-y-2">
                         <Label>Priority</Label>
                         <Select
                             value={issue.priority}
-                            onValueChange={(v) =>
-                                updateIssue("priority", v as IssuePriority)
-                            }
+                            onValueChange={(v) => updateIssue("priority", v as IssuePriority)}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select priority" />
@@ -220,7 +236,6 @@ const AddIssuePage = () => {
                     {/* Images */}
                     <div className="space-y-2">
                         <Label>Images (optional)</Label>
-
                         <div className="border border-dashed border-border rounded-lg bg-muted/40 p-4">
                             <UploadButton
                                 endpoint="imageUploader"
@@ -239,7 +254,6 @@ const AddIssuePage = () => {
                                                 Supported formats: PNG, JPG, JPEG (optional)
                                             </span>
                                         </>
-
                                     ),
                                 }}
                                 onClientUploadComplete={(res) => {
@@ -247,17 +261,16 @@ const AddIssuePage = () => {
                                     const urls = res.map((f) => f.url);
                                     setImageUrls((prev) => [...prev, ...urls]);
                                     setIsUploading(false);
-                                    setUploadProgress(0)
+                                    setUploadProgress(0);
                                     toast.success("Images uploaded");
                                 }}
                                 onUploadError={(error: Error) => {
                                     setIsUploading(false);
-                                    setUploadProgress(0)
+                                    setUploadProgress(0);
                                     toast.error(error.message);
                                 }}
                                 onUploadBegin={() => setIsUploading(true)}
                                 onUploadProgress={(p) => setUploadProgress(p)}
-
                             />
                         </div>
 
@@ -270,7 +283,7 @@ const AddIssuePage = () => {
                                     <div
                                         className="bg-blue-500 h-2 rounded-full transition-all"
                                         style={{ width: `${uploadProgress}%` }}
-                                    ></div>
+                                    />
                                 </div>
                             </div>
                         )}
@@ -309,4 +322,3 @@ const AddIssuePage = () => {
 };
 
 export default AddIssuePage;
-
