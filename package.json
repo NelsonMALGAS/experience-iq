@@ -45,6 +45,9 @@
     "web-push": "^3.6.7",
     "zustand": "^5.0.10"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
