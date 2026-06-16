@@ -85,6 +85,7 @@ export async function fetchPropertiesWithStats(
         ownerId: data.ownerId,
         name: data.name || "Unnamed Property",
         location: data.location || "Unknown Location",
+        organization: data.organization || "Unknown Organization",
         code: data.code || doc.id.substring(0, 6).toUpperCase(),
         rooms: (data.rooms || []).map((room: Room) => ({
           ...room,

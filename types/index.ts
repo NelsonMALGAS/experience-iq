@@ -37,6 +37,7 @@ export interface Property {
   ownerId: string;
   name: string;
   location: string;
+  organization?: string | null;
   totalIssues: number;
   openIssues: number;
   avgResolutionTime: number;
@@ -390,6 +391,7 @@ export interface CreatePropertyData {
   code: string;
   rooms: Room[];
   ownerId: string;
+  organization: string;
 }
 
 /**

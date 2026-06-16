@@ -472,6 +472,9 @@ export async function createProperty(data: CreatePropertyData) {
     if (!data.code?.trim()) {
       return { success: false, message: "Code is required" };
     }
+    if (!data.organization?.trim()) {
+      return { success: false, message: "Organization is required" };
+    }
 
     if (!data.rooms.length || data.rooms.length === 0) {
       return { success: false, message: "Please add atleast 1 room" };
@@ -484,6 +487,7 @@ export async function createProperty(data: CreatePropertyData) {
     await propertyRef.set({
       name: data.name.trim(),
       location: data.location.trim(),
+      organization: data.organization,
       ownerId: data.ownerId.trim(),
       totalIssues: 0,
       openIssues: 0,
