@@ -390,6 +390,7 @@ export interface CreatePropertyData {
   code: string;
   rooms: Room[];
   ownerId: string;
+  organization: string;
 }
 
 /**

@@ -36,6 +36,7 @@ type FormDataTypes = {
     location: string,
     rooms: Room[]
     ownerId: string
+    organization: string
 }
 
 type AddPropertyDialogProps = {
@@ -44,14 +45,13 @@ type AddPropertyDialogProps = {
     subscription?: UserSubscription | null
 }
 
-// ── NEW: Bulk generation state type ──────────────────────────────────────────
 type BulkConfig = {
     start: string;
     end: string;
     pattern: "sequential" | "floor-based";
     skip: string;
 };
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 export function AddPropertyDialog({ uid, properties, subscription }: AddPropertyDialogProps) {
     const [open, setOpen] = useState(false);
@@ -60,7 +60,8 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
         name: "",
         location: "",
         rooms: [],
-        ownerId: uid
+        ownerId: uid,
+        organization: ""
     });
     const lastRoomRef = useRef<HTMLInputElement | null>(null);
     const plan = getPlanByPriceId(subscription?.priceId)
@@ -245,7 +246,6 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
         // Reset bulk inputs after generation
         setBulkConfig(prev => ({ ...prev, start: "", end: "", skip: "" }));
     };
-    // ─────────────────────────────────────────────────────────────────────────
 
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -286,7 +286,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
 
             if (result.success) {
                 toast.success(result.message);
-                setFormData({ name: "", location: "", rooms: [], ownerId: uid });
+                setFormData({ name: "", location: "", rooms: [], ownerId: uid, organization: "" });
                 // ── NEW: Reset bulk config on success ──────────────────────────
                 setBulkConfig({ start: "", end: "", pattern: "sequential", skip: "" });
                 // ───────────────────────────────────────────────────────────────
@@ -334,6 +334,21 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                     <div className="flex-1 overflow-y-auto pr-2">
 
                         <div className="grid gap-6 py-6">
+                            {/* Organization Name */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="organization" className="text-sm font-medium">
+                                    Organization Name <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="organization"
+                                    placeholder="e.g., Organization Name"
+                                    value={formData.organization}
+                                    onChange={(e) => handleChange("organization", e.target.value)}
+                                    disabled={isPending || disabled}
+                                    required
+                                    className="h-11 hover:disabled:cursor-not-allowed"
+                                />
+                            </div>
                             {/* Property Name */}
                             <div className="grid gap-2">
                                 <Label htmlFor="name" className="text-sm font-medium">
