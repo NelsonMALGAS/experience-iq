@@ -70,7 +70,6 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     const isTrialing = subscription?.status === "trialing";
     const fieldsDisabled = isPending || disabled || isTrialing;
 
-    console.log(subscription, "SUBSCRIPTION")
 
     // ── NEW: Bulk config state ─────────────────────────────────────────────────
     const [bulkConfig, setBulkConfig] = useState<BulkConfig>({
