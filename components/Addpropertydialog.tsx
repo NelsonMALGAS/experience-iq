@@ -70,6 +70,8 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     const isTrialing = subscription?.status === "trialing";
     const fieldsDisabled = isPending || disabled || isTrialing;
 
+    console.log(subscription, "SUBSCRIPTION")
+
     // ── NEW: Bulk config state ─────────────────────────────────────────────────
     const [bulkConfig, setBulkConfig] = useState<BulkConfig>({
         start: "",
@@ -589,7 +591,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending || disabled}>
+                        <Button type="submit" disabled={fieldsDisabled}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
