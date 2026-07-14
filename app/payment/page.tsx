@@ -78,6 +78,7 @@ const Payment = async () => {
         "canceled",
         "incomplete",
         "unpaid",
+        "expired"
     ];
 
     const needsPayment =
@@ -91,7 +92,7 @@ const Payment = async () => {
         redirect(`/${serverRole}`);
     }
 
-    if (subscription && subscription.hasAccess) redirect("/admin")
+    if (subscription && subscription.hasAccess && subscription.status === "active") redirect("/admin")
     return (
         <div className="mt-20">
             <Pricing needsPayment={needsPayment} uid={uid} />

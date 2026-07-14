@@ -13,6 +13,7 @@ import ClientProviders from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next"
 import { PostHogProvider } from "@/components/PostHogProvider"
 
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],

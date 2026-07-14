@@ -178,6 +178,7 @@ export interface RoomCodeValidation {
 export type SubscriptionStatus =
   | "active"
   | "trialing"
+  | "expired"
   | "past_due"
   | "canceled"
   | "incomplete"
@@ -206,13 +207,16 @@ export type UserSubscription = {
   staffLimit?: number;
   priceId?: string;
   planCode?: string;
+  trialStartedAt?: string | null;
+  trialEndsAt?: string | null;
+  trialDays?: number;
 };
 
 type BaseAppUser = Partial<User> & {
   uid: string;
   role: Role;
   isVerified: boolean;
-  subscription?: UserSubscription;
+  subscription?: UserSubscription | null;
 };
 
 export type GuestUser = BaseAppUser & {

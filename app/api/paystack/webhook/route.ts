@@ -90,6 +90,9 @@ export async function POST(request: NextRequest) {
           "subscription.status": status,
           "subscription.priceId": metadata.priceId,
           "subscription.name": name,
+          "subscription.trialStartedAt": null,
+          "subscription.trialEndsAt": null,
+          "subscription.trialDays": 0,
           adminType: "main",
         });
 
@@ -150,6 +153,9 @@ export async function POST(request: NextRequest) {
           "subscription.cancelAtPeriodEnd": false,
           "subscription.createdAt": new Date().toISOString(),
           "subscription.cancelledAt": null,
+          "subscription.trialStartedAt": null,
+          "subscription.trialEndsAt": null,
+          "subscription.trialDays": 0,
           adminType: "main",
         });
 
@@ -191,6 +197,9 @@ export async function POST(request: NextRequest) {
           "subscription.status": "cancelled",
           "subscription.hasAccess": false,
           "subscription.cancelledAt": new Date().toISOString(),
+          "subscription.trialStartedAt": null,
+          "subscription.trialEndsAt": null,
+          "subscription.trialDays": 0,
         });
 
         break;
@@ -232,6 +241,9 @@ export async function POST(request: NextRequest) {
           "subscription.status": "non-renewing",
           "subscription.hasAccess": false,
           "subscription.lastPaymentFailed": new Date().toISOString(),
+          "subscription.trialStartedAt": null,
+          "subscription.trialEndsAt": null,
+          "subscription.trialDays": 0,
         });
 
         break;
