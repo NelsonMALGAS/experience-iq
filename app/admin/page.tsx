@@ -15,6 +15,7 @@ import RecentIssuesSection from "@/components/sections/RecentIssuesSection";
 import CriticalIssuesSection from "@/components/sections/CriticalIssuesSection";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import Unverified from "@/components/Unverified";
+import { TrialBanner } from "../../components/subscriptions/TrialBanner";
 
 
 export const metadata: Metadata = {
@@ -91,7 +92,9 @@ const AdminDashboard = async () => {
     // Return INSTANT shell, stream data sections
     return (
         <div className="mt-16 sm:mt-20 lg:mt-24">
+
             <DashboardLayout role={role} uid={uid} isVerified={true} adminId={adminId} inheritedFrom={inheritedFrom} isOwner={isOwner}>
+                <TrialBanner subscription={subscription} />
                 <div className="space-y-6 sm:space-y-8 px-2 sm:px-6 lg:px-8">
                     {/* ✅ INSTANT: Header renders immediately with no await */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

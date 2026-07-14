@@ -2,6 +2,7 @@ import { auth, db } from "@/db/server";
 import { Role, UserSubscription } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { hasSubscriptionAccess, getTrialDaysRemaining } from "@/lib/subscriptionAccess";
 
 export type VerificationResult = {
   uid: string;
@@ -13,6 +14,8 @@ export type VerificationResult = {
   adminType?: "main" | "inherited";
   inheritedFrom?: string;
   isOwner: boolean;
+  hasAccess: boolean;
+  trialDaysRemaining: number | null;
 };
 
 /**
@@ -53,6 +56,8 @@ export async function requireVerifiedUser(
       subscription: null,
       adminId: null,
       isOwner: false,
+      hasAccess: true,
+      trialDaysRemaining: null,
     };
   }
 
@@ -83,7 +88,6 @@ export async function requireVerifiedUser(
         userData.subscription ?? null;
 
       // Inherited admins: resolve subscription from their main admin
-      // ✅ FIX: was incorrectly fetching `uid` instead of `inheritedFrom`
       if (adminType === "inherited" && inheritedFrom) {
         const ownerDoc = await db?.collection("users").doc(inheritedFrom).get();
 
@@ -110,6 +114,8 @@ export async function requireVerifiedUser(
         adminType,
         inheritedFrom,
         isOwner,
+        hasAccess: hasSubscriptionAccess(subscription),
+        trialDaysRemaining: getTrialDaysRemaining(subscription),
       };
     }
 
@@ -125,6 +131,8 @@ export async function requireVerifiedUser(
           subscription: null,
           adminId: null,
           isOwner: false,
+          hasAccess: false,
+          trialDaysRemaining: null,
         };
       }
 
@@ -139,6 +147,8 @@ export async function requireVerifiedUser(
           subscription: null,
           adminId,
           isOwner: false,
+          hasAccess: false,
+          trialDaysRemaining: null,
         };
       }
 
@@ -154,6 +164,8 @@ export async function requireVerifiedUser(
           subscription: null,
           adminId,
           isOwner: false,
+          hasAccess: false,
+          trialDaysRemaining: null,
         };
       }
 
@@ -169,6 +181,8 @@ export async function requireVerifiedUser(
         subscription,
         adminId,
         isOwner: false, // Staff are never owners
+        hasAccess: hasSubscriptionAccess(subscription),
+        trialDaysRemaining: getTrialDaysRemaining(subscription),
       };
     }
 
@@ -189,6 +203,8 @@ function unverifiedResult(uid: string, role: Role): VerificationResult {
     subscription: null,
     adminId: null,
     isOwner: false,
+    hasAccess: false,
+    trialDaysRemaining: null,
   };
 }
 

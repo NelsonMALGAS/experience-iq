@@ -12,7 +12,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -67,6 +67,9 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
     const plan = getPlanByPriceId(subscription?.priceId)
 
     const disabled = plan ? properties.length >= plan.limits.propertyLimit : false
+    const isTrialing = subscription?.status === "trialing";
+    const fieldsDisabled = isPending || disabled || isTrialing;
+
 
     // ── NEW: Bulk config state ─────────────────────────────────────────────────
     const [bulkConfig, setBulkConfig] = useState<BulkConfig>({
@@ -250,6 +253,15 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (isTrialing) {
+            toast.error("Free trial", {
+                description: "Property creation is disabled while you're on a free trial. Upgrade your plan to add properties.",
+                duration: 10000,
+            });
+            return;
+        }
+
         if (!plan) {
             toast.error("Subscription required", {
                 description: "Please subscribe to a plan before creating a property.",
@@ -257,6 +269,8 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
             });
             return;
         }
+
+
 
         if (hasDuplicateRooms()) {
             toast.error("Duplicate room numbers are not allowed.");
@@ -320,7 +334,20 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                             Create a new property to manage issues and track performance.
                         </DialogDescription>
                     </DialogHeader>
-                    {disabled && (
+                    {/* ── NEW: Trial notice — takes priority over the limit alert ── */}
+                    {isTrialing && (
+                        <Alert className="mt-4 border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+                            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <AlertTitle className="text-amber-800 dark:text-amber-300">
+                                Free trial
+                            </AlertTitle>
+                            <AlertDescription className="text-amber-800 dark:text-amber-300">
+                                Property creation is disabled while you&apos;re on a free trial.
+                                Subscribe to a plan to add properties and rooms.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    {!isTrialing && disabled && (
                         <Alert variant="destructive" className="mt-4">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertTitle>Property limit reached</AlertTitle>
@@ -344,7 +371,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     placeholder="e.g., Organization Name"
                                     value={formData.organization}
                                     onChange={(e) => handleChange("organization", e.target.value)}
-                                    disabled={isPending || disabled}
+                                    disabled={fieldsDisabled}
                                     required
                                     className="h-11 hover:disabled:cursor-not-allowed"
                                 />
@@ -359,7 +386,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     placeholder="e.g., Grand Plaza Hotel"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
-                                    disabled={isPending || disabled}
+                                    disabled={fieldsDisabled}
                                     required
                                     className="h-11 hover:disabled:cursor-not-allowed"
                                 />
@@ -375,7 +402,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                     placeholder="e.g., New York, NY"
                                     value={formData.location}
                                     onChange={(e) => handleChange("location", e.target.value)}
-                                    disabled={isPending || disabled}
+                                    disabled={fieldsDisabled}
                                     required
                                     className="h-11 hover:disabled:cursor-not-allowed"
                                 />
@@ -390,7 +417,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                         variant="outline"
                                         size="sm"
                                         onClick={addRoom}
-                                        disabled={isPending || disabled}
+                                        disabled={fieldsDisabled}
                                         className="hover:disabled:cursor-not-allowed"
                                     >
                                         <Plus className="h-4 w-4 mr-1" />
@@ -418,7 +445,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                                 onChange={(e) =>
                                                     setBulkConfig(prev => ({ ...prev, start: e.target.value }))
                                                 }
-                                                disabled={isPending || disabled}
+                                                disabled={fieldsDisabled}
                                                 className="h-9"
                                                 min={1}
                                             />
@@ -435,7 +462,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                                 onChange={(e) =>
                                                     setBulkConfig(prev => ({ ...prev, end: e.target.value }))
                                                 }
-                                                disabled={isPending || disabled}
+                                                disabled={fieldsDisabled}
                                                 className="h-9"
                                                 min={1}
                                             />
@@ -454,7 +481,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                                     pattern: value as BulkConfig["pattern"],
                                                 }))
                                             }
-                                            disabled={isPending || disabled}
+                                            disabled={fieldsDisabled}
                                         >
                                             <SelectTrigger id="bulk-pattern" className="h-9">
                                                 <SelectValue />
@@ -482,7 +509,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                             onChange={(e) =>
                                                 setBulkConfig(prev => ({ ...prev, skip: e.target.value }))
                                             }
-                                            disabled={isPending || disabled}
+                                            disabled={fieldsDisabled}
                                             className="h-9"
                                         />
                                     </div>
@@ -522,6 +549,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                                 value={room.roomNumber}
                                                 onChange={(e) => updateRoom(index, "roomNumber", e.target.value)}
                                                 required
+                                                disabled={fieldsDisabled}
                                                 className="h-10 flex-1"
                                             />
 
@@ -530,7 +558,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => removeRoom(index)}
-                                                disabled={isPending}
+                                                disabled={fieldsDisabled}
                                             >
                                                 <Trash className="h-4 w-4" />
                                             </Button>
@@ -562,7 +590,7 @@ export function AddPropertyDialog({ uid, properties, subscription }: AddProperty
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending || disabled}>
+                        <Button type="submit" disabled={fieldsDisabled}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

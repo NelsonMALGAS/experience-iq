@@ -18,6 +18,7 @@ import {
 import { ISSUE_CATEGORY_LABELS, STAFF_DEPARTMENTS } from "@/constants";
 import Image from "next/image";
 import { PropertySelect } from "./properties/PropertySelect";
+import { TRIAL_DURATION_DAYS, TRIAL_DURATION_MS } from "@/lib/subscriptionAccess";
 
 type AdminRegistrationFormProps = {
     role: Role;
@@ -31,6 +32,9 @@ type FormErrors = {
     selectedProperty?: string;
 };
 
+
+
+
 const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
     const { currentUser, loading } = useCurrentUser();
     const [properties, setProperties] = useState<Property[]>([]);
@@ -42,6 +46,9 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
     // Staff-specific state
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [adminId, setAdminId] = useState<string | undefined>(undefined);
+
+    const trialEndsAtIso = new Date(Date.now() + TRIAL_DURATION_MS).toISOString();
+    const nowIso = new Date().toISOString();
 
     const router = useRouter();
 
@@ -163,6 +170,14 @@ const AdminRegistrationForm = ({ role, uid }: AdminRegistrationFormProps) => {
                     role: "admin",
                     property: properties,
                     adminType: "main",
+                    subscription: {
+                        hasAccess: true,
+                        status: "trialing",
+                        trialStartedAt: nowIso,
+                        trialEndsAt: trialEndsAtIso,
+                        trialDays: TRIAL_DURATION_DAYS,
+                    },
+
                 };
 
             default:
