@@ -12,6 +12,7 @@ import { getAdminStaff, getUnverifiedAdminStaff } from "@/app/optimised-actions"
 import { RefreshButton } from "@/components/layout/RefreshButton";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import { PaginatedStaffList } from "@/components/staff/PaginatedStaffList";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 
 export const metadata: Metadata = {
     title: "Staff Verification – ExperienceIQ",
@@ -67,14 +68,16 @@ const StaffVerificationPage = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, adminId, inheritedFrom, isOwner, subscription } = verificationResult;
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
-    if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />;
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
 
     // Fetch both lists in parallel — data stays server-side

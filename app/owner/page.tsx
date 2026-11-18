@@ -16,6 +16,8 @@ import { getBillingIntervalByPriceId } from "@/lib/plans";
 import { getInitials } from "@/helpers";
 import { Metadata } from "next";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
+import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 
 
 export const metadata: Metadata = {
@@ -69,12 +71,18 @@ const OwnerPage = async () => {
     const result = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, subscription, adminId, isOwner, inheritedFrom } = result;
 
+    const expired = isTrialExpired(subscription)
+
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />;
     }
 
     if (!isOwner) {
         redirect("/admin");
+    }
+
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
 
     // ── Fetch collaborators server-side ───────────────────────────────────

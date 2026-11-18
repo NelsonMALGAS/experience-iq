@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import RosterCreatorSkeleton from "@/components/skeletons/RosterCreatorSkeleton";
 import RosterCreator from "@/components/sections/RosterCreator";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 
 
 export const metadata: Metadata = {
@@ -69,14 +70,16 @@ const RosterPage = async () => {
     const { uid, isVerified, canAccessData, subscription } = verificationResult;
     const userRole = role || "admin";
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={userRole} uid={uid} isOwner={undefined} />;
     }
 
-    if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />;
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
 
     // 🚀 INSTANT shell with streaming content

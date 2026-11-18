@@ -7,6 +7,7 @@ import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
 import Unverified from "@/components/Unverified";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { Metadata } from "next";
@@ -69,6 +70,8 @@ const StaffIssuesPage = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, adminId, subscription, inheritedFrom } = verificationResult;
 
+    const expired = isTrialExpired(subscription)
+
     if (!uid) redirect(`/login?role=${role || "staff"}`)
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
@@ -76,8 +79,7 @@ const StaffIssuesPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
     }
 
-    if (!subscription || !subscription.hasAccess || !adminId) {
-
+    if (!subscription || !adminId || !subscription.hasAccess || expired) {
         return <SubscriptionBanner type="staff" />
     }
 

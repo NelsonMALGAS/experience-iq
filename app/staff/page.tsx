@@ -16,6 +16,7 @@ import PerformanceSection from "@/components/sections/PerformanceSection";
 import IssuesListSkeleton from "@/components/skeletons/IssuesListSkeleton";
 import ActiveIssuesSection from "@/components/sections/ActiveIssueSection";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 
 export const metadata: Metadata = {
     title: "Staff Dashboard – ExperienceIQ",
@@ -67,6 +68,7 @@ const StaffDashboard = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
 
+    const expired = isTrialExpired(subscription)
 
     if (!canAccessData) {
         return (
@@ -113,9 +115,10 @@ const StaffDashboard = async () => {
         );
     }
 
-    if (!subscription || !adminId || !subscription.hasAccess) {
+    if (!subscription || !adminId || !subscription.hasAccess || expired) {
         return <SubscriptionBanner type="staff" />
     }
+
 
     // 🚀 INSTANT shell with progressive streaming
     return (

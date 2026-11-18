@@ -2,7 +2,10 @@ import { auth, db } from "@/db/server";
 import { Role, UserSubscription } from "@/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasSubscriptionAccess, getTrialDaysRemaining } from "@/lib/subscriptionAccess";
+import {
+  hasSubscriptionAccess,
+  getTrialDaysRemaining,
+} from "@/lib/subscriptionAccess";
 
 export type VerificationResult = {
   uid: string;
@@ -16,6 +19,7 @@ export type VerificationResult = {
   isOwner: boolean;
   hasAccess: boolean;
   trialDaysRemaining: number | null;
+  status?: string | undefined;
 };
 
 /**
@@ -183,6 +187,7 @@ export async function requireVerifiedUser(
         isOwner: false, // Staff are never owners
         hasAccess: hasSubscriptionAccess(subscription),
         trialDaysRemaining: getTrialDaysRemaining(subscription),
+        status: subscription?.status ?? "trialing",
       };
     }
 
