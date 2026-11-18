@@ -182,7 +182,6 @@ export async function fetchGuestIssues(guestId: string) {
  * Fetch critical issues (high priority, unresolved) - optimized
  */
 export async function fetchCriticalIssues() {
-  console.log("fetchCriticalIssues called");
   try {
     if (!db) throw new Error("Firestore not initialized");
 
@@ -294,6 +293,7 @@ export async function getStaffUsers(): Promise<StaffMember[]> {
         color: staffColorPalette[index % staffColorPalette.length],
         department: data.department || "other",
         role: data.role || "guest",
+        ownerId: data.property[0].ownerId || null,
       };
     });
 
@@ -333,6 +333,7 @@ export async function getVerifiedStaffUsers(): Promise<StaffMember[]> {
         color: staffColorPalette[index % staffColorPalette.length],
         department: data.department || "other",
         role: data.role || "guest",
+        ownerId: data.property[0].ownerId || null,
       };
     });
 
@@ -737,6 +738,7 @@ export async function getAdminStaff(uid: string): Promise<StaffMember[]> {
         department: data.department || "other",
         role: data.role || "guest",
         adminId: data.adminId || null,
+        ownerId: data.property[0].ownerId || null,
         property: Array.isArray(data.property)
           ? (data.property[0] ?? null)
           : (data.property ?? null),
@@ -779,6 +781,7 @@ export async function getUnverifiedAdminStaff(
         department: data.department || "other",
         role: data.role || "guest",
         adminId: data.adminId || null,
+        ownerId: data.property[0].ownerId || null,
       };
     });
 

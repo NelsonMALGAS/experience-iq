@@ -14,7 +14,7 @@ export type VerificationResult = {
   canAccessData: boolean;
   subscription?: UserSubscription | null;
   adminId?: string | null;
-  adminType?: "main" | "inherited";
+  adminType?: "main" | "inherited" | undefined;
   inheritedFrom?: string;
   isOwner: boolean;
   hasAccess: boolean;

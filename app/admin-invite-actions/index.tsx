@@ -86,7 +86,6 @@ export async function resolveAdminSubscription(
 export async function hasActiveSubscription(uid: string): Promise<boolean> {
     const resolved = await resolveAdminSubscription(uid);
 
-    console.log(resolved, "hasActiveSubscription")
     return resolved.hasAccess;
 }
 
