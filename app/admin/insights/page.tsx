@@ -9,6 +9,7 @@ import Unverified from "@/components/Unverified";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
 import { deriveAiInsights, deriveAvgResponseTime, deriveCriticalAlerts, deriveOverallSatisfaction, deriveSentimentRisk, severityClass } from "@/lib/insights";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { AlertTriangle, BarChart3, Clock, Activity, Sparkles, TrendingUp, MapPin } from "lucide-react";
@@ -73,14 +74,16 @@ const InsightsPage = async () => {
     const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom, isOwner } =
         verificationResult;
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
-    if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />;
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
 
     const { issues, properties } = await fetchPropertiesWithStats(uid, inheritedFrom);

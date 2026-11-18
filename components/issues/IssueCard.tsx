@@ -20,11 +20,13 @@ interface IssueCardProps {
     staffMembers: StaffMember[];
     currentUserId?: string;
     userRole?: Role;
+    adminType?: "main" | "inherited";
+    adminId?: string | null | undefined;
     onQuickView?: (issue: Issue) => void;
 }
 
 
-export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staff', onQuickView }: IssueCardProps) {
+export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staff', adminId, adminType, onQuickView }: IssueCardProps) {
     const [isPending, startTransition] = useTransition();
     const [optimisticStatus, setOptimisticStatus] = useState(issue.status);
     const [optimisticAssignee, setOptimisticAssignee] = useState(issue.assignedTo);
@@ -35,6 +37,21 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
     const hasImages = issue.images && issue.images.length > 0;
     const canUpdateStatus =
         isAdmin || (userRole === "staff" && issue.assignedTo === currentUserId);
+
+    // Determine the owner ID responsible for this administrator.
+    const effectiveAdminId =
+        adminType === "inherited" ? adminId : currentUserId;
+
+    const propertyStaffMembers = isAdmin
+        ? staffMembers.filter(
+            staff => staff.ownerId === effectiveAdminId
+        )
+        : staffMembers;
+
+
+    const assignedStaff = propertyStaffMembers.find(
+        staff => staff.id === optimisticAssignee
+    );
 
     const handleStatusChange = (newStatus: Issue['status']) => {
         if (!isAdmin && issue.assignedTo !== currentUserId) {
@@ -76,7 +93,9 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
             return;
         }
 
-        const staff = staffMembers?.find(s => s.id === staffId);
+        const staff = propertyStaffMembers.find(
+            (member) => member.id === staffId
+        );
         if (!staff) return;
 
         setOptimisticAssignee(staffId);
@@ -97,7 +116,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
 
     const currentPriority = priorityConfig[issue.priority];
     const PriorityIcon = currentPriority.icon;
-    const assignedStaff = staffMembers?.find(s => s.id === optimisticAssignee);
+
 
     const handleImageError = (index: number) => {
         setImageError(prev => new Set([...prev, index]));
@@ -284,7 +303,7 @@ export function IssueCard({ issue, staffMembers, currentUserId, userRole = 'staf
                                                 <span>Unassigned</span>
                                             </div>
                                         </SelectItem>
-                                        {staffMembers?.map((staff) => (
+                                        {propertyStaffMembers?.map((staff) => (
                                             <SelectItem key={staff.id} value={staff.id} className="text-xs">
                                                 <div className="flex items-center gap-2 justify-between w-full">
                                                     <div className="flex items-center gap-2 min-w-0 flex-1">

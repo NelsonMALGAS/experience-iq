@@ -273,6 +273,7 @@ export const useRoster = (
           staffColorPalette[staffMembers.length % staffColorPalette.length],
         isVerified: false,
         role: newStaffData.role,
+        ownerId: null,
       };
       setStaffMembers((prev) => [...prev, newStaff]);
       setNewStaffData({

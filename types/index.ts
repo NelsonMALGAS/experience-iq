@@ -316,6 +316,7 @@ export interface StaffMember {
   role: Role;
   adminId?: string | null;
   property?: Property | null;
+  ownerId: string | null;
 }
 
 export interface Shift {

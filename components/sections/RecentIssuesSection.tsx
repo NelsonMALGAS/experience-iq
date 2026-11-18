@@ -5,9 +5,15 @@ import { CheckCircle2, Clock } from "lucide-react";
 import { fetchPropertiesWithStats } from "@/app/optimised-actions/properties";
 import RecentIssuesList from "./RecentIssuesList";
 
-type RecentIssuesSectionProps = { uid: string; role: Role, inheritedFrom: string | undefined }
+type RecentIssuesSectionProps = {
+    uid: string;
+    role: Role,
+    inheritedFrom: string | undefined
+    adminType: "main" | "inherited" | undefined
+    adminId: string | null | undefined
+}
 
-const RecentIssuesSection = async ({ uid, role, inheritedFrom }: RecentIssuesSectionProps) => {
+const RecentIssuesSection = async ({ uid, role, inheritedFrom, adminType, adminId }: RecentIssuesSectionProps) => {
     const [data, staffUsers] = await Promise.all([
         fetchPropertiesWithStats(uid, inheritedFrom),
         getStaffUsers()
@@ -40,7 +46,9 @@ const RecentIssuesSection = async ({ uid, role, inheritedFrom }: RecentIssuesSec
                         issues={recentIssues}
                         currentUserId={uid}
                         staffMembers={staffUsers}
+                        adminType={adminType}
                         userRole={role}
+                        adminId={adminId}
                     />
                 ) : (
                     <div className="text-center py-16">

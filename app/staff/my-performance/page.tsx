@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Unverified from "@/components/Unverified";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { auth } from "@/db/server";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 import { requireVerifiedUser } from "@/lib/verificationGuards";
 import { Role } from "@/types";
 import { Activity, AlertCircle, CheckCircle2, Clock, Target, TrendingUp } from "lucide-react";
@@ -66,6 +67,8 @@ const MyPerformance = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, adminId, subscription } = verificationResult;
 
+    const expired = isTrialExpired(subscription)
+
     if (!uid) redirect(`/login?role=${role}`)
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
@@ -73,7 +76,7 @@ const MyPerformance = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />
     }
 
-    if (!subscription || !adminId || !subscription.hasAccess) {
+    if (!subscription || !adminId || !subscription.hasAccess || expired) {
         return <SubscriptionBanner type="staff" />
     }
 

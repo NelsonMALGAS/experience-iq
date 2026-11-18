@@ -28,7 +28,8 @@ const ActiveIssuesSection = async ({ uid, role, adminId }: ActiveIssuesSectionPr
         isVerified: user.isVerified,
         color: staffColorPalette[index % staffColorPalette.length],
         department: user.department,
-        role: user.role
+        role: user.role,
+        ownerId: user.ownerId
     }));
 
     const assignedIssues = allIssues.filter(i => i.assignedTo === uid);

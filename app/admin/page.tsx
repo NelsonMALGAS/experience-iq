@@ -119,7 +119,7 @@ const AdminDashboard = async () => {
                     </Suspense>
 
                     <Suspense fallback={<IssuesSkeleton />}>
-                        <RecentIssuesSection uid={uid} role={role} inheritedFrom={inheritedFrom} />
+                        <RecentIssuesSection uid={uid} role={role} inheritedFrom={inheritedFrom} adminType={adminType} adminId={adminId} />
                     </Suspense>
 
                     <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse"><div className="h-64 bg-muted rounded" /><div className="h-64 bg-muted rounded lg:col-span-2" /></div>}>

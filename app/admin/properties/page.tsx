@@ -14,6 +14,7 @@ import { Suspense } from "react";
 import DashboardLayoutSkeleton from "@/components/layout/DashboardLayoutSkeleton";
 import { PropertiesClient } from "@/components/properties/PropertiesClient";
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 
 export const metadata: Metadata = {
     title: "Properties – ExperienceIQ",
@@ -69,6 +70,8 @@ const PropertiesPage = async () => {
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, subscription, adminId, inheritedFrom, isOwner } = verificationResult;
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role}`);
 
     // 🚫 HARD RULE: If not verified, show restricted dashboard WITHOUT fetching data
@@ -76,10 +79,9 @@ const PropertiesPage = async () => {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
-    if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />;
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
-
     // ✅ USER IS VERIFIED - Fetch properties with live statistics
     let properties: Property[] = [];
     let error: string | null = null;

@@ -17,6 +17,7 @@ import { IssueHeaderSkeleton } from "@/components/skeletons/IssueHeaderSkeleton"
 import IssueContent from "@/components/sections/IssueContent"
 import { IssueContentSkeleton } from "@/components/skeletons/IssueContentSkeleton"
 import { SubscriptionBanner } from "@/components/payment/SubscriptionBanner"
+import { isTrialExpired } from "@/lib/subscriptionAccess"
 
 export async function generateMetadata(
     { params }: IssueDetailsPageProps,
@@ -113,14 +114,16 @@ const IssueDetailsPage = async ({
     const verificationResult = await requireVerifiedUser(session, role);
     const { uid, isVerified, canAccessData, role: UserRole, subscription } = verificationResult;
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role || "admin"}`);
 
     if (!canAccessData) {
         return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={undefined} />;
     }
 
-    if (!subscription || !subscription.hasAccess) {
-        return <SubscriptionBanner type="admin" />;
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
     }
 
     const goBackUrl = role === "admin" ? "/admin" : "/staff/issues";

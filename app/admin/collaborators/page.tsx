@@ -19,6 +19,7 @@ import { RevokeAccessButton } from "@/components/admins/RevokeAccessButton";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Metadata } from "next";
 import { getActivePermissionLabels, getInitials } from "@/helpers";
+import { isTrialExpired } from "@/lib/subscriptionAccess";
 
 
 export const metadata: Metadata = {
@@ -68,9 +69,14 @@ const CollaboratorsPage = async () => {
     const { uid, isVerified, canAccessData, subscription, adminId, adminType, inheritedFrom, isOwner } =
         verificationResult;
 
+    const expired = isTrialExpired(subscription);
+
     if (!uid) redirect(`/login?role=${role}`);
     if (!canAccessData) return <Unverified isVerified={isVerified} role={role} uid={uid} isOwner={isOwner} />;
-    if (!subscription?.hasAccess && !inheritedFrom) return <SubscriptionBanner type="admin" />;
+
+    if (!subscription || !subscription.hasAccess || expired) {
+        return <SubscriptionBanner type="admin" />
+    }
 
     if (!db) {
         console.error("[CollaboratorsPage] Firestore not initialized");

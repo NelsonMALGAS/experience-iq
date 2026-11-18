@@ -11,6 +11,8 @@ type RecentIssuesListProps = {
     staffMembers: StaffMember[];
     currentUserId: string;
     userRole: Role;
+    adminType: "main" | "inherited" | undefined
+    adminId: string | null | undefined
 };
 
 const RecentIssuesList = ({
@@ -18,6 +20,8 @@ const RecentIssuesList = ({
     staffMembers,
     currentUserId,
     userRole,
+    adminType,
+    adminId
 }: RecentIssuesListProps) => {
     const {
         paginatedData,
@@ -43,6 +47,8 @@ const RecentIssuesList = ({
                             staffMembers={staffMembers}
                             currentUserId={currentUserId}
                             userRole={userRole}
+                            adminType={adminType}
+                            adminId={adminId}
                         />
                     </div>
                 ))}
