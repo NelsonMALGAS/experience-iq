@@ -1,4 +1,4 @@
-import AuthForm from "@/components/AuthForm"
+import LoginLayout from "@/components/login/LoginLayout";
 import { roles } from "@/constants";
 import { baseKeywords, baseUrl, sharedMetadata } from "@/constants/sharedMetadata";
 import { Role } from "@/types";
@@ -62,7 +62,7 @@ const LoginPage = async ({ searchParams }: LoginPageProps) => {
 
     return (
         <div className="mt-24">
-            <AuthForm role={role} />
+            <LoginLayout role={role} />
         </div>
     )
 }
