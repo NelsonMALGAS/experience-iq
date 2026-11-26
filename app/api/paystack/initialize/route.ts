@@ -45,14 +45,9 @@ export async function POST(request: NextRequest) {
     const body: InitializeRequest = await request.json();
     const { email, planId, billingInterval, userId, priceId, planCode } = body;
 
-    if (
-      !email ||
-      !planId ||
-      !billingInterval ||
-      !userId ||
-      !priceId ||
-      !planCode
-    ) {
+    console.log(planCode, "PLAN_CODE");
+
+    if (!email || !planId || !billingInterval || !userId || !priceId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -81,7 +76,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           email,
           amount,
-          plan: planCode,
+          // plan: planCode,
           currency: "ZAR",
           metadata: {
             userId,
