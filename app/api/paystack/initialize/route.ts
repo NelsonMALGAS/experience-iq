@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           email,
           amount,
-          // plan: planCode,
+          plan: planCode,
           currency: "ZAR",
           metadata: {
             userId,
